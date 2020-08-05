@@ -9,7 +9,7 @@ Parameter OASPath As %String = "Get:/oas";
 Parameter DispatchClass As %String = "MyApp.MyService";
 
 /// Use TracerBSName for monitoring
-Parameter Traceable As %Boolean = 1;
+Parameter Traceable As %Boolean = 0;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
