@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2019.1.1 (Build 612_0_19677U)" ts="2020-07-30 10:07:20">
+<Class name="FolderManager.Export36439">
+<IncludeCode>%DeepSee</IncludeCode>
+<ProcedureBlock>0</ProcedureBlock>
+<Super>%DeepSee.UserLibrary.Container</Super>
+<TimeChanged>65590,36440.035169</TimeChanged>
+<TimeCreated>65590,36439.945696</TimeCreated>
+
+<XData name="Contents">
+<Description>
+Items Exported From Folder Manager.</Description>
+<XMLNamespace>http://www.intersystems.com/deepsee</XMLNamespace>
+<Data><![CDATA[
+<items><folder xmlns="http://www.intersystems.com/deepsee/library" name="apiPub_Monitor_Dashboard">
+</folder>
+<dashboard xmlns="http://www.intersystems.com/deepsee/library" name="apiPub Monitor" folderName="apiPub_Monitor_Dashboard" title="apiPub Monitor" description="" keywords="" owner="" shared="true" public="true" locked="false" resource="" timeCreated="2016-07-12T14:59:45.38Z" createdBy="UnknownUser" category="" bookCover="{background: {style:&apos;background:white;&apos;},header: {text:&apos;$type&apos;},title: {text:&apos;$title&apos;},image: {src:&apos;covers/8945757_s.jpg&apos;,imageStyle:&apos;width:64px;height:64px;&apos;},footer: {text:&apos;$owner&apos;}}" scheme="" worklistCount="0" snapTo="true" snapGrid="true" gridRows="10" gridCols="10" canResize="true" canModify="true" showTitleBar="true" titleBarOpacity="" titleBarColor="" selectedTitleBarOpacity="" selectedTitleBarColor="" titleBarTextColor="" selectedTitleBarTextColor="" titleBarFont="" companyName="" companyLogo="" companyStyle="" backgroundColor="white" backgroundImage="none" backgroundRepeat="no-repeat" backgroundSize="100% 100%" backgroundOpacity="1" widgetBorders="1px solid #F0F0F0" widgetBordersSwitch="edit" widgetBordersColor="#F0F0F0" widgetBordersStyle="solid" widgetBordersWidth="1" widgetBordersToggle="true">
+  <widget name="Monitor Table" type="pivot" subtype="pivot" subtypeClass="lineChart" title="APIs Monitor" dataSource="apiPub_Monitor_Pivot/APIs By Response Status Table.pivot" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="0" homeColL="0" colSpanL="6" rowSpanL="5" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
+    <control name="" action="refresh" target="" targetProperty="" location="widget" type="auto" controlClass="" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="*" targetProperty="[Date].[H1].[Day]" location="widget" type="auto" controlClass="" label="Day" title="" value="&amp;[NOW]" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="*" targetProperty="[API].[H1].[APIOperationId]" location="widget" type="auto" controlClass="" label="API" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="*" targetProperty="[API].[H1].[APIDomain]" location="widget" type="auto" controlClass="" label="API Domain" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="showListing" target="" targetProperty="UltimasMensagens" location="widget" type="auto" controlClass="" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="LinkToEnsembleTrace" target="" targetProperty="" location="widget" type="auto" controlClass="" label="Tracing" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="listingSelected1">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="refresh" target="*" targetProperty="" location="widget" type="timer" controlClass="" timeout="60" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="*" targetProperty="[CallerInfo].[H1].[CallerInfo]" location="widget" type="auto" controlClass="" label="CallerInfo" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <property name="excel">1</property>
+    <override name="pivot">{cellHeight:'20',cellStyle:'font-size:14pt;',cellWidth:'100',crossJoinRowLimit:2000,currListingPage:-1,currPage:1,listingFields:[],listingSelect:'multi',pivotVariables:{},rowHeaderStyle:'font-weight: bold;color:rgb(0, 0, 240);',_type:'pivotTable'}</override>
+  </widget>
+  <widget name="Last API Requests" type="pivot" subtype="pivot" subtypeClass="lineChart" title="Last API Requests" dataSource="apiPub_Monitor_Pivot/Last Msgs Detail List.pivot" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="5" homeColL="0" colSpanL="10" rowSpanL="5" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
+    <control name="" action="applyFilter" target="" targetProperty="[Date].[H1].[Day]" location="widget" type="auto" controlClass="" label="Day" title="" value="&amp;[NOW]" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[ResponseStatus].[H1].[ResponseStatus]" location="widget" type="auto" controlClass="" label="ResponseStatus" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[Http Response].[H1].[Reason Phrase]" location="widget" type="auto" controlClass="" label="Reason Phrase" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[API].[H1].[APIDomain]" location="widget" type="auto" controlClass="" label="API Domain" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[API].[H1].[APIOperationId]" location="widget" type="auto" controlClass="" label="API" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[CallerInfo].[H1].[CallerInfo]" location="widget" type="auto" controlClass="" label="CallerInfo" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="applyFilter" target="" targetProperty="[Http Params].[H1].[Http Params]" location="widget" type="auto" controlClass="" label="Http Params" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="refresh" target="" targetProperty="" location="widget" type="auto" controlClass="" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <control name="" action="LinkToEnsembleTrace" target="" targetProperty="" location="widget" type="button" controlClass="" label="Tracing" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="listingSelected1">
+      <valueRequired>false</valueRequired>
+    </control>
+    <property name="excel">1</property>
+  </widget>
+  <widget name="Last Week" type="pivot" subtype="barChart" subtypeClass="barChart" title="Last Week" dataSource="apiPub_Monitor_Pivot/Last Week By Response Status.pivot" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="0" homeColL="6" colSpanL="4" rowSpanL="5" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
+    <control name="" action="applyFilter" target="" targetProperty="[API].[H1].[APIOperationId]" location="widget" type="auto" controlClass="" label="Filter" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <property name="analyzer">1</property>
+    <property name="chartToggle">none</property>
+    <property name="drillDown">0</property>
+    <property name="initialExecute">1</property>
+    <property name="legendPos">bottom</property>
+    <property name="showDimensions">1</property>
+    <override name="barChart">{bandUpperStyle:'stroke-width:0;',borderRadius:1,borderStyle:'stroke-width:0;',gridStyle:'stroke-width:0;',indicatorStyle:'stroke-width:0;',legendVisible:'false',lineStyle:'stroke-width:5.25;opacity:0.47;',marginBottom:'18',marginRight:'5',marginTop:'13',markerScale:0.8999999999999999,seriesColorsOverride:'rgb(63,119,7),rgb(231,192,80),rgb(209,29,0)',stripesVisible:true,subtitleStyle:'font-size:9px;stroke-width:0.35000000000000003;',titleAlign:'left',titleBoxStyle:'stroke-width:0;',valueBoxStyle:'stroke-width:0;',valueLabelStyle:'font-size:2px;',xAxis:{labelPosition:'bottom',labelStyle:'font-size:9px;',majorGridStyle:'stroke-width:0;',title:'Dia',_type:'axis'},yAxisList:[{labelPosition:'left',labelStyle:'font-size:14px;opacity:0.9;stroke-width:0;stroke:none;',majorGridStyle:'stroke-width:0.5;',maxValue:1000,minorGridLines:true,minorGridStyle:'stroke-width:0.75;',title:'Quantidade',_type:'axis'}],chartPivot:true,_type:'barChart'}</override>
+    <override name="legend">{legendLabels:'Success,BusinessError,Error',legendPosition:'right',legendStyle:'font-size:12px;padding:0px;width:0px;height:0px;',orientation:'horizontal',_type:'chartLegend'}</override>
+    <override name="lineChart">{bandUpperStyle:'stroke-width:0;',borderRadius:1,borderStyle:'stroke-width:0;',gridStyle:'stroke-width:0;',indicatorStyle:'stroke-width:0;',legendVisible:'false',lineStyle:'stroke-width:5.25;opacity:0.47;',marginBottom:'18',marginRight:'5',marginTop:'13',markerScale:0.8999999999999999,markersVisible:true,seriesColorsOverride:'rgb(63,119,7),rgb(231,192,80),rgb(209,29,0)',stripesVisible:true,subtitleStyle:'font-size:9px;stroke-width:0.35000000000000003;',titleAlign:'left',titleBoxStyle:'stroke-width:0;',valueBoxStyle:'stroke-width:0;',valueLabelStyle:'font-size:2px;',xAxis:{labelPosition:'bottom',labelStyle:'font-size:9px;',majorGridLines:false,majorGridStyle:'stroke-width:0;',title:'Dia',_type:'axis'},yAxisList:[{labelPosition:'left',labelStyle:'font-size:14px;opacity:0.9;stroke-width:0;stroke:none;',majorGridStyle:'stroke-width:0.5;',maxValue:1000,minValue:-1,minorGridLines:true,minorGridStyle:'stroke-width:0.75;',title:'Quantidade',_type:'axis'}],_type:'lineChart'}</override>
+    <override name="treeMapChart">{backgroundStyle:'fill: white; stroke: none;',bandUpperStyle:'stroke-width:0;',borderRadius:1,borderStyle:'stroke-width:0;',gridStyle:'stroke-width:0;',indicatorStyle:'stroke-width:0;',legendVisible:'false',lineStyle:'stroke-width:5.25;opacity:0.47;',marginBottom:'18',marginRight:'5',marginTop:'13',markerScale:0.8999999999999999,markerStyle:'fill: white;',plotAreaStyle:'fill: white; stroke: none;',seriesColorsOverride:'rgb(63,119,7),rgb(231,192,80),rgb(209,29,0)',stripesVisible:true,subtitleStyle:'font-size:9px;stroke-width:0.35000000000000003;',titleAlign:'left',titleBoxStyle:'stroke-width:0;',valueBoxStyle:'stroke-width:0;',valueLabelStyle:'font-size:2px;',xAxis:{labelPosition:'bottom',labelStyle:'font-size:9px;',majorGridStyle:'stroke-width:0;',title:'Dia',_type:'axis'},yAxisList:[{labelPosition:'left',labelStyle:'font-size:14px;opacity:0.9;stroke-width:0;stroke:none;',majorGridStyle:'stroke-width:0.5;',maxValue:1000,minorGridLines:true,minorGridStyle:'stroke-width:0.75;',title:'Quantidade',_type:'axis'}],_type:'treeMapChart'}</override>
+  </widget>
+</dashboard>
+<folder xmlns="http://www.intersystems.com/deepsee/library" name="apiPub_Monitor_Pivot">
+</folder>
+<pivot xmlns="http://www.intersystems.com/deepsee/library" name="APIs By Response Status Table" folderName="apiPub_Monitor_Pivot" title="" description="" keywords="" owner="" shared="true" public="false" locked="false" resource="" timeCreated="2016-07-12T14:54:56.784Z" createdBy="UnknownUser" category="" bookCover="" mdx="" cellWidth="90" columnHeaderStyle="font-size:10pt;" rowHeaderStyle="font-weight: bold;color:rgb(0, 0, 240);font-size:9pt;" cellStyle="font-size:10pt;" rowLabelSpan="false" columnLabelSpan="true" cellHeight="20" showEmptyRows="false" showEmptyColumns="false" cubeName="apiPub" caption="" listing="UltimasMensagens" listingRows="" showStatus="true" pageSize="100" colorScale="" rowTotals="false" columnTotals="false" rowTotalAgg="sum" columnTotalAgg="sum" rowTotalSource="page" showZebra="false" showRowCaption="true" printTitle="" printSubtitle="" printSubtitleOn="" showUser="" printPageSize="" printOrientation="1" printMarginTop="" printMarginLeft="" printMarginRight="" printMarginBottom="" printLabelWidth="" printCellWidth="" autoExecute="true" previewMode="false" manualMode="false" userMDX="" chartMarginTop="" chartMarginLeft="" chartMarginRight="" chartMarginBottom="" maxRows="" borderLeftCell="" borderRightCell="" borderTopCell="" borderBottomCell="" borderLeftCol="" borderRightCol="" borderTopCol="" borderBottomCol="" borderLeftRow="" borderRightRow="" borderTopRow="" borderBottomRow="" fontFamilyCell="" fontSizeCell="" fontFamilyCol="" fontSizeCol="" fontFamilyRow="" fontSizeRow="" showFilters="" showListingFilters="" showDate="" listingFontSize="" showZebraStripes="" filterTableStyle="" filterTableCaptionStyle="" filterTableItemStyle="" nowDisplayFormat="" measureLocation="columns" hideMeasures="1" backgroundImage="" backgroundOpacity=".12">
+  <rowAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </rowAxisOptions>
+  <columnAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnAxisOptions>
+  <rowLevel spec="[API].[H1].[APIDomain].Members" key="" value="" text="APIDomain" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </rowLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[Success]" key="" value="" text="Success" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:green;" levelHeaderStyle="font-weight: bold;background:rgb(96, 208, 96);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[BusinessError]" key="" value="" text="BusinessError" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:rgb(208, 208, 64);" levelHeaderStyle="font-weight: bold;color:rgb(0, 0, 0);background:rgb(255, 255, 176);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[Error]" key="" value="" text="Error" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:rgb(240, 0, 0);" levelHeaderStyle="font-weight: bold;color:white;background:rgb(208, 96, 96);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <filter spec="[API].[H1].[APIOperationId].Members" key="%NOT &amp;[&lt;null&gt;]" value="" text="NOT&amp;#160;&amp;lt;null&amp;gt;" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </filter>
+  <sqlRestriction></sqlRestriction>
+</pivot>
+<pivot xmlns="http://www.intersystems.com/deepsee/library" name="Last Msgs Detail List" folderName="apiPub_Monitor_Pivot" title="" description="" keywords="" owner="" shared="true" public="false" locked="false" resource="" timeCreated="2016-07-15T17:07:20.64Z" createdBy="UnknownUser" category="" bookCover="" mdx="DRILLTHROUGH SELECT FROM [APIPUB] %FILTER NONEMPTYCROSSJOIN([API].[H1].[APIOperationId].&amp;[&lt;null&gt;].%NOT,%OR([DATE].[H1].[DAY].&amp;[NOW-7]:&amp;[NOW]))" cellWidth="120" columnHeaderStyle="" rowHeaderStyle="" cellStyle="" rowLabelSpan="true" columnLabelSpan="true" cellHeight="22" showEmptyRows="false" showEmptyColumns="false" cubeName="apiPub" caption="" listing="UltimasMensagens" listingRows="" showStatus="true" pageSize="100" colorScale="" rowTotals="false" columnTotals="false" rowTotalAgg="sum" columnTotalAgg="sum" rowTotalSource="page" showZebra="false" showRowCaption="true" printTitle="" printSubtitle="" printSubtitleOn="" showUser="" printPageSize="" printOrientation="1" printMarginTop="" printMarginLeft="" printMarginRight="" printMarginBottom="" printLabelWidth="" printCellWidth="" autoExecute="true" previewMode="true" manualMode="false" userMDX="" chartMarginTop="" chartMarginLeft="" chartMarginRight="" chartMarginBottom="" maxRows="" borderLeftCell="" borderRightCell="" borderTopCell="" borderBottomCell="" borderLeftCol="" borderRightCol="" borderTopCol="" borderBottomCol="" borderLeftRow="" borderRightRow="" borderTopRow="" borderBottomRow="" fontFamilyCell="" fontSizeCell="" fontFamilyCol="" fontSizeCol="" fontFamilyRow="" fontSizeRow="" showFilters="" showListingFilters="" showDate="" listingFontSize="" showZebraStripes="" filterTableStyle="" filterTableCaptionStyle="" filterTableItemStyle="" nowDisplayFormat="" measureLocation="columns" hideMeasures="1" backgroundImage="" backgroundOpacity=".12">
+  <rowAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </rowAxisOptions>
+  <columnAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnAxisOptions>
+  <filter spec="[API].[H1].[APIOperationId].Members" key="%NOT &amp;[&lt;null&gt;]" value="" text="NOT&amp;#160;&amp;lt;null&amp;gt;" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </filter>
+  <filter spec="[Date].[H1].[Day].Members" key="&amp;[NOW-7]:&amp;[NOW]" value="" text="2020-04-23:2020-04-30" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </filter>
+  <sqlRestriction></sqlRestriction>
+</pivot>
+<pivot xmlns="http://www.intersystems.com/deepsee/library" name="Last Week By Response Status" folderName="apiPub_Monitor_Pivot" title="" description="" keywords="" owner="" shared="true" public="false" locked="false" resource="" timeCreated="2016-08-05T16:32:52.267Z" createdBy="UnknownUser" category="" bookCover="" mdx="" cellWidth="120" columnHeaderStyle="" rowHeaderStyle="font-weight: bold;color:rgb(0, 0, 240);" cellStyle="font-size:14pt;" rowLabelSpan="true" columnLabelSpan="true" cellHeight="22" showEmptyRows="false" showEmptyColumns="false" cubeName="apiPub" caption="" listing="UltimasMensagens" listingRows="" showStatus="true" pageSize="100" colorScale="" rowTotals="false" columnTotals="false" rowTotalAgg="sum" columnTotalAgg="sum" rowTotalSource="page" showZebra="false" showRowCaption="true" printTitle="" printSubtitle="" printSubtitleOn="" showUser="" printPageSize="" printOrientation="1" printMarginTop="" printMarginLeft="" printMarginRight="" printMarginBottom="" printLabelWidth="" printCellWidth="" autoExecute="true" previewMode="false" manualMode="false" userMDX="" chartMarginTop="" chartMarginLeft="" chartMarginRight="" chartMarginBottom="" maxRows="" borderLeftCell="" borderRightCell="" borderTopCell="" borderBottomCell="" borderLeftCol="" borderRightCol="" borderTopCol="" borderBottomCol="" borderLeftRow="" borderRightRow="" borderTopRow="" borderBottomRow="" fontFamilyCell="" fontSizeCell="" fontFamilyCol="" fontSizeCol="" fontFamilyRow="" fontSizeRow="" showFilters="" showListingFilters="" showDate="" listingFontSize="" showZebraStripes="" filterTableStyle="" filterTableCaptionStyle="" filterTableItemStyle="" nowDisplayFormat="" measureLocation="columns" hideMeasures="1" backgroundImage="" backgroundOpacity=".12">
+  <rowAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </rowAxisOptions>
+  <columnAxisOptions spec="" key="" value="" text="" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnAxisOptions>
+  <rowLevel spec="[Date].[H1].[Day].Members" key="" value="" text="Day" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </rowLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[Success]" key="" value="" text="Success" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="#" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:green;" levelHeaderStyle="font-weight: bold;background:rgb(96, 208, 96);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[BusinessError]" key="" value="" text="BusinessError" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="#" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:rgb(208, 208, 64);" levelHeaderStyle="font-weight: bold;color:rgb(0, 0, 0);background:rgb(255, 255, 176);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <columnLevel spec="[ResponseStatus].[H1].[ResponseStatus].&amp;[Error]" key="" value="" text="Error" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="#" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="font-weight: bold;color:rgb(240, 0, 0);" levelHeaderStyle="font-weight: bold;color:white;background:rgb(208, 96, 96);" suppress8020="false" drilldownSpec="" enabled="true">
+  </columnLevel>
+  <filter spec="[API].[H1].[APIOperationId].Members" key="%NOT &amp;[&lt;null&gt;]" value="" text="NOT&amp;#160;&amp;lt;null&amp;gt;" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </filter>
+  <filter spec="[Date].[H1].[Day].Members" key="&amp;[NOW-7]:&amp;[NOW]" value="" text="NOW-7:NOW" headEnabled="false" headCount="" filterEnabled="false" filterExpression="" orderEnabled="false" orderExpression="" orderDirection="BDESC" aggEnabled="false" aggFunction="" aggFunctionParm="" levelCaption="" levelFormat="" levelSummary="" levelType="" drillLevel="0" advanced="false" levelStyle="" levelHeaderStyle="" suppress8020="false" drilldownSpec="" enabled="true">
+  </filter>
+  <sqlRestriction></sqlRestriction>
+</pivot>
+</items>
+]]></Data>
+</XData>
+</Class>
+</Export>
