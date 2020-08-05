@@ -3,9 +3,9 @@ Class apiPub.samples.Order Extends (%RegisteredObject, %XML.Adaptor)
 
 Property id As %XML.Id(XMLNAME = "id", XMLPROJECTION = "ELEMENT") [ Private, Transient ];
 
-Property petId As %Integer;
+Property petId As %BigInt;
 
-Property quantity As %Integer;
+Property quantity As %SmallInt;
 
 Property shipDate As %DateTime [ InitialExpression = {$ZDateTime($Horolog, 3)} ];
 

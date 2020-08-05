@@ -98,6 +98,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             } Else {
                 Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_pClassName_"/"_key,"//","/")
             }
+
             Set tOperationId = value.%Get("customParams").%Get("operationId")
             If tOperationId="" Set tOperationId=tVerb_key
             Set tTagName=pTagName
@@ -105,7 +106,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Set tTagDocsDescription=pTagDocsDescription
             Set tTagDocsUrl=pTagDocsUrl
             Set tCustomTag = value.%Get("customParams").%Get("tag")
-            If tCustomTag '="" {
+
+            If tCustomTag'="",$IsObject(tCustomTag) {
                 If tCustomTag.%Get("name")'="" Set tTagName = tCustomTag.%Get("name")
                 If tCustomTag.%Get("description")'="" Set tTagDescription = tCustomTag.%Get("description")
                 If tCustomTag.%Get("externalDocs")'="" {
@@ -113,6 +115,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     If tCustomTag.%Get("externalDocs").%Get("url")'="" Set tTagDocsUrl = tCustomTag.%Get("externalDocs").%Get("url")
                 }
             } 
+
             If $Get(tTags(tTagName),"")="" {
                 Set tagObj = {
                     "name":(tTagName)
