@@ -13,6 +13,6 @@ Parameter Traceable As %Boolean = 0;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
-Parameter APIDomain = "apiPub";
+Parameter APIDomain = "My Service";
 
 }
