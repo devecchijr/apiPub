@@ -1,7 +1,7 @@
 Class apiPub.samples.User Extends (%RegisteredObject, %XML.Adaptor)
 {
 
-Property id As %XML.Id(XMLNAME = "id", XMLPROJECTION = "ELEMENT") [ Private, Transient ];
+Property id As %Integer;
 
 Property username As %String(MAXLEN = "");
 

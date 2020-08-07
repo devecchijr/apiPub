@@ -623,6 +623,15 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                     Set tLineKey = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^element",""),"^attribute",""),"^sequence",""),"^complexContent",""),"^simpleContent",""),"^extension",""),"^annotation",""),"^simpleType",""),"^restriction","")
                     If key="documentation" {
                         If $Length(tLineKey,pDelim)>2 {
+                            If $Find(tText,"@apiPub")>0 {
+                                Set tSC=..GetMethodParams("@apiPub",tText,.tApiPubParams,.tMethodDesc)
+                                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                                Set tText=tMethodDesc
+                                Set tCPar = tApiPubParams.%GetIterator()
+                                While tCPar.%GetNext(.cpkey,.cpvalue) {
+                                    Do ..SetByLineKey(pInternal.xmlJSON,$Piece(tLineKey,pDelim,1,*-1)_pDelim_cpkey,cpvalue,,pDelim)
+                                }
+                            }
                             Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey,tText,,pDelim)
                         }
                     }
