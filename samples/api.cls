@@ -6,7 +6,7 @@ Class apiPub.samples.api Extends %RegisteredObject [ ProcedureBlock ]
 /// @apiPub[tag.name="pet"]
 /// @apiPub[path="/pet"]
 /// @apiPub[params.pPet.name="Body"]
-/// @apiPub[params.description="Pet object that needs to be added to the store"]
+/// @apiPub[params.description="Pet object that needs to be added to the store (sample)"]
 /// @apiPub[params.required="true"]
 Method addPet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
 {
