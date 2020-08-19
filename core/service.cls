@@ -1,4 +1,4 @@
-Class apiPub.core.service Extends (%CSP.REST, %Projection.AbstractProjection)
+Class apiPub.core.service Extends (%CSP.REST, %Projection.AbstractProjection, apiPub.core.jsonBuilder)
 {
 
 Parameter CHARSET As %String = "UTF-8";
@@ -396,7 +396,7 @@ ClassMethod GetRouterMap() As %Library.DynamicObject
 	}
 }
 
-ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pAPIMap As %Library.DynamicObject, Output pAPIInfo As %Library.DynamicObject, Output pPath As %String, Output pParamName As %String, Output pValue As %String) As %Status
+ClassMethod GetPathInfoOld(pHttpVerb As %String, pOrigPath As %String, pAPIMap As %Library.DynamicObject, Output pAPIInfo As %Library.DynamicObject, Output pPath As %String, Output pParamName As %String, Output pValue As %String) As %Status
 {
 	Set tSC = $$$OK
 	Try
@@ -445,6 +445,85 @@ ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pAPIMap As %
 			}
 		}
 		Set tSC = $$$ERROR($$$GeneralError, "API Not Mapped "_pHttpVerb_":"_pOrigPath)
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pAPIMap As %Library.DynamicObject, Output pAPIInfo As %Library.DynamicObject) As %Status
+{
+	Set tSC = $$$OK
+	Try
+	{
+		If '$Data(pAPIMap) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "url map not informed"))
+		If pAPIMap.%Get("paths")="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "url map not informed"))
+		Set tSC = ..GetIdxPath(pAPIMap,.idxmap)
+		If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+		Set pHttpVerb = $ZConvert(pHttpVerb,"S")
+		Set tPath = pHttpVerb_":"_pOrigPath
+		Set tPoint = idxmap
+		Set tParams = {}
+		For i=1:1:$Length(tPath,"/") {
+			Set tParValue = ""
+			Set tPc = $Replace($Piece(tPath,"/",i),":","")
+			If i=1 Set tPc = $ZConvert(tPc,"S")
+			Set tF = tPoint.%Get(tPc)
+			If tF="" {
+				Set tF = tPoint.%Get("@P")
+				If tF="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not mapped"))
+				Do tParams.%Set(tPoint.%Get("@parName"),tPc)
+			}
+			Set tPoint=tF
+		}
+		Set pAPIInfo = {}
+		If '$IsObject(tPoint) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not mapped"))
+		Set prop = tPoint.%GetIterator()
+		While (prop.%GetNext(.key,.value)) {
+			If '$IsObject(value),key'="@parName" {
+				Do pAPIInfo.%Set($Tr(key,"@",""),value)			
+			}
+		}
+		Do pAPIInfo.%Set("urlParams",tParams)	
+	}
+	Catch(e)
+	{
+		w $System.Status.GetOneErrorText(e.AsStatus()),!
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As %Library.DynamicObject) As %Status
+{
+	Set tSC = $$$OK
+	Try
+	{
+		Set pIndexedMap = {}
+		Set prop = pAPIMap.%Get("paths").%GetIterator()
+		While (prop.%GetNext(.key,.value)) {
+			Set tKey = ""
+			For i=1:1:$Length(key,"/") {
+				Set tParName = ""
+				Set tPc = $Replace($Piece(key,"/",i),":","")
+				If i=1 Set tPc = $ZConvert(tPc,"S")
+				If $Find(tPc,"{")>0,$Find(tPc,"}")>0 {
+					Set tParName = $Replace($Replace(tPc,"{",""),"}","")
+					If tParName'="" Do ..SetByLineKey(pIndexedMap,tKey_"^@parName",tParName,,"^")
+					Set tPc = "@P"
+				}
+				Set tKey = tKey_$Select(i=1:"",1:"^")_tPc
+			}
+			If $IsObject(value) {
+				Do ..SetByLineKey(pIndexedMap,tKey,value,,"^")
+			} Else {
+				Do ..SetByLineKey(pIndexedMap,tKey,{"@operationId":(value)},,"^")
+			}
+			Do ..SetByLineKey(pIndexedMap,tKey_"^@path",key,,"^")
+			If tParName'="" Do ..SetByLineKey(pIndexedMap,tKey_"^@parName",tParName,,"^")
+		}
 	}
 	Catch(e)
 	{
@@ -558,25 +637,19 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			Do tAPIMap.%Get("paths").%Set(mkey,mvalue)
 		}
 		If tAPIMap.%Get("paths")="" Do tAPIMap.%Set("paths",{})
-
-		Set tSC = ..GetPathInfo(pRestRequest.HttpVerb,tOriginalPath,tAPIMap,.tAPIInfo,.tPath,.tParamName,.tParamValue)
+		Set tSC = ..GetPathInfo(pRestRequest.HttpVerb,tOriginalPath,tAPIMap,.tAPIInfo)
        	If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-		If '$IsObject(tAPIInfo),tAPIInfo'="" Set pRestRequest.APIOperationId = tAPIInfo
 		If $IsObject(tAPIInfo) {
 			If tAPIInfo.%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("className")
 			If tAPIInfo.%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("methodName")
+			If tAPIInfo.%Get("urlParams").%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("urlParams").%Get("className")
+			If tAPIInfo.%Get("urlParams").%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("urlParams").%Get("methodName")
 			Set pRestRequest.APIOperationId = tAPIInfo.%Get("operationId")
+			Set pRestRequest.APIPath = tAPIInfo.%Get("path")
 		}
-		Set pRestRequest.APIPath = tPath
-		For i=1:1:$Length(tParamName,"|") {
-			Set tParName = $Piece(tParamName,"|",i)
-			Set tParVal = $Piece(tParamValue,"|",i)
-			If "className methodName"[tParName {
-				If tParName = "className" Set pRestRequest.DispatchClass=tParVal
-				If tParName = "methodName" Set pRestRequest.DispatchMethod=tParVal
-			} Else {
-				If tParVal'="" Do tParams.%Set(tParName,tParVal)
-			}
+		Set tURLParams = tAPIInfo.%Get("urlParams").%GetIterator()
+		While tURLParams.%GetNext(.ukey,.uvalue) {
+			Do tParams.%Set(ukey,uvalue)
 		}
 		If pTargetBaseURL'="" Set pRestRequest.TargetBaseURL = pTargetBaseURL 
 		For i=1:1:$Length(pReservedInboundParams,",") {
