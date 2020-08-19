@@ -24,10 +24,24 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                 Set xdataID=pClassName_"||apiPub"
                 Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                 If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)                        
-                    Set tProp = tXDataJSON.%Get("schemas").%GetIterator()
-                    While tProp.%GetNext(.key,.value) {
-                        Do ..SetByLineKey(pJSON,"customSchemas"_pDelim_key,value,,pDelim)
+                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)
+                    If $IsObject(tXDataJSON),tXDataJSON.%Get("schemas")'="" {
+                        Set tProp = tXDataJSON.%Get("schemas").%GetIterator()
+                        While tProp.%GetNext(.key,.value) {
+                            Do ..SetByLineKey(pJSON,"customSchemas"_pDelim_key,value,,pDelim)
+                        }
+                    }
+                    If $IsObject(tXDataJSON),tXDataJSON.%Get("info")'="" {
+                        Set tProp = tXDataJSON.%Get("info").%GetIterator()
+                        While tProp.%GetNext(.key,.value) {
+                            Do ..SetByLineKey(pJSON,"customInfo"_pDelim_key,value,,pDelim)
+                        }
+                    }
+                    If $IsObject(tXDataJSON),tXDataJSON.%Get("tags")'="" {
+                        Set tProp = tXDataJSON.%Get("tags").%GetIterator()
+                        While tProp.%GetNext(.key,.value) {
+                            Do ..SetByLineKey(pJSON,"customTags"_pDelim_key,value,,pDelim)
+                        }
                     }
                 }
                 Do ..SetByLineKey(pJSON,"description",tCD.Description,,pDelim)
@@ -267,11 +281,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             Set tElType="%String"
                         }
                         If (tParamObj.%Get("complexType")) {
-                            If '$IsObject(tSchema) {
+                            If $IsObject(tXDataJSON),'$IsObject(tSchema),tXDataJSON.%Get("schemas")'="" {
                                 If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
                                     Do tParamObj.%Set("customSchemaName",tSchema)
                                 }
-                            } ElseIf tSchema.%Size()=1 {
+                            } ElseIf $IsObject(tSchema),tSchema.%Size()=1 {
                                 Do tParamObj.%Set("customSchema",{}.%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
@@ -348,7 +362,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     If tApiPubParams.%Get("response")'="" {
                         Set tSchema = ..GetByLineKey(tApiPubParams,"response.schema",".")
                         If (tRetParamObj.%Get("complexType")) {
-                            If '$IsObject(tSchema) {
+                            If '$IsObject(tSchema),tXDataJSON.%Get("schemas")'="" {
                                 If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
                                     Do tRetParamObj.%Set("customSchemaName",tSchema)
                                 }

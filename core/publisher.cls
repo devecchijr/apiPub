@@ -32,18 +32,13 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         If pDescription="" Set pDescription = tTitle
         Set tSchemas = {}
         Set tSchemaDef = {}
-        Do ..SetByLineKey(tSchemaDef,"openapi","3.0.0",,".")
         Set tTitle = $Select(pParams.title'="":pParams.title,1:tTitle)
-        Do ..SetByLineKey(tSchemaDef,"info.description",pDescription,,".")
         Set tVersion = "1.0.0-oas3"
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||VERSION")
         If $IsObject(tMParam) Set tVersion = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.version",tVersion,,".")
-        Do ..SetByLineKey(tSchemaDef,"info.title",tTitle,,".")
         Set tTermsOfService="http://swagger.io/terms/"
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||TERMSOFSERVICE")
         If $IsObject(tMParam) Set tTermsOfService = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.termsOfService",tTermsOfService,,".")
         Set tContactName = ""
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||CONTACTNAME")
         If $IsObject(tMParam) Set tContactName = tMParam.Default
@@ -51,19 +46,15 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         Set tContactEmail = "apiteam@swagger.io"
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||CONTACTEMAIL")
         If $IsObject(tMParam) Set tContactEmail = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.contact.email", tContactEmail,,".")
         Set tContactURL = ""
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||CONTACTURL")
         If $IsObject(tMParam) Set tContactURL = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.contact.url", tContactURL,,".")
         Set tLicenseName = "Apache 2.0"
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||LICENSENAME")
         If $IsObject(tMParam) Set tLicenseName = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.license.name",tLicenseName,,".")
         Set tLicenseURL = "http://www.apache.org/licenses/LICENSE-2.0.html"
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||LICENSEURL")
         If $IsObject(tMParam) Set tLicenseURL = tMParam.Default
-        Do ..SetByLineKey(tSchemaDef,"info.license.url",tLicenseURL,,".")
         Set pTagName=pClassName
         Set (pTagDescription,pTagDocsDescription,pTagDocsUrl)=""
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||TAGNAME")
@@ -75,13 +66,32 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||TAGDOCSURL")
         If $IsObject(tMParam) Set pTagDocsUrl = tMParam.Default
         Set tTags=0
-        Do tSchemaDef.%Set("tags",[])
+        Do ..SetByLineKey(tSchemaDef,"openapi","3.0.0",,".")
+        If mInfo.%Get("customInfo")'="" {
+            Do ..SetByLineKey(tSchemaDef,"info",mInfo.%Get("customInfo"),,".")
+        } Else {
+            Do ..SetByLineKey(tSchemaDef,"info.description",pDescription,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.version",tVersion,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.title",tTitle,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.termsOfService",tTermsOfService,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.contact.email", tContactEmail,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.contact.url", tContactURL,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.license.name",tLicenseName,,".")
+            Do ..SetByLineKey(tSchemaDef,"info.license.url",tLicenseURL,,".")
+        }
+        If mInfo.%Get("customTags")'="" {
+            Do ..SetByLineKey(tSchemaDef,"tags",mInfo.%Get("customTags"),,".")
+            Set pTagName=mInfo.%Get("customTags").%Get(0).%Get("name")
+        } Else {
+            Do tSchemaDef.%Set("tags",[])
+        }
         Do tSchemaDef.%Set("paths",{})
         If mInfo.%Get("customSchemas")'="" {
             Do ..SetByLineKey(tSchemaDef,"components.schemas",mInfo.%Get("customSchemas"),,".")
         }
         Set tMet = mInfo.%Get("methods").%GetIterator()
         While tMet.%GetNext(.key,.value) {
+            Set (tTagDescription,tTagDocsDescription,tTagDocsUrl)=""
             If (pClassMethodOnly),'(value.%Get("classMethod")) Continue
             Set tDescription = $Select(value.%Get("description")'="":value.%Get("description"),1:"")
             If value.%Get("customParams").%Get("description")'="" Set tDescription = value.%Get("customParams").%Get("description")
@@ -101,29 +111,30 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Set tOperationId = value.%Get("customParams").%Get("operationId")
             If tOperationId="" Set tOperationId=key
             Set tTagName=pTagName
-            Set tTagDescription=pTagDescription
-            Set tTagDocsDescription=pTagDocsDescription
-            Set tTagDocsUrl=pTagDocsUrl
             Set tCustomTag = value.%Get("customParams").%Get("tag")
             If tCustomTag'="",$IsObject(tCustomTag) {
                 If tCustomTag.%Get("name")'="" Set tTagName = tCustomTag.%Get("name")
-                If tCustomTag.%Get("description")'="" Set tTagDescription = tCustomTag.%Get("description")
-                If tCustomTag.%Get("externalDocs")'="" {
-                    If tCustomTag.%Get("externalDocs").%Get("description")'="" Set tTagDocsDescription = tCustomTag.%Get("externalDocs").%Get("description")
-                    If tCustomTag.%Get("externalDocs").%Get("url")'="" Set tTagDocsUrl = tCustomTag.%Get("externalDocs").%Get("url")
-                }
-            } 
-            If $Get(tTags(tTagName),"")="" {
-                Set tagObj = {
-                    "name":(tTagName)
-                }
-                If tTagDescription'="" Do tagObj.%Set("description",tTagDescription)
-                If tTagDocsDescription'="" Do ..SetByLineKey(tagObj,"externalDocs"_pDelim_"description",tTagDocsDescription,,pDelim)
-                If tTagDocsUrl'="" Do ..SetByLineKey(tagObj,"externalDocs"_pDelim_"url",tTagDocsUrl,,pDelim)
-                Set tTags(tTagName)=tTags
-                Do ..SetByLineKey(tSchemaDef,"tags["_tTags_"]",tagObj,,".")
-                Set tTags=tTags+1
             }
+            If tCustomTag'="",'$IsObject(tCustomTag) Set tTagName = tCustomTag
+            If tTagName=pTagName {
+                If tTagDescription="" Set tTagDescription=pTagDescription
+                If tTagDocsDescription="" Set tTagDocsDescription=pTagDocsDescription
+                If tTagDocsUrl="" Set tTagDocsUrl=pTagDocsUrl
+            }
+            Set tTagKey=-1
+            Set tTags = tSchemaDef.%Get("tags").%GetIterator()
+            While tTags.%GetNext(.tkey,.tvalue) {
+                If tvalue.%Get("name")=tTagName {
+                    Set tTagKey = tkey
+                }
+            }
+            If tTagKey=-1 {
+                Set tTagKey=tSchemaDef.%Get("tags").%Size()
+                Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"name",tTagName,,pDelim)
+            }
+            If tTagDescription'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"description",tTagDescription,,pDelim)
+            If tTagDocsDescription'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"externalDocs"_pDelim_"description",tTagDocsDescription,,pDelim)
+            If tTagDocsUrl'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"externalDocs"_pDelim_"url",tTagDocsUrl,,pDelim)
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^tags[0]",tTagName,,"^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tSummary,,"^")
             If (tDeprecated) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^deprecated",tDeprecated,"boolean","^")
@@ -456,7 +467,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         }
     }
     Catch(e) {
-        w $System.Status.GetOneErrorText(e.AsStatus()),!
+        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC
