@@ -88,6 +88,7 @@ ClassMethod ObjToJSON(pObj As %RegisteredObject, Output pJSON As %Library.Dynami
         If (pUnwappObject),tJson.%Size()=1 { 
             Set tIt = tJson.%GetIterator()
             Do tIt.%GetNext(.key,.obj)
+            If '$IsObject(obj) Set obj = {}
             Set pJSON=obj
         } Else {
             Set pJSON=tJson

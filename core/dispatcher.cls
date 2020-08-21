@@ -172,7 +172,6 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
         } Catch(e) {
             If 'e.AsStatus() { Throw ##Class(%Exception.StatusException).CreateFromStatus(e.AsStatus())}
         }
-
         Set tSingleRespBody = tOutputParams+minfo.%Get("byRefBodyParams").%Size()+minfo.%Get("outputBodyParams").%Size()=1
         If minfo.%Get("formalSpec") {
             Set tFS = minfo.formalSpec.%GetIterator()
@@ -191,6 +190,8 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                             "statusCode":($$$ISOK(tVal)),
                             "message":($Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
                         }
+                        //To be Implemented Silent Mode
+                        If '$$$ISOK(tVal) Throw ##Class(%Exception.StatusException).CreateFromStatus(tVal)
                         If '(tVal) Do tStatusObj.%Set("errorCode",$System.Status.GetErrorCodes(tVal))
                         Set pInnerJSONStatus=tStatusObj
                     } ElseIf value.%Get("complexType")=1 {
@@ -235,7 +236,6 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                             Set tVal=pJSONList
                             Do pResult.%Set(tPName,tVal)
                         } Else {
-
                             If value.%Get("oConvFunction")'="",tVal'="" {
                                 Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
                             }

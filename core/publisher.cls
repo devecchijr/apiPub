@@ -110,6 +110,10 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             }
             Set tOperationId = value.%Get("customParams").%Get("operationId")
             If tOperationId="" Set tOperationId=key
+            Set tConsumes = value.%Get("customParams").%Get("consumes")
+            //If tConsumes="" Set tConsumes=["application/json"]
+            Set tProduces = value.%Get("customParams").%Get("produces")
+           // If tProduces="" Set tConsumes=["application/json"]
             Set tTagName=pTagName
             Set tCustomTag = value.%Get("customParams").%Get("tag")
             If tCustomTag'="",$IsObject(tCustomTag) {
@@ -136,14 +140,24 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             If tTagDocsDescription'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"externalDocs"_pDelim_"description",tTagDocsDescription,,pDelim)
             If tTagDocsUrl'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"externalDocs"_pDelim_"url",tTagDocsUrl,,pDelim)
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^tags[0]",tTagName,,"^")
-            Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tSummary,,"^")
+            If tSummary'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tSummary,,"^")
+            If tDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tDescription,,"^")
             If (tDeprecated) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^deprecated",tDeprecated,"boolean","^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^operationId",tOperationId,,"^")
+            If tConsumes'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^consumes",tConsumes,,"^")
+            If tProduces'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^produces",tProduces,,"^")
             Set tOutParObjCount=0
+            Set (tParamDescription,tParamRequired)=""
+            If value.%Get("customParams").%Get("params")'="" {
+                Set tParamDescription = value.%Get("customParams").%Get("params").%Get("description")
+                Set tParamRequired = value.%Get("customParams").%Get("params").%Get("required")
+                If tParamRequired="" Set tParamRequired="true"
+            }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
                 If pvalue.%Get("pmJDType")'="",'(pvalue.%Get("outputOnly")) {
+                    If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Set tInType="query"
                     If $Find(tPath,"{"_pvalue.%Get("paramName")_"}")>0 Set tInType="path"
                     Set tParObj = {
@@ -154,17 +168,6 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         }
                     } 
                     If tInType="path" Do tParObj.%Set("required",1,"boolean")
-                    If value.%Get("customParams").%Get("params")'="" {
-                        Set tCustomParams = value.%Get("customParams").%Get("params").%Get(pvalue.%Get("param"))
-                        If tCustomParams'="" {
-                            Set tSC = ..JSONToFlatJSON(tCustomParams,.tCustomFlatParams,{"printResults":0})
-                            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                            Set tIt = tCustomFlatParams.%GetIterator()
-                            While tIt.%GetNext(.ckey,.cvalue) {
-                                Do ..SetByLineKey(tParObj,ckey,cvalue,,"^")
-                            }
-                        }
-                    }
                     Set tParams = pvalue.%Get("params")
                     For i=1:1:$Length(tParams,"|") {
                         Set tAttName=$Piece($Piece(tParams,"|",i),"=",1)
@@ -183,6 +186,24 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tParObj,"schema^items^format",pvalue.%Get("pmJDFormat"),,"^")
                         Do ..SetByLineKey(tParObj,"style","form",,"^")
                         Do ..SetByLineKey(tParObj,"explode","false","boolean","^")
+                    }
+                    If value.%Get("customParams").%Get("params")'="" {
+                        Set tCustomParams = value.%Get("customParams").%Get("params").%Get(pvalue.%Get("param"))
+                        If tCustomParams'="" {
+                            Set tSC = ..JSONToFlatJSON(tCustomParams,.tCustomFlatParams,{"printResults":0})
+                            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                            Set tIt = tCustomFlatParams.%GetIterator()
+                            While tIt.%GetNext(.ckey,.cvalue) {
+                                Do ..SetByLineKey(tParObj,ckey,cvalue,,"^")
+                                //change to array if string type
+                                If tParObj.%Get("schema").%Get("type")="string",$Find(ckey,"schema^items^enum")>0 {
+                                   Do tParObj.%Get("schema").%Set("type","array")
+                                   Do tParObj.%Get("schema").%Get("items").%Set("type","string")
+                                   Do tParObj.%Set("style","form")
+                                   Do tParObj.%Set("explode","false","boolean")
+                                }
+                            }
+                        }
                     }
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^parameters[+]",tParObj,,"^")
                     If (pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1) Set tOutParObjCount=tOutParObjCount+1
@@ -310,20 +331,15 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^description","Internal Server Error",,"^")
             //Request
             If (value.%Get("hasComplexParams")) {
-                Set (tDescription,tRequired)=""
-                If value.%Get("customParams").%Get("params")'="" {
-                    Set tDescription = value.%Get("customParams").%Get("params").%Get("description")
-                    Set tRequired = value.%Get("customParams").%Get("params").%Get("required")
-                }
                 Set tSingleInputObj = (tInBodyObjCount=1)
                 If '(tSingleInputObj) {
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^$ref","#/components/requestBodies/"_key_"Request",,"^")
                     Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/json^schema^type","object",,"^")
-                    If tDescription'="",'$IsObject(tDescription) {
-                        Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tDescription,,"^")
+                    If tParamDescription'="",'$IsObject(tParamDescription) {
+                        Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tParamDescription,,"^")
                     }
-                    If tRequired'="",'$IsObject(tRequired) {
-                        Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tRequired,"boolean","^")
+                    If tParamRequired'="",'$IsObject(tParamRequired) {
+                        Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tParamRequired,"boolean","^")
                     }
                     If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/xml^schema^type","object",,"^")
                     If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/xml^schema^xml^name",key_"Request",,"^")
@@ -369,11 +385,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If tParamType="object" {
                             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^$ref","#/components/requestBodies/"_key_"Request",,"^")
                             Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description","Body Request Content",,"^")
-                            If tDescription'="",'$IsObject(tDescription) {
-                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tDescription,,"^")
+                            If tParamDescription'="",'$IsObject(tParamDescription) {
+                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tParamDescription,,"^")
                             }
-                            If tRequired'="",'$IsObject(tRequired) {
-                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tRequired,"boolean","^")
+                            If tParamRequired'="",'$IsObject(tParamRequired) {
+                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tParamRequired,"boolean","^")
                             }
                             If tCustomFlatParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tCustomFlatParams.%Get("description"),,"^")
                             If tCustomFlatParams.%Get("required")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tCustomFlatParams.%Get("required"),"boolean","^")
@@ -387,11 +403,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         } ElseIf tParamType="array" {
                             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^$ref","#/components/requestBodies/"_key_"Request",,"^")
                             Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description","Body Request Content",,"^")
-                            If tDescription'="",'$IsObject(tDescription) {
-                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tDescription,,"^")
+                            If tParamDescription'="",'$IsObject(tParamDescription) {
+                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tParamDescription,,"^")
                             }
-                            If tRequired'="",'$IsObject(tRequired) {
-                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tRequired,"boolean","^")
+                            If tParamRequired'="",'$IsObject(tParamRequired) {
+                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tParamRequired,"boolean","^")
                             }
                             If tCustomFlatParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tCustomFlatParams.%Get("description"),,"^")
                             Set tArrayObj = {"anyOf":[
@@ -422,11 +438,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                             Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
                                             If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
                                             Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^description","Body Request Content ("_$Select((tIsArray):"arrayOf",1:"")_skey_")",,"^")
-                                            If tDescription'="",'$IsObject(tDescription) {
-                                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^description",tDescription,,"^")
+                                            If tParamDescription'="",'$IsObject(tParamDescription) {
+                                                Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^description",tParamDescription,,"^")
                                             }
-                                            If tRequired'="",'$IsObject(tRequired) {
-                                                 Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^required",tRequired,"boolean","^")
+                                            If tParamRequired'="",'$IsObject(tParamRequired) {
+                                                 Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^required",tParamRequired,"boolean","^")
                                             }
                                             If tCustomFlatParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^description",tCustomFlatParams.%Get("description"),,"^")
                                             If tCustomFlatParams.%Get("required")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey_"^required",tCustomFlatParams.%Get("required"),"boolean","^")
@@ -454,8 +470,12 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^errorCode^type","string",,"^")
         Do ..SetByLineKey(tSchemaDef,"externalDocs^description","Find out more about Swagger",,"^")
         Do ..SetByLineKey(tSchemaDef,"externalDocs^url","http://swagger.io",,"^")
-        Do ..SetByLineKey(tSchemaDef,"servers[0]^url",pNS,,"^")
-        Do ..SetByLineKey(tSchemaDef,"servers[1]^url",$Replace(pNS,"http",$Select($Find(pNS,"https")>0:"http",1:"https")),,"^")
+        If mInfo.%Get("customServers")'="" {
+            Do ..SetByLineKey(tSchemaDef,"servers",mInfo.%Get("customServers"),,".")
+        } Else {
+            Do ..SetByLineKey(tSchemaDef,"servers[0]^url",pNS,,"^")
+            Do ..SetByLineKey(tSchemaDef,"servers[1]^url",$Replace(pNS,"http",$Select($Find(pNS,"https")>0:"http",1:"https")),,"^")
+        }
         Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^type","http",,"^")
         Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^scheme","basic",,"^")
         Do ..SetByLineKey(tSchemaDef,"components^responses^UnauthorizedError^description","Authentication information is missing or invalid",,"^")
@@ -467,7 +487,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         }
     }
     Catch(e) {
-        //w $System.Status.GetOneErrorText(e.AsStatus()),!
+        w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC

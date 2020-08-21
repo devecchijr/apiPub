@@ -43,6 +43,12 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                             Do ..SetByLineKey(pJSON,"customTags"_pDelim_key,value,,pDelim)
                         }
                     }
+                    If $IsObject(tXDataJSON),tXDataJSON.%Get("servers")'="" {
+                        Set tProp = tXDataJSON.%Get("servers").%GetIterator()
+                        While tProp.%GetNext(.key,.value) {
+                            Do ..SetByLineKey(pJSON,"customServers"_pDelim_key,value,,pDelim)
+                        }
+                    }
                 }
                 Do ..SetByLineKey(pJSON,"description",tCD.Description,,pDelim)
                 Set key=""
@@ -160,7 +166,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         Set tPath = tVerb_":/"_pClassName_"/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
                         Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
-                        If mInfo="" Set tOperationId=tVerb_tMD.Name
+                        If (mInfo="")||(mInfo.%Get("customParams").%Get("operationId")="") Set tOperationId=tMD.Name
                         If pJSON.%Get("paths").%Get(tPath)'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class"_pClassName))
                         Do pJSON.%Get("paths").%Set(tPath,{"className":(pClassName),"methodName":(tMD.Name),"operationId":(tOperationId)})
                     }
@@ -175,7 +181,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
         }
     }
     Catch(e) {
-        w $System.Status.GetOneErrorText(e.AsStatus()),!
+        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC
@@ -354,7 +360,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     If (tPMClass="%Library.DynamicObject")||(tPMClass="%Library.DynamicArray") Do tRetParamObj.%Set("complexType",1)
                     Do ..SetByLineKey(pJSON,"formalSpec[+]",tRetParamObj,,pDelim)
                     Do ..SetByLineKey(pJSON,"resultParam",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
-                    If (tRetParamObj.%Get("complexType")) Do ..SetByLineKey(pJSON,"outputBodyParams[+]",pJSON.%Get("formalSpec").%Size(),,pDelim)                    
+                    If (tRetParamObj.%Get("complexType")) Do ..SetByLineKey(pJSON,"outputBodyParams[+]",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
                     Set tIt = pJSON.%Get("formalSpec").%GetIterator()
                     While tIt.%GetNext(.key,.value) {
                         If key'=pJSON.%Get("resultParam"),(value.%Get("outputOnly")),(value.%Get("complexType")) Do ..SetByLineKey(pJSON,"outputBodyParams[+]",key,,pDelim)
@@ -400,7 +406,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
         }
     }
     Catch(e) {
-        w $System.Status.GetOneErrorText(e.AsStatus()),!
+        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC

@@ -3,17 +3,17 @@ Class apiPub.samples.Pet Extends (%Persistent, %XML.Adaptor)
 
 Property id As %Integer;
 
-Property category As apiPub.samples.Category;
+Property category As apiPub.samples.Category [ Required ];
 
 /// @apiPub[example="doggie"]
-Property name As %String(MAXLEN = "");
+Property name As %String(MAXLEN = "") [ InitialExpression = "doggie" ];
 
 Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element");
 
 Property tags As list Of apiPub.samples.Tag(XMLPROJECTION = "element");
 
 /// pet status in the store
-Property status As %String(VALUELIST = ",available,pending,sold");
+Property status As %String(VALUELIST = ",available,pending,sold") [ InitialExpression = "available" ];
 
 Index idIDX On id [ Unique ];
 

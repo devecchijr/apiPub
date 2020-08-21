@@ -6,8 +6,6 @@ Parameter OnlyOAS As %Boolean = 0;
 
 Parameter OASPath As %String = "Get:/oas";
 
-Parameter DispatchClassOld As %String = "MyApp.MyService";
-
 Parameter DispatchClass As %String = "apiPub.samples.api";
 
 /// Use TracerBSName for monitoring

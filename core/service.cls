@@ -75,8 +75,9 @@ ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiP
             Set tBodyRequest = pRequest.Body.Read()
             Set pResponse.ContentType =  "application/xml"
         } ElseIf "Post Put"[pRequest.HttpVerb {
-            Set tSC = $$$ERROR($$$GeneralError, "Invalid Content Type")
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            //Set tSC = $$$ERROR($$$GeneralError, "Invalid Content Type")
+            Set tBodyRequest = {}
+			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         }
         Set tSC = ..GetRestParams(pRequest.Params,.tParams,.tMethodParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
@@ -85,18 +86,18 @@ ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiP
 		Set pSuccessfulCode=""
 		Set tSC = ##class(apiPub.core.dispatcher).JSONCall(pRequest.DispatchClass_"||"_pRequest.DispatchMethod,,pRequest.HttpVerb,tBodyRequest,tMethodParams,.jsonResult,tParams,.innerStat,.pInnerStat,.pSuccessfulCode)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-        If innerStat.%Size()>0{
+		If innerStat.%Size()>0{
             Set pResponse.Headers={
                 "iris-StatusCode":(innerStat.%Get("statusCode")),
                 "iris-StatusMessage":(innerStat.%Get("message")),
                 "iris-ErrorCode":(innerStat.%Get("errorCode"))
             }.%ToJSON()
         }
-        If $Data(jsonResult) {
-			If jsonResult.%Size()>0 Do pResponse.Body.Write(jsonResult.%ToJSON())
+        If $Data(jsonResult),$IsObject(jsonResult) {
+			If jsonResult.%Size()>0||(($ClassName(jsonResult)="%Library.DynamicArray")&&$IsObject(jsonResult)) Do pResponse.Body.Write(jsonResult.%ToJSON())
 			Set pResponse.ContentType = "application/json"
-        } ElseIf $Data(xmlResult) {
-			If xmlResult.SizeGet()>0 Do pResponse.Body.Write(xmlResult.Read())
+        } ElseIf $Data(xmlResult),$IsObject(xmlResult) {
+			If xmlResult.%Size()>0 Do pResponse.Body.Write(xmlResult.Read())
 			Set pResponse.ContentType = "application/xml"
 		}
         Set pResponse.ResponseStatusCode = pSuccessfulCode
@@ -350,9 +351,9 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 	Set %response.ContentType = ..#CONTENTTYPEJSON
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
 	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
-	If $zConvert(tMessage,"L")["<bad request>" {
+	If $Find($zConvert(tMessage,"L"),"<400>")>0 {
 		Set %response.Status = ..#HTTP400BADREQUEST
-	} ElseIf $zConvert(tMessage,"L")["<method not alowed>" {
+	} ElseIf $Find($zConvert(tMessage,"L"),"<405>")>0 {
 		Set %response.Status = ..#HTTP405METHODNOTALLOWED
 	} Else {
 		Set %response.Status = ..#HTTP500INTERNALSERVERERROR
