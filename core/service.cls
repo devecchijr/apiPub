@@ -60,7 +60,7 @@ ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiP
     Set tSC = $$$OK 
     Try {
 		If (..#OnlyOAS) {
-			If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Only Documentation (OAS)")
+			Set tSC = $$$ERROR($$$GeneralError, "Only Documentation (OAS)")
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
 		}
         Set tBodyRequest = {}

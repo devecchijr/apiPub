@@ -93,7 +93,7 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
                 Set pOutputParams = {}.%FromJSON(tAttBlock)
                 Quit
             } ElseIf ($Find(tAttBlock,"=")>0) {
-                Set tCmd = "(tVal) Set tVal ="_$Piece(tAttBlock,"=",2)
+                Set tCmd = "(tVal) Set tVal ="_$Replace($Piece($Replace(tAttBlock,"\=","\*"),"=",2),"\*","=")
                 Set tVal = ""
                 Try {
                     Xecute (tCmd,.tVal)

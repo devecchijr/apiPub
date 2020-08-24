@@ -1,7 +1,7 @@
 Class apiPub.samples.Pet Extends (%Persistent, %XML.Adaptor)
 {
 
-Property id As %Integer;
+Property id As %Integer [ Required ];
 
 Property category As apiPub.samples.Category [ Required ];
 
@@ -10,7 +10,7 @@ Property name As %String(MAXLEN = "") [ InitialExpression = "doggie" ];
 
 Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element");
 
-Property tags As list Of apiPub.samples.Tag(XMLPROJECTION = "element");
+Relationship tags As apiPub.samples.Tag(XMLPROJECTION = "element") [ Cardinality = many, Inverse = pet ];
 
 /// pet status in the store
 Property status As %String(VALUELIST = ",available,pending,sold") [ InitialExpression = "available" ];
@@ -36,9 +36,6 @@ Storage Default
 <Value>photoUrls</Value>
 </Value>
 <Value name="6">
-<Value>tags</Value>
-</Value>
-<Value name="7">
 <Value>status</Value>
 </Value>
 </Data>
