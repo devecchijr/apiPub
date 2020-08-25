@@ -158,4 +158,59 @@ ClassMethod JSONFromFlatJSON(pFlatJSON As %Library.DynamicObject, Output pDeepJS
 	Quit tSC
 }
 
+ClassMethod JSONAppend(pJSON As %Library.DynamicObject, ByRef pExistingJSON As %Library.DynamicObject) As %Status
+{
+	Set tSC = $$$OK
+	Try
+	{
+        Set tSC = ..JSONToFlatJSON(pJSON,.tFJSON,{"printResults":0})
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+        Set tM = tFJSON.%GetIterator()
+        While tM.%GetNext(.mkey,.mvalue) {
+            Do ..SetByLineKey(pExistingJSON,mkey,mvalue,,"^")
+        }
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As %Library.DynamicObject) As %Status
+{
+	Set tSC = $$$OK
+	Try
+	{
+		Set pIndexedMap = {}
+		Set prop = pAPIMap.%Get("paths").%GetIterator()
+		While (prop.%GetNext(.key,.value)) {
+			Set tKey = ""
+			For i=1:1:$Length(key,"/") {
+				Set tParName = ""
+				Set tPc = $Replace($Piece(key,"/",i),":","")
+				If i=1 Set tPc = $ZConvert(tPc,"S")
+				If $Find(tPc,"{")>0,$Find(tPc,"}")>0 {
+					Set tParName = $Replace($Replace(tPc,"{",""),"}","")
+					If tParName'="" Do ..SetByLineKey(pIndexedMap,tKey_"^@parName",tParName,,"^")
+					Set tPc = "@P"
+				}
+				Set tKey = tKey_$Select(i=1:"",1:"^")_tPc
+			}
+			If $IsObject(value) {
+				Do ..SetByLineKey(pIndexedMap,tKey,value,,"^")
+			} Else {
+				Do ..SetByLineKey(pIndexedMap,tKey,{"@operationId":(value)},,"^")
+			}
+			Do ..SetByLineKey(pIndexedMap,tKey_"^@path",key,,"^")
+			If tParName'="" Do ..SetByLineKey(pIndexedMap,tKey_"^@parName",tParName,,"^")
+		}
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
 }

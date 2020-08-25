@@ -174,10 +174,15 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                 } 
             }
         }
-        If pInternal.level=0,pPrintResults {
-            Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
-            Do tFormatter.FormatToString(pJSON.%ToJSON(),.jsonString)
-            Write jsonString
+        If pInternal.level=0 {
+			Set tSC = ..GetIdxPath(pJSON,.tIdxJSON)
+			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+            Set pJSON = tIdxJSON
+            If (pPrintResults) {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(pJSON.%ToJSON(),.jsonString)
+                Write jsonString
+            }
         }
     }
     Catch(e) {
