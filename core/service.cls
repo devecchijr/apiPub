@@ -577,6 +577,8 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If tAPIInfo.%Get("urlParams").%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("urlParams").%Get("className")
 			If tAPIInfo.%Get("urlParams").%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("urlParams").%Get("methodName")
 			Set pRestRequest.APIOperationId = tAPIInfo.%Get("operationId")
+			If pRestRequest.APIOperationId="" Set pRestRequest.APIOperationId = pRestRequest.DispatchMethod
+			If pRestRequest.DispatchClass="" Set pRestRequest.DispatchClass = ..#DispatchClass
 			Set pRestRequest.APIPath = tAPIInfo.%Get("path")
 		}
 		Set tURLParams = tAPIInfo.%Get("urlParams").%GetIterator()

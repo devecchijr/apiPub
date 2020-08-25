@@ -331,16 +331,17 @@ Method createUsersWithListInput(pListOfUsers As %ListOfObjects(ELEMENTTYPE="apiP
 }
 
 /// Update user
-/// @apiPub[path="/user"]
+/// @apiPub[path="/user/{username}"]
 /// @apiPub[verb="put"]
 /// @apiPub[tag="user"]
 /// @apiPub[params.description="This can only be done by the logged in user."]
-Method updateUser(pUser As apiPub.samples.User) As %Status [ WebMethod ]
+/// @apiPub[params.pUserName.name="username"]
+Method updateUser(pUserName As %String, pUser As apiPub.samples.User) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
-        If '$IsObject(##class(apiPub.samples.User).idIDXOpen(pUser.id)) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (id) doesn't Exist"))
+        If '$IsObject(##class(apiPub.samples.User).usernameIDXOpen(pUserName)) {
+            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
         }
         Set tSC = ..saveUser(pUser)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
@@ -376,6 +377,61 @@ Method saveUser(pUser As apiPub.samples.User) As %Status
         Set tSC = e.AsStatus()      
     }
     Quit tSC
+}
+
+/// Get user by user name
+/// @apiPub[tag="user"]
+/// @apiPub[path="/user/{username}"]
+/// @apiPub[params.pUserName.description="The name that needs to be fetched"]
+/// @apiPub[params.pUserName.name="username"]
+Method getUserByName(pUserName As %String) As apiPub.samples.User [ WebMethod ]
+{
+    Set tUser = ##class(apiPub.samples.User).usernameIDXOpen(pUserName)
+    If '$IsObject(tUser) {
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "username doesn't Exist"))
+    }
+    Return tUser
+}
+
+/// Delete user
+/// @apiPub[tag="user"]
+/// @apiPub[verb="delete"]
+/// @apiPub[path="/user/{username}"]
+/// @apiPub[params.pUserName.description="The name that needs to be deleted"]
+/// @apiPub[params.pUserName.name="username"]
+Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
+{
+    Set tSC = $System.Status.OK()
+    Try {
+        Set tUser = ##class(apiPub.samples.User).usernameIDXOpen(pUserName)
+        If '$IsObject(tUser) {
+            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "username doesn't Exist"))
+        }
+        Set tSC = ##class(apiPub.samples.User).%DeleteId(tUser.%Id())
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    }
+    Catch(e) {
+        Set tSC = e.AsStatus()      
+    }
+    Quit tSC
+}
+
+/// Logs user into the system
+/// @apiPub[tag="user"]
+/// @apiPub[path="/user/login"]
+/// @apiPub[params.username.required=1]
+/// @apiPub[params.password.required="true"]
+/// @apiPub[response.name="sessionId"]
+Method loginUser(username As %String, password As %String) As %String [ WebMethod ]
+{
+    Quit "sessionId 1234"
+}
+
+/// Logs out current logged in user session
+/// @apiPub[path="/user/logout"]
+/// @apiPub[tag="user"]
+Method logoutUser() [ WebMethod ]
+{
 }
 
 XData apiPub [ MimeType = application/json ]

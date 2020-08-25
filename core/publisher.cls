@@ -106,7 +106,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             If value.%Get("customParams").%Get("path")'="" {
                 Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_value.%Get("customParams").%Get("path"),"//","/")
             } Else {
-                Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_pClassName_"/"_key,"//","/")
+                //Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_pClassName_"/"_key,"//","/")
+                Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_key,"//","/")
             }
             Set tOperationId = value.%Get("customParams").%Get("operationId")
             If tOperationId="" Set tOperationId=key

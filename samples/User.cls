@@ -20,6 +20,8 @@ Property userStatus As %SmallInt;
 
 Index idIDX On id [ Unique ];
 
+Index usernameIDX On username [ Unique ];
+
 Storage Default
 {
 <Data name="UserDefaultData">

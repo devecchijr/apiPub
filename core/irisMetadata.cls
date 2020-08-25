@@ -163,12 +163,15 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Set tVerb=$ZConvert(mInfo.%Get("customParams").%Get("verb"),"S")
                         If tVerb="" Set tVerb=$Select((mInfo.%Get("hasComplexParams")):"Post",1:"Get")
-                        Set tPath = tVerb_":/"_pClassName_"/"_tMD.Name
+                        //Set tPath = tVerb_":/"_pClassName_"/"_tMD.Name
+                        Set tPath = tVerb_":/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
                         Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
-                        If (mInfo="")||(mInfo.%Get("customParams").%Get("operationId")="") Set tOperationId=tMD.Name
+                        //If (mInfo="")||(mInfo.%Get("customParams").%Get("operationId")="") Set tOperationId=tMD.Name
                         If pJSON.%Get("paths").%Get(tPath)'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class"_pClassName))
-                        Do pJSON.%Get("paths").%Set(tPath,{"className":(pClassName),"methodName":(tMD.Name),"operationId":(tOperationId)})
+                        //Do pJSON.%Get("paths").%Set(tPath,{"className":(pClassName),"methodName":(tMD.Name),"operationId":(tOperationId)})
+                        Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
+                        If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
