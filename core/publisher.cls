@@ -576,6 +576,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                     If (value.%Get("attribute")) Set key = pAttributePrefix_key
                     Set tIsArrayType = value.%Get("maxOccurs")="unbounded"
                     Set tType = value.%Get("type")
+                    Set tRequired = (value.%Get("minOccurs")="")
                     Set tObjType = pOriginalJSON.%Get(tType)
                     Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
                     Set tNestedKey = $Select(pNestedParentKey'="":pNestedParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
@@ -585,6 +586,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                         If 'tIsArrayType Set tIsArrayType = tObjType.%Get("maxOccurs")="unbounded"
                         Set tCircKey = tParentCircRefCtrl.%Get(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType)
                         If (tCircKey="")||(tNestedKey'[tCircKey),$IsObject(tObjType) Do pCircRefCtrl.%Set(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType,tNestedKey)
+                        If (tRequired) Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
                         If (tIsArrayType) {
                             Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"
@@ -635,6 +637,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                             }
                         }
                     } Else {
+                        If (tRequired) Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
                         If (tIsArrayType) {
                             Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"

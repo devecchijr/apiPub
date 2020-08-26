@@ -1,14 +1,14 @@
 Class apiPub.samples.Pet Extends (%Persistent, %XML.Adaptor)
 {
 
-Property id As %Integer [ Required ];
+Property id As %Integer;
 
-Property category As apiPub.samples.Category [ Required ];
+Property category As apiPub.samples.Category;
 
 /// @apiPub[example="doggie"]
-Property name As %String(MAXLEN = "") [ InitialExpression = "doggie" ];
+Property name As %String(MAXLEN = "") [ InitialExpression = "doggie", Required ];
 
-Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element");
+Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element") [ Required ];
 
 Relationship tags As apiPub.samples.Tag(XMLPROJECTION = "element") [ Cardinality = many, Inverse = pet ];
 
