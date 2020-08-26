@@ -164,7 +164,9 @@ Method updatePetQuery(petId As %Integer, name As %String, status As %String) As 
 /// @apiPub[verb="delete"]
 /// @apiPub[params.petId.description="Pet id to delete"]
 /// @apiPub[params.id.name="petId"]
-Method deletePet(id As %Integer) As %Status [ WebMethod ]
+/// @apiPub[params.apikey.input="header"]
+/// @apiPub[params.apikey.name="api_key"]
+Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -282,7 +284,7 @@ Method createUsersWithArrayInput(pArrayOfUsers As %ArrayOfObjects(ELEMENTTYPE="a
 {
     Set tSC = $System.Status.OK()
     Try {
-        //Validate
+        //Validate Array
         For i=1: 1: pArrayOfUsers.Count() {
             Set tUser=pArrayOfUsers.GetAt(i)
             If $IsObject(##class(apiPub.samples.User).idIDXOpen(tUser.id)) {
@@ -310,7 +312,7 @@ Method createUsersWithListInput(pListOfUsers As %ListOfObjects(ELEMENTTYPE="apiP
 {
     Set tSC = $System.Status.OK()
     Try {
-        //Validate
+        //Validate List
         For i=1: 1: pListOfUsers.Count() {
             Set tUser=pListOfUsers.GetAt(i)
             If $IsObject(##class(apiPub.samples.User).idIDXOpen(tUser.id)) {
@@ -419,11 +421,19 @@ Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
 /// Logs user into the system
 /// @apiPub[tag="user"]
 /// @apiPub[path="/user/login"]
-/// @apiPub[params.username.required=1]
+/// @apiPub[params.username.required="true"]
+/// @apiPub[params.username.description="The user name for login"]
 /// @apiPub[params.password.required="true"]
-/// @apiPub[response.name="sessionId"]
-Method loginUser(username As %String, password As %String) As %String [ WebMethod ]
+/// @apiPub[params.password.description="The password for login in clear text"]
+/// @apiPub[params.expiresAfter.output="header"]
+/// @apiPub[params.expiresAfter.description="date in UTC when token expires"]
+/// @apiPub[params.expiresAfter.name="X-Expires-After"]
+/// @apiPub[params.rateLimit.output="header"]
+/// @apiPub[params.rateLimit.description="calls per hour allowed by the user"]
+/// @apiPub[params.rateLimit.name="X-Rate-Limit"]
+Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, ByRef rateLimit As %BigInt) As %String [ WebMethod ]
 {
+    Set expiresAfter = $ZDateTime($Horolog, 3)
     Quit "sessionId 1234"
 }
 

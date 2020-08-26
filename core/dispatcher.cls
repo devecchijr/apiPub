@@ -3,11 +3,11 @@ Class apiPub.core.dispatcher Extends apiPub.core.jsonBuilder
 
 // Road Map
 
-ClassMethod XMLCall(pMethodKey As %String, ByRef pInstance As %XML.Adaptor, pInputBody As %AbstractStream, pInputParams As %Library.DynamicObject, Output pResult As %AbstractStream, pParams As %Library.DynamicObject, Output pInnerJSONStatus As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
+ClassMethod XMLCall(pMethodKey As %String, ByRef pInstance As %XML.Adaptor, pInputBody As %AbstractStream, pInputParams As %Library.DynamicObject, Output pResult As %AbstractStream, pParams As %Library.DynamicObject, Output pHeadersResponse As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
-        Set pInnerJSONStatus = {}
+        Set pHeadersResponse = {}
         Set pResult = ##class(%Library.GlobalCharacterStream).%New()
     }
     Catch(e) {
@@ -16,7 +16,7 @@ ClassMethod XMLCall(pMethodKey As %String, ByRef pInstance As %XML.Adaptor, pInp
     Quit tSC
 }
 
-ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject, pVerb As %String = "get", pInputBody As %Library.DynamicObject, pInputParams As %Library.DynamicObject, Output pResult As %Library.DynamicObject, pParams As %Library.DynamicObject, Output pInnerJSONStatus As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
+ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject, pVerb As %String = "get", pInputBody As %Library.DynamicObject, pInputParams As %Library.DynamicObject, pInputHeaders As %Library.DynamicObject, Output pResult As %Library.DynamicObject, pParams As %Library.DynamicObject, Output pHeadersResponse As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -24,7 +24,7 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
         If '$Data(pInputBody) Set pInputBody={}
         Set pSuccessfulCode=""
         Set pResult = {}
-        Set pInnerJSONStatus = {}
+        Set pHeadersResponse = {}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(pMethodKey,.minfo,{"printResults":0,"showClassSchemas":1})
@@ -74,15 +74,21 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
             Set tFS = minfo.formalSpec.%GetIterator()
             While (tFS.%GetNext(.key,.value)) {
                 Set tPName = value.%Get("paramName")
-                Xecute ("Kill tmpZ"_$Tr(tPName,"!@#$%^&*()_ ",""))
+                Xecute ("Kill tmpZ"_$Tr(tPName,"!@#$%^&*()_- ",""))
                 If minfo.%Get("resultParam")=key Continue
                 Set tPType = value.%Get("pmJType")
-                Set tValue = pInputParams.%Get(tPName)
+                Set tValue=""
+                If value.%Get("input")="header" {
+                    Set tValue = pInputHeaders.%Get(tPName)
+                    If tValue="" Set tValue = pInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
+                } Else {
+                    Set tValue = pInputParams.%Get(tPName)
+                }
                 If value.%Get("pmJType")'="",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
                 If (tPType'="")//Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
                     ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) { //Output Values
-                    Set tClStr = tClStr_","_$Select((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1):".",1:"")_"tmpZ"_$Tr(tPName,"!@#$%^&*()_ ","")
+                    Set tClStr = tClStr_","_$Select((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1):".",1:"")_"tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")
                     Set tIsList=$Piece(value.%Get("paramType"),"|",2)
                     Set tSchema = value.%Get("customSchema")
                     If tSchema="" Set tSchema = tSchemas
@@ -118,7 +124,7 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                                 Kill jsonReqObj
                             }
                         }
-                        Set tCmd = "(req) Set tmpZ"_$Tr(tPName,"!@#$%^&*()_ ","")_"=req"
+                        Set tCmd = "(req) Set tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_"=req"
                         Xecute (tCmd,reqObj)
                     } Else {
                         If '(value.%Get("outputOnly")),tValue'="" {
@@ -145,7 +151,7 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                                 }
                             }
                         }
-                        Set tCmd = "(var) Set tmpZ"_$Tr(tPName,"!@#$%^&*()_ ","")_"=var"
+                        Set tCmd = "(var) Set tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_"=var"
                         Xecute (tCmd,tValue)
                     }
                 } Else {
@@ -160,10 +166,10 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
         }
         If tServiceObj="" Set tClStr = "$ClassMethod("""_$Piece(pMethodKey,"||",1)_""","""_$Piece(pMethodKey,"||",2)_""""_tClStr_")"
         If $IsObject(tServiceObj) Set tClStr = "$Method(tObj,"""_$Piece(pMethodKey,"||",2)_""""_tClStr_")"
-        Xecute "Kill tmpZ"_$Tr(tRetPName,"!@#$%^&*()_ ","")
+        Xecute "Kill tmpZ"_$Tr(tRetPName,"!@#$%^&*()_- ","")
         Try {
             If tRetType'="" {
-                Set tClStr = "(tObj) Set tmpZ"_$Tr(tRetPName,"!@#$%^&*()_ ","")_" = "_tClStr
+                Set tClStr = "(tObj) Set tmpZ"_$Tr(tRetPName,"!@#$%^&*()_- ","")_" = "_tClStr
                 Xecute (tClStr,tServiceObj)
             } Else {
                 Set tClStr = "(tObj) Do "_tClStr
@@ -182,18 +188,21 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                 Set tList=$Piece(value.%Get("paramType"),"|",2)
                 If tPType'=""||value.%Get("complexType")=1,(value.%Get("outputOnly")=1||value.%Get("byRef")=1) {
                     Set tVal=""
-                    Set tCmd = "(out) Set out=$Get(tmpZ"_$Tr(tPName,"!@#$%^&*()_ ","")_","""")"
+                    Set tCmd = "(out) Set out=$Get(tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_","""")"
                     Xecute (tCmd,.tVal)
                     If tPType="status" {
                         Set pInnerStatus = tVal
-                        Set tStatusObj = {
-                            "statusCode":($$$ISOK(tVal)),
-                            "message":($Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
+                        If value.%Get("output")="body" {
+                            Do pResult.%Set("iris-StatusCode",$$$ISOK(tVal))
+                            Do pResult.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
+                            If '(tVal) Do pResult.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
+                        } Else {
+                            Do pHeadersResponse.%Set("iris-StatusCode",$$$ISOK(tVal))
+                            Do pHeadersResponse.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
+                            If '(tVal) Do pHeadersResponse.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
                         }
                         //To be Implemented Silent Mode
                         If '$$$ISOK(tVal) Throw ##Class(%Exception.StatusException).CreateFromStatus(tVal)
-                        If '(tVal) Do tStatusObj.%Set("errorCode",$System.Status.GetErrorCodes(tVal))
-                        Set pInnerJSONStatus=tStatusObj
                     } ElseIf value.%Get("complexType")=1 {
                         If tVal'="" {
                             If (tParamType = "%Library.DynamicObject")||(tParamType = "%Library.DynamicArray") {
@@ -239,7 +248,11 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                             If value.%Get("oConvFunction")'="",tVal'="" {
                                 Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
                             }
-                            Do pResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                            If value.%Get("output")="header" {
+                                Do pHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                            } Else {
+                                Do pResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                            }
                         } 
                     }
                 }

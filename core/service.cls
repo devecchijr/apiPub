@@ -81,17 +81,15 @@ ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiP
         }
         Set tSC = ..GetRestParams(pRequest.Params,.tParams,.tMethodParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = ..GetRestParams(pRequest.Headers,,.tHeaderParams)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
 		Set tParams.printResults=0
-		Set innerStat = {}
+		Set tHeadersResponse = {}
 		Set pSuccessfulCode=""
-		Set tSC = ##class(apiPub.core.dispatcher).JSONCall(pRequest.DispatchClass_"||"_pRequest.DispatchMethod,,pRequest.HttpVerb,tBodyRequest,tMethodParams,.jsonResult,tParams,.innerStat,.pInnerStat,.pSuccessfulCode)
+		Set tSC = ##class(apiPub.core.dispatcher).JSONCall(pRequest.DispatchClass_"||"_pRequest.DispatchMethod,,pRequest.HttpVerb,tBodyRequest,tMethodParams,tHeaderParams,.jsonResult,tParams,.tHeadersResponse,.pInnerStat,.pSuccessfulCode)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-		If innerStat.%Size()>0{
-            Set pResponse.Headers={
-                "iris-StatusCode":(innerStat.%Get("statusCode")),
-                "iris-StatusMessage":(innerStat.%Get("message")),
-                "iris-ErrorCode":(innerStat.%Get("errorCode"))
-            }.%ToJSON()
+		If tHeadersResponse.%Size()>0{
+            Set pResponse.Headers=tHeadersResponse.%ToJSON()
         }
         If $Data(jsonResult),$IsObject(jsonResult) {
 			If jsonResult.%Size()>0||(($ClassName(jsonResult)="%Library.DynamicArray")&&$IsObject(jsonResult)) Do pResponse.Body.Write(jsonResult.%ToJSON())

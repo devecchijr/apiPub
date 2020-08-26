@@ -43,6 +43,12 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                             Do ..SetByLineKey(pJSON,"customTags"_pDelim_key,value,,pDelim)
                         }
                     }
+                    If $IsObject(tXDataJSON),tXDataJSON.%Get("securitySchemes")'="" {
+                        Set tProp = tXDataJSON.%Get("securitySchemes").%GetIterator()
+                        While tProp.%GetNext(.key,.value) {
+                            Do ..SetByLineKey(pJSON,"customSecurity"_pDelim_key,value,,pDelim)
+                        }
+                    }
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("servers")'="" {
                         Set tProp = tXDataJSON.%Get("servers").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
@@ -243,9 +249,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 }
                 Set tResponseDescription=""
                 Set tComplexSchema=0
+                Set tResponseOutput = ""
                 If tApiPubParams.%Size()>0 {
                     Do ..SetByLineKey(pJSON,"customParams",tApiPubParams,,pDelim)
                     If ..GetByLineKey(tApiPubParams,"response.name",".")'="" Set pResponseObjName = ..GetByLineKey(tApiPubParams,"response.name",".")
+                    If ..GetByLineKey(tApiPubParams,"response.output",".")'="" Set tResponseOutput = ..GetByLineKey(tApiPubParams,"response.output",".")
                     If ..GetByLineKey(tApiPubParams,"successfulCode",".")'="" Set pSuccessfulCode = ..GetByLineKey(tApiPubParams,"successfulCode",".")
                 }
                 Do ..SetByLineKey(pJSON,"successfulCode",pSuccessfulCode,,pDelim)
@@ -267,8 +275,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                     Set tParam = tParamName
+                    Set (tParamOutput,tParamInput)=""
                     If tApiPubParams.%Size()>0 {
                         If ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")'="" Set tParamName = ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")
+                        If ..GetByLineKey(tApiPubParams,"params."_tParam_".output",".")'="" Set tParamOutput = ..GetByLineKey(tApiPubParams,"params."_tParam_".output",".")
+                        If ..GetByLineKey(tApiPubParams,"params."_tParam_".input",".")'="" Set tParamInput = ..GetByLineKey(tApiPubParams,"params."_tParam_".input",".")
                     }
                     Set tParamObj = {
                         "param":(tParam),
@@ -282,7 +293,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         "complexType":(tXmlAdaptor=1),
                         "outputOnly":(tParamInOut="*"),
                         "byRef":(tParamInOut="&"),
-                        "params":(tParamAtts)
+                        "params":(tParamAtts),
+                        "output":(tParamOutput),
+                        "input":(tParamInput)
                     }
                     If (tParamType="%Library.DynamicObject")||(tParamType="%Library.DynamicArray") Do tParamObj.%Set("complexType",1)
                     Set tElType = $Tr($Piece($Piece(tParamAtts,"ELEMENTTYPE=",2),",",1),"""","")
@@ -363,7 +376,8 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         "complexType":(tXmlAdaptor=1),
                         "outputOnly":1,
                         "byRef":0,
-                        "params":(tParams)
+                        "params":(tParams),
+                        "output":(tResponseOutput)
                     }
                     If (tPMClass="%Library.DynamicObject")||(tPMClass="%Library.DynamicArray") Do tRetParamObj.%Set("complexType",1)
                     Do ..SetByLineKey(pJSON,"formalSpec[+]",tRetParamObj,,pDelim)

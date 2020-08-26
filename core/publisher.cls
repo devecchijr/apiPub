@@ -152,7 +152,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             If value.%Get("customParams").%Get("params")'="" {
                 Set tParamDescription = value.%Get("customParams").%Get("params").%Get("description")
                 Set tParamRequired = value.%Get("customParams").%Get("params").%Get("required")
-                If tParamRequired="" Set tParamRequired="true"
+                If tParamRequired="" Set tParamRequired=1
             }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
@@ -161,6 +161,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Set tInType="query"
                     If $Find(tPath,"{"_pvalue.%Get("paramName")_"}")>0 Set tInType="path"
+                    If pvalue.%Get("input")'="" Set tInType = pvalue.%Get("input")
                     Set tParObj = {
                         "in":(tInType),
                         "name":(pvalue.%Get("paramName")),
@@ -168,7 +169,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             "type":(pvalue.%Get("pmJDType"))
                         }
                     } 
-                    If tInType="path" Do tParObj.%Set("required",1,"boolean")
+                    If $Find("path",tInType)>0 Do tParObj.%Set("required",1,"boolean")
                     Set tParams = pvalue.%Get("params")
                     For i=1:1:$Length(tParams,"|") {
                         Set tAttName=$Piece($Piece(tParams,"|",i),"=",1)
@@ -195,7 +196,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             Set tIt = tCustomFlatParams.%GetIterator()
                             While tIt.%GetNext(.ckey,.cvalue) {
-                                Do ..SetByLineKey(tParObj,ckey,cvalue,,"^")
+                                If $Find("input output",ckey)>0 Continue 
+                                Do ..SetByLineKey(tParObj,ckey,cvalue,$Select((ckey="required")||($Find("true false",$ZConvert(cvalue,"L"))>0):"boolean",1:""),"^")
                                 //change to array if string type
                                 If tParObj.%Get("schema").%Get("type")="string",$Find(ckey,"schema^items^enum")>0 {
                                    Do tParObj.%Get("schema").%Set("type","array")
@@ -298,13 +300,19 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 }
                             }
                         }
-                    } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status" {
+                    } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("output")'="header" {
                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^type","object",,"^")
                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^type",$Select((tIsArray):"array",1:pvalue.%Get("pmJDType")),,"^")
+                        If pvalue.%Get("pmJDFormat")'="",'tIsArray Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^format",pvalue.%Get("pmJDFormat"),,"^")
                         If (tIsArray) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^items^type",pvalue.%Get("pmJDType"),,"^")
                         If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^type",$Select((tIsArray):"array",1:pvalue.%Get("pmJDType")),,"^")
                         If (pIncludeXML),(tIsArray) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^items^type",pvalue.%Get("pmJDType"),,"^")
                         If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^xml^name","response",,"^")
+                    } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("output")="header" {
+                        Set tHeaderDesc = ..GetByLineKey(value,"customParams^params^"_pvalue.%Get("param")_"^description",pDelim)
+                        If tHeaderDesc'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^description",tHeaderDesc,,"^")
+                        Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
+                        If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^schema^format",pvalue.%Get("pmJDFormat"),,"^")
                     } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")="status" {
                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^iris-statuscode^description","1 For Success and 0 For Error",,"^")
                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^iris-statuscode^schema^type","integer",,"^")
@@ -477,8 +485,12 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Do ..SetByLineKey(tSchemaDef,"servers[0]^url",pNS,,"^")
             Do ..SetByLineKey(tSchemaDef,"servers[1]^url",$Replace(pNS,"http",$Select($Find(pNS,"https")>0:"http",1:"https")),,"^")
         }
-        Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^type","http",,"^")
-        Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^scheme","basic",,"^")
+        If mInfo.%Get("customSecurity")'="" {
+            Do ..SetByLineKey(tSchemaDef,"components^securitySchemes",mInfo.%Get("customSecurity"),,"^")
+        } Else {
+            Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^type","http",,"^")
+            Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^scheme","basic",,"^")
+        }
         Do ..SetByLineKey(tSchemaDef,"components^responses^UnauthorizedError^description","Authentication information is missing or invalid",,"^")
         Set pJSON = tSchemaDef       
         If pPrintResults {
