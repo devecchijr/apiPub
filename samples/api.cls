@@ -431,9 +431,10 @@ Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
 /// @apiPub[params.rateLimit.output="header"]
 /// @apiPub[params.rateLimit.description="calls per hour allowed by the user"]
 /// @apiPub[params.rateLimit.name="X-Rate-Limit"]
-Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, ByRef rateLimit As %BigInt) As %String [ WebMethod ]
+Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, Output rateLimit As %BigInt) As %String [ WebMethod ]
 {
     Set expiresAfter = $ZDateTime($Horolog, 3)
+    Set rateLimit=3
     Quit "sessionId 1234"
 }
 

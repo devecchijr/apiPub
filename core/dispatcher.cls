@@ -1,32 +1,31 @@
 Class apiPub.core.dispatcher Extends apiPub.core.jsonBuilder
 {
 
-// Road Map
-
-ClassMethod XMLCall(pMethodKey As %String, ByRef pInstance As %XML.Adaptor, pInputBody As %AbstractStream, pInputParams As %Library.DynamicObject, Output pResult As %AbstractStream, pParams As %Library.DynamicObject, Output pHeadersResponse As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
+ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
-        Set pHeadersResponse = {}
-        Set pResult = ##class(%Library.GlobalCharacterStream).%New()
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()
-    }
-    Quit tSC
-}
-
-ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject, pVerb As %String = "get", pInputBody As %Library.DynamicObject, pInputParams As %Library.DynamicObject, pInputHeaders As %Library.DynamicObject, Output pResult As %Library.DynamicObject, pParams As %Library.DynamicObject, Output pHeadersResponse As %Library.DynamicObject, Output pInnerStatus As %Status, Output pSuccessfulCode) As %Status
-{
-    Set tSC = $System.Status.OK()
-    Try {
-        If '$Data(pParams) Set pParams={}
-        If '$Data(pInputBody) Set pInputBody={}
+        //Parse Request *************************************************************************
+        Set pInputBody = {}
+        If $Find("post put",$ZConvert(pRequest.HttpVerb,"L"))>0,$ZConvert(pRequest.ContentType,"L")["json" {
+			If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Body Could Not be Empty")
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
+            Set pResponse.ContentType =  "application/json"
+        }
+        Set tSC = ..GetRequestParams(pRequest.Params,.pInputParams,.pParams)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = ..GetRequestParams(pRequest.Headers,.pInputHeaders)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+		Set pSuccessfulCode=""
+        Set pMethodKey = pRequest.DispatchClass_"||"_pRequest.DispatchMethod
+        Set pVerb = pRequest.HttpVerb
+        //End Of Parse *************************************************************************
         Set pSuccessfulCode=""
         Set pResult = {}
         Set pHeadersResponse = {}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
-        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
         Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(pMethodKey,.minfo,{"printResults":0,"showClassSchemas":1})
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         If minfo.%Size()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"invalid method call ("_pMethodKey_")"))
@@ -258,6 +257,16 @@ ClassMethod JSONCall(pMethodKey As %String, ByRef pInstance As %RegisteredObject
                 }
             }
         }
+        //Parse Response **********************************
+		If pHeadersResponse.%Size()>0{
+            Set pResponse.Headers=pHeadersResponse.%ToJSON()
+        }
+        If $Data(pResult),$IsObject(pResult) {
+			If pResult.%Size()>0||(($ClassName(pResult)="%Library.DynamicArray")&&$IsObject(pResult)) Do pResponse.Body.Write(pResult.%ToJSON())
+			Set pResponse.ContentType = "application/json"
+		}
+        Set pResponse.ResponseStatusCode = pSuccessfulCode
+        //*************************************************
         If pPrintResults {
             Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
             Do tFormatter.FormatToString(pResult.%ToJSON(),.jsonString)

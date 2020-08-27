@@ -213,4 +213,30 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 	Quit tSC
 }
 
+// Separate Behaviour params (starts with _) from Method/Request params
+
+ClassMethod GetRequestParams(pReqParams As %String, Output pParams As %Library.DynamicObject, Output pBehavParams As %Library.DynamicObject) As %Status
+{
+    Set tSC = $$$OK 
+    Try {
+        If '$Data(pParams) Set pParams = {}
+        If '$Data(pBehavParams) Set pBehavParams = {}
+        If pReqParams="" Set pReqParams="{}"
+        Set tIter = {}.%FromJSON(pReqParams).%GetIterator()
+        While tIter.%GetNext(.key,.value) {
+            If $ZConvert(value,"L")="true" Set value = 1
+            If $ZConvert(value,"L")="false" Set value = 0
+            If $Extract(key,1,1)="_" {
+                Do pBehavParams.%Set($Extract(key,2,*),value)
+            } Else {
+                Do pParams.%Set(key,value)
+            }
+        }
+    }
+    Catch(e) {
+		Set tSC = e.AsStatus()
+    }
+    Quit tSC
+}
+
 }

@@ -46,7 +46,7 @@ ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse A
     Set tSC = $$$OK 
     Try {
         If pRequest.APIOperationId="getOAS",pRequest.DispatchClass'="" Return ##class(apiPub.core.service).GetOAS(pRequest,.pResponse)
-		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" Return ##class(apiPub.core.service).CallAPI(pRequest,.pResponse)
+		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" Return ##class(apiPub.core.service).Dispatch(pRequest,.pResponse)
 		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not mapped"))
     }
     Catch(e) {
@@ -55,7 +55,7 @@ ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse A
     Quit tSC
 }
 
-ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
+ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
     Try {
@@ -63,42 +63,8 @@ ClassMethod CallAPI(pRequest As apiPub.service.message, Output pResponse As apiP
 			Set tSC = $$$ERROR($$$GeneralError, "Only Documentation (OAS)")
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
 		}
-        Set tBodyRequest = {}
-        If "Post Put"[pRequest.HttpVerb,$ZConvert(pRequest.ContentType,"L")["json" {
-			If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Body Could Not be Empty")
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set tBodyRequest = {}.%FromJSON(pRequest.Body.Read())
-            Set pResponse.ContentType =  "application/json"
-        } ElseIf "Post Put"[pRequest.HttpVerb,$ZConvert(pRequest.ContentType,"L")["xml" {
-            If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Body Could Not be Empty")
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set tBodyRequest = pRequest.Body.Read()
-            Set pResponse.ContentType =  "application/xml"
-        } ElseIf "Post Put"[pRequest.HttpVerb {
-            //Set tSC = $$$ERROR($$$GeneralError, "Invalid Content Type")
-            Set tBodyRequest = {}
-			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        }
-        Set tSC = ..GetRestParams(pRequest.Params,.tParams,.tMethodParams)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = ..GetRestParams(pRequest.Headers,,.tHeaderParams)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-		Set tParams.printResults=0
-		Set tHeadersResponse = {}
-		Set pSuccessfulCode=""
-		Set tSC = ##class(apiPub.core.dispatcher).JSONCall(pRequest.DispatchClass_"||"_pRequest.DispatchMethod,,pRequest.HttpVerb,tBodyRequest,tMethodParams,tHeaderParams,.jsonResult,tParams,.tHeadersResponse,.pInnerStat,.pSuccessfulCode)
+		Set tSC = ##class(apiPub.core.dispatcher).Dispatch(pRequest,.pResponse)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-		If tHeadersResponse.%Size()>0{
-            Set pResponse.Headers=tHeadersResponse.%ToJSON()
-        }
-        If $Data(jsonResult),$IsObject(jsonResult) {
-			If jsonResult.%Size()>0||(($ClassName(jsonResult)="%Library.DynamicArray")&&$IsObject(jsonResult)) Do pResponse.Body.Write(jsonResult.%ToJSON())
-			Set pResponse.ContentType = "application/json"
-        } ElseIf $Data(xmlResult),$IsObject(xmlResult) {
-			If xmlResult.%Size()>0 Do pResponse.Body.Write(xmlResult.Read())
-			Set pResponse.ContentType = "application/xml"
-		}
-        Set pResponse.ResponseStatusCode = pSuccessfulCode
     }
     Catch(e) {
 		Set tSC = e.AsStatus()
@@ -112,7 +78,7 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
     Try {
         If pRequest.Params="" Set pRequest.Params="{}"
         //Separate internal behavioral params from other params
-        Set tSC = ..GetRestParams(pRequest.Params,.tParams,.tBusParams)
+        Set tSC = ..GetRequestParams(pRequest.Params,.tBusParams,.tParams)
         Set tBasePath = tBusParams.%Get("basePath")
         Set tParams.basePath = tBasePath
         Set tParams.printResults = 0
@@ -192,32 +158,6 @@ ClassMethod ProxyHttpCall(pRequest As apiPub.service.message, Output pResponse A
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         Set tSC = ..HttpResponseToMsgResponse(tURL,tHttpRequest,pRequest,.pResponse)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-    }
-    Catch(e) {
-		Set tSC = e.AsStatus()
-    }
-    Quit tSC
-}
-
-// Separate Behaviour params (starts with _) from Method/Request params
-
-ClassMethod GetRestParams(pRestParams As %String, Output pParams As %Library.DynamicObject, Output pRequestParams As %Library.DynamicObject) As %Status
-{
-    Set tSC = $$$OK 
-    Try {
-        If '$Data(pRequestParams) Set pRequestParams = {}
-        If '$Data(pParams) Set pParams = {}
-        If pRestParams="" Set pRestParams="{}"
-        Set tIter = {}.%FromJSON(pRestParams).%GetIterator()
-        While tIter.%GetNext(.key,.value) {
-            If $ZConvert(value,"L")="true" Set value = 1
-            If $ZConvert(value,"L")="false" Set value = 0
-            If $Extract(key,1,1)="_" {
-                Do pParams.%Set($Extract(key,2,*),value)
-            } Else {
-                Do pRequestParams.%Set(key,value)
-            }
-        }
     }
     Catch(e) {
 		Set tSC = e.AsStatus()
