@@ -445,6 +445,14 @@ Method logoutUser() [ WebMethod ]
 {
 }
 
+/// @apiPub[params.pContent.input="text/plain"]
+/// @apiPub[response.output="text/plain"]
+/// @apiPub[verb="post"]
+Method testOtherContent(pContent As %Stream.GlobalCharacter) As %String [ WebMethod ]
+{
+    Return pContent
+}
+
 XData apiPub [ MimeType = application/json ]
 {
 {
@@ -486,7 +494,48 @@ XData apiPub [ MimeType = application/json ]
                     "type" : "integer",
                     "format" : "int32"
                 }
-            }
+            },
+"Order": {
+
+    "type": "object",
+    "xml": {
+        "name": "Order"
+    },
+    "required": [
+        "id",
+        "quantity"
+    ],
+    "properties": {
+        "id": {
+            "type": "integer",
+            "format": "int64"
+        },
+        "petId": {
+            "type": "integer",
+            "format": "int64"
+        },
+        "quantity": {
+            "type": "integer",
+            "description": "(short) "
+        },
+        "shipDate": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "placed",
+                "approved",
+                "delivered"
+            ]
+        },
+        "complete": {
+            "type": "boolean"
+        }
+    }
+
+}            
         }        
     }
 }

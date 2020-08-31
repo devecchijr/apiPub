@@ -13,52 +13,51 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
             Set pResponse.ContentType =  "application/json"
         }
-        Set tSC = ..GetRequestParams(pRequest.Params,.pInputParams,.pParams)
+        Set tSC = ..GetRequestParams(pRequest.Params,.tInputParams,.tParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = ..GetRequestParams(pRequest.Headers,.pInputHeaders)
+        Set tSC = ..GetRequestParams(pRequest.Headers,.tInputHeaders)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-		Set pSuccessfulCode=""
-        Set pMethodKey = pRequest.DispatchClass_"||"_pRequest.DispatchMethod
-        Set pVerb = pRequest.HttpVerb
+        Set tMethodKey = pRequest.DispatchClass_"||"_pRequest.DispatchMethod
+        Set tVerb = pRequest.HttpVerb
         //End Of Parse *************************************************************************
-        Set pSuccessfulCode=""
-        Set pResult = {}
-        Set pHeadersResponse = {}
-        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
-        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
-        Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(pMethodKey,.minfo,{"printResults":0,"showClassSchemas":1})
+        Set tSuccessfulCode=""
+        Set tResult = {}
+        Set tHeadersResponse = {}
+        Set pDelim = $Select(tParams.keyDelimiter'="":tParams.keyDelimiter,1:"^")
+        Set pPrintResults = $Select(tParams.printResults'="":tParams.printResults,1:0)
+        Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(tMethodKey,.minfo,{"printResults":0,"showClassSchemas":1})
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        If minfo.%Size()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"invalid method call ("_pMethodKey_")"))
+        If minfo.%Size()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"invalid method call ("_tMethodKey_")"))
         Set tVerb=$ZConvert(minfo.%Get("customParams").%Get("verb"),"L")
         Set tSchemas=minfo.%Get("schemas")
         If tSchemas = "" Set tSchemas = {}
         If tVerb="" Set tVerb=$Select((minfo.%Get("hasComplexParams")):"post",1:"get")
-        If tVerb'=$ZConvert(pVerb,"L") {
+        If tVerb'=$ZConvert(tVerb,"L") {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<Method not Alowed> invalid http verb"))
         }
         Set tServiceObj=""
         If minfo.%Get("classMethod")=0 {
             If '$Data(pInstance) {
-                Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(pMethodKey,"||",1),,,.tIsBS,)
+                Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(tMethodKey,"||",1),,,.tIsBS,)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 Set tBusinessServiceName=minfo.%Get("customParams").%Get("bsName")
                 If tBusinessServiceName="" {
-                    Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(pMethodKey,"||",1)_"||BSNAME")
+                    Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(tMethodKey,"||",1)_"||BSNAME")
                     If $IsObject(tMParam) Set tBusinessServiceName = tMParam.Default
                 }
                 If (tIsBS)||(tBusinessServiceName'="") {
-                    If tBusinessServiceName="" Set tBusinessServiceName=$Piece(pMethodKey,"||",1)
+                    If tBusinessServiceName="" Set tBusinessServiceName=$Piece(tMethodKey,"||",1)
                     Set tSC = ##Class(Ens.Director).CreateBusinessService(tBusinessServiceName,.tServiceObj)
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 } Else {
-                    Set tServiceObj=$ClassMethod($Piece(pMethodKey,"||",1),"%New")
+                    Set tServiceObj=$ClassMethod($Piece(tMethodKey,"||",1),"%New")
                 }
             } Else {
                 If $IsObject(pInstance) Set tServiceObj=pInstance
             }
         }
         Set tClStr = ""
-        Set pSuccessfulCode = minfo.%Get("successfulCode")
+        Set tSuccessfulCode = minfo.%Get("successfulCode")
         Set tSingleReqBody = minfo.%Get("inputBodyParams").%Size()+minfo.%Get("byRefBodyParams").%Size()=1
         If (tSingleReqBody) {
             Set tFS = minfo.%Get($Select(minfo.%Get("inputBodyParams").%Size()>0:"inputBodyParams",1:"byRefBodyParams")).%GetIterator()
@@ -78,12 +77,15 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 Set tPType = value.%Get("pmJType")
                 Set tValue=""
                 If value.%Get("input")="header" {
-                    Set tValue = pInputHeaders.%Get(tPName)
-                    If tValue="" Set tValue = pInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
+                    Set tValue = tInputHeaders.%Get(tPName)
+                    If tValue="" Set tValue = tInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
+                } ElseIf value.%Get("input")'="" {
+                    Set tValue = pRequest.Body
                 } Else {
-                    Set tValue = pInputParams.%Get(tPName)
+                    Set tValue = tInputParams.%Get(tPName)
                 }
                 If value.%Get("pmJType")'="",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
+                If $Find($ZConvert(value.%Get("paramType"),"L"),"stream")>0 Set tPType="stream"
                 If (tPType'="")//Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
                     ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) { //Output Values
@@ -136,6 +138,21 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 }
                                 Set tValue=tList
                             } Else {
+                                //Stream to String
+                                If $IsObject(tValue),tValue.%IsA("%Stream.Object") {
+                                    If tPType="stream" {
+                                        Set tStream = $ClassMethod(value.%Get("paramType"),"%New")
+                                        Do tStream.CopyFrom(tValue)
+                                        Set tValue=tStream
+                                    } ElseIf tValue.SizeGet()>0,value.%Get("pmJDType")="string" {
+                                        Set tStrContent = ""
+                                        Do tValue.Rewind()
+                                        While (tValue.AtEnd=0) {
+                                            Set tStrContent = tStrContent_tValue.Read()
+                                        }
+                                        Set tValue=tStrContent
+                                    }
+                                }
                                 If value.%Get("iConvFunction")'="" {
                                     If $ClassMethod($Piece(value.%Get("paramType"),"|",1),"IsValid",tValue)'=1 {
                                         For i=1:1:$Length(value.%Get("iConvFunction"),",") {
@@ -163,8 +180,8 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             Set tRetPName=$Piece(minfo.%Get("formalSpec").%Get(minfo.%Get("resultParam")).%Get("paramName"),"|",1)
             Set tRetType=$Piece(minfo.%Get("formalSpec").%Get(minfo.%Get("resultParam")).%Get("paramType"),"|",1)
         }
-        If tServiceObj="" Set tClStr = "$ClassMethod("""_$Piece(pMethodKey,"||",1)_""","""_$Piece(pMethodKey,"||",2)_""""_tClStr_")"
-        If $IsObject(tServiceObj) Set tClStr = "$Method(tObj,"""_$Piece(pMethodKey,"||",2)_""""_tClStr_")"
+        If tServiceObj="" Set tClStr = "$ClassMethod("""_$Piece(tMethodKey,"||",1)_""","""_$Piece(tMethodKey,"||",2)_""""_tClStr_")"
+        If $IsObject(tServiceObj) Set tClStr = "$Method(tObj,"""_$Piece(tMethodKey,"||",2)_""""_tClStr_")"
         Xecute "Kill tmpZ"_$Tr(tRetPName,"!@#$%^&*()_- ","")
         Try {
             If tRetType'="" {
@@ -185,6 +202,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 Set tPType = value.%Get("pmJType")
                 Set tParamType = $Piece(value.%Get("paramType"),"|",1)
                 Set tList=$Piece(value.%Get("paramType"),"|",2)
+                If $Find($ZConvert(value.%Get("paramType"),"L"),"stream")>0 Set tPType="stream"
                 If tPType'=""||value.%Get("complexType")=1,(value.%Get("outputOnly")=1||value.%Get("byRef")=1) {
                     Set tVal=""
                     Set tCmd = "(out) Set out=$Get(tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_","""")"
@@ -192,13 +210,13 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     If tPType="status" {
                         Set pInnerStatus = tVal
                         If value.%Get("output")="body" {
-                            Do pResult.%Set("iris-StatusCode",$$$ISOK(tVal))
-                            Do pResult.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
-                            If '(tVal) Do pResult.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
+                            Do tResult.%Set("iris-StatusCode",$$$ISOK(tVal))
+                            Do tResult.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
+                            If '(tVal) Do tResult.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
                         } Else {
-                            Do pHeadersResponse.%Set("iris-StatusCode",$$$ISOK(tVal))
-                            Do pHeadersResponse.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
-                            If '(tVal) Do pHeadersResponse.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
+                            Do tHeadersResponse.%Set("iris-StatusCode",$$$ISOK(tVal))
+                            Do tHeadersResponse.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
+                            If '(tVal) Do tHeadersResponse.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
                         }
                         //To be Implemented Silent Mode
                         If '$$$ISOK(tVal) Throw ##Class(%Exception.StatusException).CreateFromStatus(tVal)
@@ -206,9 +224,9 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                         If tVal'="" {
                             If (tParamType = "%Library.DynamicObject")||(tParamType = "%Library.DynamicArray") {
                                 If tSingleRespBody=1 {
-                                    Set pResult = tVal
+                                    Set tResult = tVal
                                 } Else {
-                                    Do pResult.%Set(tPName,tVal)
+                                    Do tResult.%Set(tPName,tVal)
                                 }
                             } Else {
                                 If tList'="" {
@@ -216,17 +234,17 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                     Set tSC = ##Class(apiPub.core.converter).ObjArrayToJSONArray(tVal,.tJSONList,{"printResults":0})                      
                                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                     If tSingleRespBody=1 {
-                                        Set pResult = tJSONList
+                                        Set tResult = tJSONList
                                     } Else {
-                                        Do pResult.%Set(tPName,tJSONList)
+                                        Do tResult.%Set(tPName,tJSONList)
                                     }
                                 } Else {
                                     Set tSC = ##Class(apiPub.core.converter).ObjToJSON(tVal,.tJsonObj,{"printResults":0})
                                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                     If tSingleRespBody=1 {
-                                        Set pResult = tJsonObj
+                                        Set tResult = tJsonObj
                                     } Else {
-                                        Do pResult.%Set(tPName,tJsonObj)
+                                        Do tResult.%Set(tPName,tJsonObj)
                                     }
                                 }
                             }
@@ -242,15 +260,18 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 Do pJSONList.%Push(tItVal)
                             }
                             Set tVal=pJSONList
-                            Do pResult.%Set(tPName,tVal)
+                            Do tResult.%Set(tPName,tVal)
                         } Else {
                             If value.%Get("oConvFunction")'="",tVal'="" {
                                 Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
                             }
                             If value.%Get("output")="header" {
-                                Do pHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                                Do tHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                            } ElseIf value.%Get("output")'="" {
+                                Set tResult = tVal
+                                Set pResponse.ContentType = value.%Get("output")                               
                             } Else {
-                                Do pResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                                Do tResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
                             }
                         } 
                     }
@@ -258,19 +279,28 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             }
         }
         //Parse Response **********************************
-		If pHeadersResponse.%Size()>0{
-            Set pResponse.Headers=pHeadersResponse.%ToJSON()
+		If tHeadersResponse.%Size()>0{
+            Set pResponse.Headers=tHeadersResponse.%ToJSON()
         }
-        If $Data(pResult),$IsObject(pResult) {
-			If pResult.%Size()>0||(($ClassName(pResult)="%Library.DynamicArray")&&$IsObject(pResult)) Do pResponse.Body.Write(pResult.%ToJSON())
+        If $Data(tResult),$IsObject(tResult),tResult.%IsA("%Library.DynamicAbstractObject") {
+			If tResult.%Size()>0||(($ClassName(tResult)="%Library.DynamicArray")&&$IsObject(tResult)) Do pResponse.Body.Write(tResult.%ToJSON())
 			Set pResponse.ContentType = "application/json"
-		}
-        Set pResponse.ResponseStatusCode = pSuccessfulCode
+		} ElseIf $Data(tResult),$IsObject(tResult),tResult.%IsA("%Stream.Object") {
+            Do pResponse.Body.CopyFrom(tResult)
+		} ElseIf $Data(tResult),'$IsObject(tResult) {
+			Do pResponse.Body.Write(tResult)
+        }
+        Set pResponse.ResponseStatusCode = tSuccessfulCode
         //*************************************************
         If pPrintResults {
-            Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
-            Do tFormatter.FormatToString(pResult.%ToJSON(),.jsonString)
-            Write jsonString
+            If $IsObject(tResult) {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(tResult.%ToJSON(),.jsonString)
+                Write jsonString
+            } Else {
+                Write tResult
+            }
+            
         }
     }
     Catch(e) {

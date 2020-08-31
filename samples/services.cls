@@ -4,9 +4,11 @@ Class apiPub.samples.services Extends apiPub.core.service
 /// If false allows API Calling
 Parameter OnlyOAS As %Boolean = 0;
 
-Parameter OASPath As %String = "Get:/oas";
+Parameter OASPath As %String = "Get:/oas/doc";
 
 Parameter DispatchClass As %String = "apiPub.samples.api";
+
+Parameter DispatchClassOld As %String = "HS.Hub.HSWS.WebServices";
 
 /// Use TracerBSName for monitoring
 Parameter Traceable As %Boolean = 0;
