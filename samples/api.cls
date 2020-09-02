@@ -24,6 +24,7 @@ Method addPet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
 /// @apiPub[path="/pet"]
 /// @apiPub[params.description="Pet object that needs to be added/updated to the store"]
 /// @apiPub[verb="put"]
+/// @apiPub[charset="UTF-8"]
 Method updatePet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
@@ -62,9 +63,7 @@ Method savePet(pPet As apiPub.samples.Pet) As %Status
         Set tExPet = ##class(apiPub.samples.Pet).idIDXOpen(pPet.id)
         If $IsObject(tExPet) {
             Set tExPet.name=pPet.name
-            Set tExPet.tags=pPet.tags
             Set tExPet.category=pPet.category
-            Set tExPet.photoUrls=pPet.photoUrls
             Set tExPet.status=pPet.status
             Set tSC = tExPet.%Save()
         } Else {
@@ -133,14 +132,46 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
     Return tPet
 }
 
-/// Updates a pet in the store with query data
+/// @apiPub[path="/pet/{petId}/uploadImage"]
+/// @apiPub[params.pId.name="petId"]
+/// @apiPub[params.pContent.inputType="application/octet-stream"]
+Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status [ WebMethod ]
+{
+    Set tSC = $System.Status.OK()
+    Try {
+        Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
+        If '$IsObject(tPet) {
+            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
+        }
+        Set tFile = ##class(%Stream.FileBinary).%New()
+        Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_".jpg")
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = tFile.CopyFromAndSave(pContent)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_".jpg"
+	    Set photoUrl = ##class(%ListOfDataTypes).%New()
+        Do photoUrl.Insert(tUrl)
+        Set tPet.photoUrls=photoUrl
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = tPet.%Save()
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    }
+    Catch(e) {
+        Set tSC = e.AsStatus()      
+    }
+    Quit tSC
+}
+
+/// Updates a pet in the store with form data
 /// @apiPub[path="/pet/{petId}"]
-/// @apiPub[operationId="updatePetWithQuery"]
+/// @apiPub[operationId="updatePetWithForm"]
 /// @apiPub[params.petId.description="ID of pet that needs to be updated"]
 /// @apiPub[params.name.description="Updated name of the pet"]
+/// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
 /// @apiPub[params.status.description="Updated status of the pet"]
+/// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
 /// @apiPub[verb="post"]
-Method updatePetQuery(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
+Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -164,7 +195,7 @@ Method updatePetQuery(petId As %Integer, name As %String, status As %String) As 
 /// @apiPub[verb="delete"]
 /// @apiPub[params.petId.description="Pet id to delete"]
 /// @apiPub[params.id.name="petId"]
-/// @apiPub[params.apikey.input="header"]
+/// @apiPub[params.apikey.inputType="header"]
 /// @apiPub[params.apikey.name="api_key"]
 Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
 {
@@ -425,10 +456,10 @@ Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
 /// @apiPub[params.username.description="The user name for login"]
 /// @apiPub[params.password.required="true"]
 /// @apiPub[params.password.description="The password for login in clear text"]
-/// @apiPub[params.expiresAfter.output="header"]
+/// @apiPub[params.expiresAfter.outputType="header"]
 /// @apiPub[params.expiresAfter.description="date in UTC when token expires"]
 /// @apiPub[params.expiresAfter.name="X-Expires-After"]
-/// @apiPub[params.rateLimit.output="header"]
+/// @apiPub[params.rateLimit.outputType="header"]
 /// @apiPub[params.rateLimit.description="calls per hour allowed by the user"]
 /// @apiPub[params.rateLimit.name="X-Rate-Limit"]
 Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, Output rateLimit As %BigInt) As %String [ WebMethod ]
@@ -443,14 +474,6 @@ Method loginUser(username As %String, password As %String, Output expiresAfter A
 /// @apiPub[tag="user"]
 Method logoutUser() [ WebMethod ]
 {
-}
-
-/// @apiPub[params.pContent.input="text/plain"]
-/// @apiPub[response.output="text/plain"]
-/// @apiPub[verb="post"]
-Method testOtherContent(pContent As %Stream.GlobalCharacter) As %String [ WebMethod ]
-{
-    Return pContent
 }
 
 XData apiPub [ MimeType = application/json ]
@@ -494,48 +517,7 @@ XData apiPub [ MimeType = application/json ]
                     "type" : "integer",
                     "format" : "int32"
                 }
-            },
-"Order": {
-
-    "type": "object",
-    "xml": {
-        "name": "Order"
-    },
-    "required": [
-        "id",
-        "quantity"
-    ],
-    "properties": {
-        "id": {
-            "type": "integer",
-            "format": "int64"
-        },
-        "petId": {
-            "type": "integer",
-            "format": "int64"
-        },
-        "quantity": {
-            "type": "integer",
-            "description": "(short) "
-        },
-        "shipDate": {
-            "type": "string",
-            "format": "date-time"
-        },
-        "status": {
-            "type": "string",
-            "enum": [
-                "placed",
-                "approved",
-                "delivered"
-            ]
-        },
-        "complete": {
-            "type": "boolean"
-        }
-    }
-
-}            
+            }           
         }        
     }
 }

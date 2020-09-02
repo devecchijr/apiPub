@@ -28,6 +28,10 @@ ClassMethod GetParamTypes() As %Library.DynamicObject
             ,"%tinyint":"number|integer|int32"
             ,"%byte":"number|integer|int32"
             ,"%string":"string|string"
+            ,"%filebinary":"string|string|binary|stream|stream"
+            ,"%filecharacter":"string|string||stream|stream"
+            ,"%globalbinary":"string|string|binary|stream|stream"
+            ,"%globalcharacter":"string|string||stream|stream"
     }
 }
 

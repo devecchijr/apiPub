@@ -1,8 +1,6 @@
 Class apiPub.core.service Extends (%CSP.REST, %Projection.AbstractProjection, apiPub.core.jsonBuilder)
 {
 
-Parameter CHARSET As %String = "UTF-8";
-
 Parameter CONTENTTYPEJSON As %String = "application/json";
 
 Parameter HandleCorsRequest = 1;
@@ -443,23 +441,10 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 			Set pRestRequest.Cookies = tStrCookies 
 		}
-		Set tMimeData = {}
 		Set tIdx = pRequest.NextMimeData("")
 		While tIdx'="" {
-            Set tValue = pRequest.GetMimeData(tIdx)
-			If $Find($ClassName(tValue),"Stream")>0 {
-				Do tValue.Rewind()
-				Do tMimeData.%Set(tIdx,tValue.Read())
-			} Else {
-            	If tValue'="" Do tMimeData.%Set(tIdx,tValue)
-			}
+			Do pRestRequest.InsertMimeData(tIdx, pRequest.GetMimeData(tIdx))
 			Set tIdx = pRequest.NextMimeData(tIdx)
-		}
-		If tMimeData.%Size()>0 {
-			Set tStrMimeData = ""
-			Set tSC = tFormatter.FormatToString(tMimeData.%ToJSON(),.tStrMimeData) 
-			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-			Set pRestRequest.MimeData = tStrMimeData
 		}
 		Set pRestRequest.HttpVerb = $ZConvert(tHeaders."REQUEST_METHOD","S")
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
@@ -469,10 +454,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 				Set tSC = tFormatter.FormatToStream(pRequest.Content,pRestRequest.Body) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 			} Else {
-				Do pRequest.Content.Rewind()
-				While (pRequest.Content.AtEnd=0) {
-					Do pRestRequest.Body.Write(pRequest.Content.Read())
-				}
+				Do pRestRequest.Body.CopyFrom(pRequest.Content)
 			}
 		}
 		Set pRestRequest.APIDomain = pAPIDomain

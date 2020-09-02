@@ -17,7 +17,7 @@ Property RequestURL As %String(MAXLEN = "");
 
 Property Headers As %String(MAXLEN = "");
 
-Property ContentType As %String;
+Property ContentType As %String(MAXLEN = "");
 
 Property CharSet As %String;
 
@@ -27,7 +27,7 @@ Property Params As %String(MAXLEN = "");
 
 Property Cookies As %String(MAXLEN = "");
 
-Property MimeData As %String(MAXLEN = "");
+Property MimeData As %RawString [ MultiDimensional ];
 
 Property ContentLength As %String;
 
@@ -46,6 +46,77 @@ Property ResponseReasonPhrase As %String(MAXLEN = "");
 Property DispatchClass As %String(MAXLEN = 200);
 
 Property DispatchMethod As %String(MAXLEN = 100);
+
+/// Retrieves the named multipart MIME stream.
+Method GetMimeData(name As %String, default As %Stream.Object = "", index As %Integer = 1) As %Stream.Object [ CodeMode = expression, Final ]
+{
+$get(i%MimeData(name,index),default)
+}
+
+/// Inserts a multipart MIME stream by name into the collection.
+Method InsertMimeData(name As %String, value As %Stream.Object) [ Final, Internal ]
+{
+	If value="" Quit
+	Set i%MimeData(name,$order(i%MimeData(name,""),-1)+1)=value
+}
+
+/// Returns true if the named multipart MIME stream exists in the collection, false otherwise.
+Method IsDefinedMimeData(name As %String, index As %Integer = 1) As %Boolean [ CodeMode = expression, Final ]
+{
+$data(i%MimeData(name,index))
+}
+
+/// Returns the count of multipart MIME streams with this name.
+Method CountMimeData(name As %String) As %Integer [ Final ]
+{
+	#Dim count,i
+	
+	Quit:'$data(i%MimeData(name)) 0
+	Set count=0 Set i="" For  Set i=$order(i%MimeData(name,i)) Quit:i=""  Set count=count+1
+	Quit count
+}
+
+/// Retrieves name of the next multipart MIME stream stored in the request object.
+Method NextMimeData(name As %String) As %String [ CodeMode = expression, Final ]
+{
+$order(i%MimeData(name))
+}
+
+/// Return the index number of the next multipart MIME stream stored in the request object.
+Method NextMimeDataIndex(name As %String, index As %Integer = "") As %String [ CodeMode = expression, Final ]
+{
+$order(i%MimeData(name,index))
+}
+
+/// Removes this multipart MIME stream from the collection. Returns the number
+/// of nodes it has removed. If <var>name</var> is not defined then it will
+/// remove the entire set of MimeData, if <var>name</var> is defined but <var>index</var>
+/// is not then it will remove all items stored under <var>name</var>.
+Method DeleteMimeData(name As %String = "", index As %Integer = "") As %Integer [ Final, Internal ]
+{
+	#Dim defined
+	If name="" {
+		Set defined=0
+		Set name=$order(i%MimeData(""))
+		While name'="" {
+			Set index=$order(i%MimeData(name,""))
+			While index'="" { Set defined=defined+1,index=$order(i%MimeData(name,index)) }
+			Set name=$Order(i%MimeData(name))
+		}
+		Kill i%MimeData
+		Quit defined
+	} ElseIf index="" {
+		Set defined=0
+		Set index=$order(i%MimeData(name,""))
+		While index'="" { Set defined=defined+1,index=$order(i%MimeData(name,index)) }
+		Kill i%MimeData(name)
+		Quit defined
+	} ElseIf $Data(i%MimeData(name,index)) {
+		Kill i%MimeData(name,index)
+		Quit 1
+	}
+	Quit 0
+}
 
 Method GetParams(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicObject
 {

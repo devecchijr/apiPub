@@ -8,8 +8,6 @@ Parameter OASPath As %String = "Get:/oas/doc";
 
 Parameter DispatchClass As %String = "apiPub.samples.api";
 
-Parameter DispatchClassOld As %String = "HS.Hub.HSWS.WebServices";
-
 /// Use TracerBSName for monitoring
 Parameter Traceable As %Boolean = 0;
 

@@ -11,7 +11,6 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
 			If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Body Could Not be Empty")
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
-            Set pResponse.ContentType =  "application/json"
         }
         Set tSC = ..GetRequestParams(pRequest.Params,.tInputParams,.tParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
@@ -76,16 +75,15 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 If minfo.%Get("resultParam")=key Continue
                 Set tPType = value.%Get("pmJType")
                 Set tValue=""
-                If value.%Get("input")="header" {
+                If value.%Get("inputType")="header" {
                     Set tValue = tInputHeaders.%Get(tPName)
                     If tValue="" Set tValue = tInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
-                } ElseIf value.%Get("input")'="" {
+                } ElseIf value.%Get("inputType")'="",$Find("application/x-www-form-urlencoded",value.%Get("inputType"))=0 {
                     Set tValue = pRequest.Body
                 } Else {
                     Set tValue = tInputParams.%Get(tPName)
                 }
                 If value.%Get("pmJType")'="",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
-                If $Find($ZConvert(value.%Get("paramType"),"L"),"stream")>0 Set tPType="stream"
                 If (tPType'="")//Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
                     ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) { //Output Values
@@ -140,7 +138,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                             } Else {
                                 //Stream to String
                                 If $IsObject(tValue),tValue.%IsA("%Stream.Object") {
-                                    If tPType="stream" {
+                                    If value.%Get("iConvFunction")="stream" {
                                         Set tStream = $ClassMethod(value.%Get("paramType"),"%New")
                                         Do tStream.CopyFrom(tValue)
                                         Set tValue=tStream
@@ -152,8 +150,11 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                         }
                                         Set tValue=tStrContent
                                     }
-                                }
-                                If value.%Get("iConvFunction")'="" {
+                                } ElseIf value.%Get("iConvFunction")="stream" {
+                                    Set tStream = $ClassMethod(value.%Get("paramType"),"%New")
+                                    Do tStream.Write(tValue)
+                                    Set tValue=tStream
+                                } ElseIf value.%Get("iConvFunction")'="" {
                                     If $ClassMethod($Piece(value.%Get("paramType"),"|",1),"IsValid",tValue)'=1 {
                                         For i=1:1:$Length(value.%Get("iConvFunction"),",") {
                                             Set cVal = $ClassMethod($Piece(value.%Get("paramType"),"|",1),value.%Get("iConvFunction"),tValue)
@@ -202,14 +203,13 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 Set tPType = value.%Get("pmJType")
                 Set tParamType = $Piece(value.%Get("paramType"),"|",1)
                 Set tList=$Piece(value.%Get("paramType"),"|",2)
-                If $Find($ZConvert(value.%Get("paramType"),"L"),"stream")>0 Set tPType="stream"
                 If tPType'=""||value.%Get("complexType")=1,(value.%Get("outputOnly")=1||value.%Get("byRef")=1) {
                     Set tVal=""
                     Set tCmd = "(out) Set out=$Get(tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_","""")"
                     Xecute (tCmd,.tVal)
                     If tPType="status" {
                         Set pInnerStatus = tVal
-                        If value.%Get("output")="body" {
+                        If value.%Get("outputType")="body" {
                             Do tResult.%Set("iris-StatusCode",$$$ISOK(tVal))
                             Do tResult.%Set("iris-StatusMessage",$Select($$$ISERR(tVal):$System.Status.GetOneErrorText(tVal),1:"OK"))
                             If '(tVal) Do tResult.%Set("iris-ErrorCode",$System.Status.GetErrorCodes(tVal))
@@ -262,16 +262,29 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                             Set tVal=pJSONList
                             Do tResult.%Set(tPName,tVal)
                         } Else {
-                            If value.%Get("oConvFunction")'="",tVal'="" {
-                                Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
-                            }
-                            If value.%Get("output")="header" {
-                                Do tHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
-                            } ElseIf value.%Get("output")'="" {
+                            //Not alocate specific values for different output type
+                            If value.%Get("outputType")'="",value.%Get("outputType")'="header" {
                                 Set tResult = tVal
-                                Set pResponse.ContentType = value.%Get("output")                               
+                                Set pResponse.ContentType = value.%Get("outputType")  
                             } Else {
-                                Do tResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                                If value.%Get("oConvFunction")="stream",tVal'="",value.%Get("pmJDType")="string" {
+                                    // alocate stream response on json property
+                                    If tVal.SizeGet()>0 {
+                                        Set tStrContent = ""
+                                        Do tVal.Rewind()
+                                        While (tVal.AtEnd=0) {
+                                            Set tStrContent = tStrContent_tVal.Read()
+                                        }
+                                        Set tVal=tStrContent
+                                    }
+                                } ElseIf value.%Get("oConvFunction")'="",tVal'="" {
+                                    Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
+                                }
+                                If value.%Get("outputType")="header" {
+                                    Do tHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                                } Else {
+                                    Do tResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
+                                }
                             }
                         } 
                     }
@@ -290,6 +303,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
 		} ElseIf $Data(tResult),'$IsObject(tResult) {
 			Do pResponse.Body.Write(tResult)
         }
+        If minfo.%Get("responseCharset")'="" Set pResponse.CharSet = minfo.%Get("responseCharset")
         Set pResponse.ResponseStatusCode = tSuccessfulCode
         //*************************************************
         If pPrintResults {
