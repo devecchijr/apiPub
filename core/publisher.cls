@@ -153,8 +153,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
-                //For x-www-form-urlencoded type
                 If pvalue.%Get("inputType")'="",$Find("application/x-www-form-urlencoded",pvalue.%Get("inputType"))>0 {
+                    //for x-www-form-urlencoded inputType
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^type","object",,"^")
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^type",pvalue.%Get("pmJDType"),,"^")
                     If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^format",pvalue.%Get("pmJDFormat"),,"^")
@@ -163,7 +163,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If tCustomParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^description",tCustomParams.%Get("description"),,"^") 
                     }
                 } ElseIf pvalue.%Get("inputType")'="",pvalue.%Get("inputType")'="header" {
-                     //different single input types (whole body)
+                     //other input types  (entire body)
                     If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
                     If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^format",pvalue.%Get("pmJDFormat"),,"^")
@@ -172,6 +172,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If tCustomParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^description",tCustomParams.%Get("description"),,"^")
                     }
                 } ElseIf pvalue.%Get("pmJDType")'="",'(pvalue.%Get("outputOnly")) {
+                    // query and path params and header inputType
                     If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Set tInType="query"
                     If $Find(tPath,"{"_pvalue.%Get("paramName")_"}")>0 Set tInType="path"
@@ -203,6 +204,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         Do ..SetByLineKey(tParObj,"style","form",,"^")
                         Do ..SetByLineKey(tParObj,"explode","false","boolean","^")
                     }
+                    //custom params
                     If value.%Get("customParams").%Get("params")'="" {
                         Set tCustomParams = value.%Get("customParams").%Get("params").%Get(pvalue.%Get("param"))
                         If tCustomParams'="" {
@@ -519,7 +521,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         }
     }
     Catch(e) {
-        //w $System.Status.GetOneErrorText(e.AsStatus()),!
+        w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC

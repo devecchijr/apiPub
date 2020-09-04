@@ -132,6 +132,7 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
     Return tPet
 }
 
+/// uploads an image
 /// @apiPub[path="/pet/{petId}/uploadImage"]
 /// @apiPub[params.pId.name="petId"]
 /// @apiPub[params.pContent.inputType="application/octet-stream"]
@@ -170,7 +171,6 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
 /// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
 /// @apiPub[params.status.description="Updated status of the pet"]
 /// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
-/// @apiPub[verb="post"]
 Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
@@ -193,7 +193,7 @@ Method updatePetForm(petId As %Integer, name As %String, status As %String) As %
 /// Deletes a Pet
 /// @apiPub[path="/pet/{petId}"]
 /// @apiPub[verb="delete"]
-/// @apiPub[params.petId.description="Pet id to delete"]
+/// @apiPub[params.id.description="Pet id to delete"]
 /// @apiPub[params.id.name="petId"]
 /// @apiPub[params.apikey.inputType="header"]
 /// @apiPub[params.apikey.name="api_key"]
@@ -462,11 +462,10 @@ Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
 /// @apiPub[params.rateLimit.outputType="header"]
 /// @apiPub[params.rateLimit.description="calls per hour allowed by the user"]
 /// @apiPub[params.rateLimit.name="X-Rate-Limit"]
+/// @apiPub[response.outputType="text/plain"]
 Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, Output rateLimit As %BigInt) As %String [ WebMethod ]
 {
-    Set expiresAfter = $ZDateTime($Horolog, 3)
-    Set rateLimit=3
-    Quit "sessionId 1234"
+    Quit $Horolog
 }
 
 /// Logs out current logged in user session
@@ -482,7 +481,7 @@ XData apiPub [ MimeType = application/json ]
         "info" : {
             "description" : "This is a sample Petstore server.  You can find\nout more about Swagger at\n[http://swagger.io](http://swagger.io) or on\n[irc.freenode.net, #swagger](http://swagger.io/irc/).\n",
             "version" : "1.0.0",
-            "title" : "Swagger Petstore",
+            "title" : "IRIS Petstore (Dev First)",
             "termsOfService" : "http://swagger.io/terms/",
             "contact" : {
             "email" : "apiteam@swagger.io"

@@ -99,7 +99,7 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
                 Set pOutputParams = {}.%FromJSON(tAttBlock)
                 Quit
             } ElseIf ($Find(tAttBlock,"=")>0) {
-                Set tCmd = "(tVal) Set tVal ="_$Replace($Piece($Replace(tAttBlock,"\=","\*"),"=",2),"\*","=")
+                Set tCmd = "(tVal) Set tVal ="_$Replace($Replace($Replace($Piece($Replace(tAttBlock,"\=","\*"),"=",2),"\*","="),$Char(10),""),$Char(13),"")
                 Set tVal = ""
                 Try {
                     Xecute (tCmd,.tVal)
@@ -304,10 +304,6 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         Set tSchema = ..GetByLineKey(tApiPubParams,"params."_tParam_".schema",".")
                         If tSchema'="" Set tComplexSchema=1
                         If $IsObject(tSchema),tSchema.%Get("items")'="" Set tComplexSchema=0
-                        If tParamType="%Library.DynamicArray",("*&"'[tParamInOut)||(tParamInOut="") {
-                            Do tParamObj.%Set("complexType",0)
-                            Set tElType="%String"
-                        }
                         If (tParamObj.%Get("complexType")) {
                             If $IsObject(tXDataJSON),'$IsObject(tSchema),tXDataJSON.%Get("schemas")'="" {
                                 If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
@@ -319,6 +315,10 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tParamObj.%Set("customSchemaName",tKey)
                             }
+                            If tParamObj.%Get("customSchemaName")="",tParamType="%Library.DynamicArray",("*&"'[tParamInOut)||(tParamInOut="") {
+                                Do tParamObj.%Set("complexType",0)
+                                Set tElType="%String"
+                            }                            
                         }
                     }
                     If tElType'="",tXmlAdaptor=0 {

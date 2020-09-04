@@ -21,7 +21,7 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
 			Set pResult = {"valid":1,"invalidItems":[]}
             Set tSC = ..GetFlatSchema(pObjName,pSchema,.tFlatSchema,{"printResults":0})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-			Do ..Parse(pObjName,pJSON,tFlatSchema,.pResult,.pInLineResult,pParams,{"oPKey":(pObjName),"pKey":(pObjName), "pType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+            Do ..Parse(pObjName,pJSON,tFlatSchema,.pResult,.pInLineResult,pParams,{"oPKey":(pObjName),"pKey":(pObjName), "pType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
             Set tInLineText = ""
             Set tIP = pResult."invalidItems".%GetIterator()
             While (tIP.%GetNext(.pskey,.psvalue)) {

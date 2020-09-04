@@ -90,6 +90,14 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     Set tClStr = tClStr_","_$Select((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1):".",1:"")_"tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")
                     Set tIsList=$Piece(value.%Get("paramType"),"|",2)
                     Set tSchema = value.%Get("customSchema")
+                    // Incorporate customSchema with pre-existent schemas
+                    If tSchema'="",$IsObject(tSchema) {
+                        Set tSc = tSchema.%GetIterator()
+                        While (tSc.%GetNext(.sSkey,.sSvalue)) {
+                            Do tSchemas.%Set(sSkey,sSvalue)
+                        }
+                        Set tSchema=""
+                    }
                     If tSchema="" Set tSchema = tSchemas
                     Set tSchemaName = value.%Get("customSchemaName")
                     If '(value.%Get("outputOnly")),value.%Get("complexType")=1,pInputBody.%Get(tPName)'="" {
