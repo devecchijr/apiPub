@@ -541,7 +541,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
         Set pCharsKey = $Select(pParams.charskey'="":pParams.charskey,1:"value")
 
         //Internal Params
-        If '$Data(pInternal) Set pInternal={"parentKey":"","nestedParentKey":"", "parentType":"", "level":0, "circRefCtrl":{},"originalJSON":{},"mapTypes":{},"json":{}}
+        If '$Data(pInternal) Set pInternal={"parentKey":"","nestedParentKey":"", "parentType":"", "level":0, "circRefCtrl":{},"originalJSON":{},"mapTypes":{},"json":{},"requiredKeys":{}}
         Set pLevel = pInternal.level
         Set pJSON = pInternal.json
         Set pParentKey = pInternal.parentKey
@@ -550,6 +550,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
         Set pCircRefCtrl = pInternal.circRefCtrl
         Set pOriginalJSON = pInternal.originalJSON
         Set pMapTypes = pInternal.mapTypes
+        Set pRequiredKeys = pInternal.requiredKeys
 		If pParentType="" {
             Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
@@ -559,7 +560,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                 Set prop = pJSON.%GetIterator()
                 While prop.%GetNext(.key,.value) {
                     If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value)})
+                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                 }
@@ -578,9 +579,9 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                 Set tType = pOriginalJSON.%Get(tBasedOn).%Get("type")
                 If tType="" {
                     If (pNestedMode) {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn")))})
+                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn"))),"requiredKeys":(pRequiredKeys)})
                     } Else {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn))})
+                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn)),"requiredKeys":(pRequiredKeys)})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Do ..SetByLineKey(pXSDInfo,pParentKey_pDelim_"allOf"_pDelim_"0"_pDelim_"$ref","#/components/schemas/"_tBasedOn,,pDelim)  
                         Set pParentKey=pParentKey_pDelim_"allOf"_pDelim_"1"
@@ -619,7 +620,10 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                         If 'tIsArrayType Set tIsArrayType = tObjType.%Get("maxOccurs")="unbounded"
                         Set tCircKey = tParentCircRefCtrl.%Get(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType)
                         If (tCircKey="")||(tNestedKey'[tCircKey),$IsObject(tObjType) Do pCircRefCtrl.%Set(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType,tNestedKey)
-                        If (tRequired) Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                        If (tRequired),pRequiredKeys.%Get($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*))="" {
+                            Do pRequiredKeys.%Set($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*),1)
+                            Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                        }
                         If (tIsArrayType) {
                             Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"
@@ -632,7 +636,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                                 If tNested=0 Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"allOf[0]"_pDelim_"$ref","#/components/schemas/"_tType,,pDelim)
                                 If value.%Get("documentation")'="" Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
                                 If value.%Get("example")'="" Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"example",value.%Get("example"),,pDelim)
-                                Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType)})
+                                Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType),"requiredKeys":(pRequiredKeys)})
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             } Else {
                                 Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(tType,"L")),"|",2)
@@ -670,7 +674,10 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                             }
                         }
                     } Else {
-                        If (tRequired) Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                        If (tRequired),pRequiredKeys.%Get($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*))="" {
+                            Do pRequiredKeys.%Set($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*),1)
+                            Do ..SetByLineKey(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                        }
                         If (tIsArrayType) {
                             Do ..SetByLineKey(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"

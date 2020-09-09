@@ -466,9 +466,13 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 				Set tOriginalPath=tOriginalPath_"/"_pURLPaths(i)
 			}
 		}
-		//Get Indexed map from dispatch class
+		//Get Indexed route map from dispatch class
 		Set tIdxMap={}
 		If ..#DispatchClass'="" {
+			If '$IsObject(##class(%Dictionary.ClassDefinition).%OpenId(..#DispatchClass)) {
+				Set tSC = $$$ERROR($$$GeneralError, ..#DispatchClass_" is not a valid class")
+				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+			}
 			Set tSC = ##class(apiPub.core.irisMetadata).GetCacheCustomPaths(..#DispatchClass,.tIdxMap)
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		}

@@ -6,7 +6,7 @@ Parameter OnlyOAS As %Boolean = 0;
 
 Parameter OASPath As %String = "Get:/oas/doc";
 
-Parameter DispatchClass As %String = "apiPub.samples.apiFirst";
+Parameter DispatchClass As %String = "apiPub.samples.api";
 
 /// Use TracerBSName for monitoring
 Parameter Traceable As %Boolean = 0;
