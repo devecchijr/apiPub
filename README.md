@@ -8,8 +8,6 @@ Ela permite que o implementador foque principalmente na implementação das API�
 
 ## Publique sua API no padrão OAS 3.0 em apenas 3 passos:
 
----
-
 **Passo 1** - Defina a classe de implementação das tuas API’s e rotule os métodos com o atributo [WebMethod].
 ![](labelingImplementationMethod.gif)
 *Caso você já possua alguma implementação com WebServices esse passo não é necessário.*
