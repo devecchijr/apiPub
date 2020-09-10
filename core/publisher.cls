@@ -1,12 +1,12 @@
 Class apiPub.core.publisher Extends apiPub.core.jsonBuilder
 {
 
-ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pRequestURL As %String) As %Status
+ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pBaseURL As %String) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
         If '$Data(pParams) Set pParams={}
-        If '$Data(pRequestURL) Set pRequestURL=""
+        If '$Data(pBaseURL) Set pBaseURL=""
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pIncludeXML = $Select(pParams.includeXML'="":pParams.includeXML,1:0)
@@ -20,7 +20,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         If $IsObject(tMParam) Set tTitle = tMParam.Default
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||TITLE")
         If $IsObject(tMParam) Set tTitle = tMParam.Default
-        Set pNS=$Piece(pRequestURL,"/",1,4)
+        Set pNS=pBaseURL
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||SERVICEURL")
         If $IsObject(tMParam) Set pNS = tMParam.Default
         Set tSC = ##Class(apiPub.core.irisMetadata).GetMethodsInfo(pClassName,pMethodName,.mInfo,{"printResults":0})

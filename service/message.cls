@@ -47,6 +47,8 @@ Property DispatchClass As %String(MAXLEN = 200);
 
 Property DispatchMethod As %String(MAXLEN = 100);
 
+Property ServiceClass As %String(MAXLEN = 200);
+
 /// Retrieves the named multipart MIME stream.
 Method GetMimeData(name As %String, default As %Stream.Object = "", index As %Integer = 1) As %Stream.Object [ CodeMode = expression, Final ]
 {
@@ -279,6 +281,9 @@ Storage Default
 </Value>
 <Value name="23">
 <Value>DispatchMethod</Value>
+</Value>
+<Value name="24">
+<Value>ServiceClass</Value>
 </Value>
 </Data>
 <DefaultData>messageDefaultData</DefaultData>

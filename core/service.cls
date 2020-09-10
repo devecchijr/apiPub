@@ -19,6 +19,8 @@ Parameter BeautifyJsonBodyRequest As %Boolean = 1;
 
 Parameter DispatchClass As %String;
 
+Parameter DispatchBaseURL As %String;
+
 Parameter OASPath As %String = "Get:/oas";
 
 /// Allow API Calling
@@ -43,8 +45,8 @@ ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse A
 {
     Set tSC = $$$OK 
     Try {
-        If pRequest.APIOperationId="getOAS",pRequest.DispatchClass'="" Return ##class(apiPub.core.service).GetOAS(pRequest,.pResponse)
-		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" Return ##class(apiPub.core.service).Dispatch(pRequest,.pResponse)
+        If pRequest.APIOperationId="getOAS",pRequest.DispatchClass'="" Return ..GetOAS(pRequest,.pResponse)
+		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" Return ..Dispatch(pRequest,.pResponse)
 		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not mapped"))
     }
     Catch(e) {
@@ -80,7 +82,15 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
         Set tBasePath = tBusParams.%Get("basePath")
         Set tParams.basePath = tBasePath
         Set tParams.printResults = 0
-        Set tSC = ##class(apiPub.core.publisher).GetOASFromClass(pRequest.DispatchClass,.tJsonResponse,tParams,pRequest.RequestURL)
+		If ..#DispatchBaseURL'="" {
+			Set tRequestURL = ..#DispatchBaseURL
+			If $Find(tRequestURL,"http")=0 Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,3)_$Replace("/"_..#DispatchBaseURL,"//","/")
+		}
+		If ..#DispatchBaseURL="" {
+			Set tRequestURL = $Piece(pRequest.RequestURL,$Piece(..#OASPath,":",2),1)
+			If tRequestURL="" Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,*-1)
+		}
+        Set tSC = ##class(apiPub.core.publisher).GetOASFromClass(pRequest.DispatchClass,.tJsonResponse,tParams,tRequestURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         Do pResponse.Body.Write(tJsonResponse.%ToJSON())
         Set pResponse.ContentType =  "application/json"
@@ -446,6 +456,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			Do pRestRequest.InsertMimeData(tIdx, pRequest.GetMimeData(tIdx))
 			Set tIdx = pRequest.NextMimeData(tIdx)
 		}
+		Set pRestRequest.ServiceClass = $This
 		Set pRestRequest.HttpVerb = $ZConvert(tHeaders."REQUEST_METHOD","S")
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
 		Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"

@@ -12,7 +12,7 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
     Set tSC = $$$OK 
     Try {
         Set pResponse = ##class(apiPub.service.message).%New()
-        Set tSC = ##class(apiPub.core.service).ServiceRouter(pRequest,.pResponse)
+        Set tSC = $ClassMethod(pRequest.ServiceClass,"ServiceRouter",pRequest,.pResponse)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		Set tResponseParams = {
             "defaultForEmptyContentType":(..DefaultForEmptyContentType)
