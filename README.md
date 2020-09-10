@@ -2,7 +2,7 @@
 
 ApiPub é um projeto de iniciativa pessoal que tem como principal objetivo expor automaticamente e rapidamente serviços Rest/JSON criadas na tecnologia IRIS, da forma mais simples possível, utilizando o padrão Open API Specification (OAS) versão 3.0.
 
-Ela permite que o implementador foque principalmente na implementação das API’s (WebMethods), automatizando os demais aspectos relacionados a exposição, documentação e monitoramento dos serviços.
+Ela permite que o implementador foque principalmente na implementação das API’s (WebMethods), automatizando os demais aspectos relacionados a exposição, execução, documentação e monitoramento dos serviços.
 
 ---
 
@@ -24,7 +24,7 @@ Ela permite que o implementador foque principalmente na implementação das API�
 
 ---
 
-Utilize o swagger para expor a especificação do teu serviço, aponte para para o path de documentação e ... **VOILÁ!!!**  
+Utilize o [swagger](https://openexchange.intersystems.com/package/iris-web-swagger-ui) para expor a especificação do teu serviço, aponte para para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
 ---
