@@ -38,22 +38,16 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
----
-
 ## Defina o cabeçalho da especificação OAS
-
----
+*pending*
 
 ## Customize os caminhos e verbos das tuas API's
-
----
+*pending*
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
-
----
+*pending*
 
 ## Teste com os teus serviços SOAP já existentes 
-
 Ao publicar métodos com tipos complexos é necessário que a classe do mesmo seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
 
 ![](XMLAdaptorCompat.png)
