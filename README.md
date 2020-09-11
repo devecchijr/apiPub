@@ -1,6 +1,6 @@
 # **IRIS ApiPub**
 
-ApiPub é um projeto de iniciativa pessoal que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas na tecnologia IRIS, da forma mais simples e rápida possível, utilizando o padrão Open API Specification (OAS) versão 3.0.
+ApiPub é um projeto de iniciativa pessoal que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas na tecnologia IRIS, da forma mais simples e rápida possível, utilizando o padrão [Open API Specification](https://swagger.io/specification/) (OAS) versão 3.0.
 
 Ela permite que o usuário foque principalmente na **implementação** das API’s (WebMethods), automatizando os demais aspectos relacionados a **exposição, execução, documentação e monitoramento** dos serviços.
 
