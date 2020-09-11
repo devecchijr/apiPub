@@ -39,7 +39,80 @@ Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-w
 ![](testingFirstMethod.gif)
 
 ## Defina o cabeçalho da especificação OAS
-*pending*
+Há duas maneiras de definir o cabeçalho OAS 3.0: 
+A primeira forma é através da definição de parâmetros na classe de implementação, assim como no exemplo a seguir:
+
+```
+Parameter SERVICENAME = "My Service";
+
+Parameter SERVICEURL = "http://localhost:52776/apipub";
+
+Parameter TITLE As %String = "REST to SOAP APIs";
+
+Parameter DESCRIPTION As %String = "APIs to Proxy SOAP Web Services via REST";
+
+Parameter TERMSOFSERVICE As %String = "http://www.intersystems.com/terms-of-service/";
+
+Parameter CONTACTNAME As %String = "John Doe";
+
+Parameter CONTACTURL As %String = "https://www.intersystems.com/who-we-are/contact-us/";
+
+Parameter CONTACTEMAIL As %String = "support@intersystems.com";
+
+Parameter LICENSENAME As %String = "Copyright InterSystems Corporation, all rights reserved.";
+
+Parameter LICENSEURL As %String = "http://docs.intersystems.com/latest/csp/docbook/copyright.pdf";
+
+Parameter VERSION As %String = "1.0.0";
+
+Parameter TAGNAME As %String = "Services";
+
+Parameter TAGDESCRIPTION As %String = "Legacy Services";
+
+Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
+
+Parameter TAGDOCSURL As %String = "http://intersystems.com";
+```
+
+A segunda é através do bloco XDATA nomeado como apiPub. Este método permite que se tenha mais de uma Tag.
+```
+XData apiPub [ MimeType = application/json ]
+{
+    {
+        "info" : {
+            "description" : "This is a sample Petstore server.  You can find\nout more about Swagger at\n[http://swagger.io](http://swagger.io) or on\n[irc.freenode.net, #swagger](http://swagger.io/irc/).\n",
+            "version" : "1.0.0",
+            "title" : "IRIS Petstore (Dev First)",
+            "termsOfService" : "http://swagger.io/terms/",
+            "contact" : {
+            "email" : "apiteam@swagger.io"
+            },
+            "license" : {
+            "name" : "Apache 2.0",
+            "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+            }
+        },
+        "tags" : [ {
+            "name" : "pet",
+            "description" : "Everything about your Pets",
+            "externalDocs" : {
+            "description" : "Find out more",
+            "url" : "http://swagger.io"
+            }
+        }, {
+            "name" : "store",
+            "description" : "Access to Petstore orders"
+        }, {
+            "name" : "user",
+            "description" : "Operations about user",
+            "externalDocs" : {
+            "description" : "Find out more about our store",
+            "url" : "http://swagger.io"
+            }
+        } ]
+    }
+}
+```
 
 ## Customize os caminhos e verbos das tuas API's
 *pending*
