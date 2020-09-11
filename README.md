@@ -74,7 +74,7 @@ Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
 Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ```
 
-A segunda é através do bloco XDATA nomeado como apiPub. Este método permite que se tenha mais de uma Tag.
+A segunda é através da criação de um bloco JSON XDATA nomeado como apiPub na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0.
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -113,6 +113,8 @@ XData apiPub [ MimeType = application/json ]
     }
 }
 ```
+Visualização do modelo acima (XDATA)
+![](OASheader.png)
 
 ## Customize os caminhos e verbos das tuas API's
 *pending*
