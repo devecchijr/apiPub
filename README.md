@@ -127,11 +127,10 @@ Sintaxe:
 ## Customize os Verbos
 A ferramenta atribui automaticamente os verbos Get ou Post para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
 
-Caso se queira customizar utiliza-se a seguinte notação acima do método.
+Caso se queira customizar, adiciona-se a seguinte linha nos comentários do método.
 ```
 /// @apiPub[verb="Put"]
 ```
-
 Na classe apiPub.samples.api.cls há vários exemplos desta customização.
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
