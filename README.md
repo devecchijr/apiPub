@@ -116,8 +116,23 @@ XData apiPub [ MimeType = application/json ]
 Visualização do exemplo anterior (XDATA)
 ![](OASheader.png)
 
-## Customize os caminhos e verbos das tuas API's
+## Customize as tuas API's
 *pending*
+É possível customizar vários aspectos das API's. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
+
+Sintaxe:
+```
+/// @apiPub[comando de atribuição]
+```
+## Customização dos Verbos
+A ferramenta atribui automaticamente os verbos Get ou Post para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
+
+Caso se queira customizar utiliza-se a seguinte notação acima do método.
+```
+/// @apiPub[verb="Put"]
+```
+
+Na classe apiPub.samples.api.cls há vários exemplos desta customização.
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
