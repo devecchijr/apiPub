@@ -124,7 +124,7 @@ Sintaxe:
 ```
 /// @apiPub[comando de atribuição]
 ```
-## Customização dos Verbos
+## Customize os Verbos
 A ferramenta atribui automaticamente os verbos Get ou Post para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
 
 Caso se queira customizar utiliza-se a seguinte notação acima do método.
