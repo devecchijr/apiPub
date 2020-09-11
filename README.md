@@ -27,7 +27,7 @@ Defina a classe de implementação das tuas API’s e **rotule** os métodos com
 *Caso você já possua alguma implementação com WebServices esse passo não é necessário.*
 
 ## Passo 2
-Crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0.
+Crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. Se desejar, aponte para a classe apiPub.samples.api (PetStore).
 ![](configuringServiceClass.gif)
 
 ## Passo 3
@@ -113,7 +113,7 @@ XData apiPub [ MimeType = application/json ]
     }
 }
 ```
-Visualização do modelo acima (XDATA)
+Visualização do exemplo anterior (XDATA)
 ![](OASheader.png)
 
 ## Customize os caminhos e verbos das tuas API's
