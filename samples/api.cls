@@ -24,7 +24,6 @@ Method addPet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
 /// @apiPub[path="/pet"]
 /// @apiPub[params.description="Pet object that needs to be added/updated to the store"]
 /// @apiPub[verb="put"]
-/// @apiPub[charset="UTF-8"]
 Method updatePet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()

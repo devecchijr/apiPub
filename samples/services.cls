@@ -3,7 +3,7 @@ Class apiPub.samples.services Extends apiPub.core.service
 
 Parameter OASPath As %String = "Get:/doc";
 
-Parameter DispatchClass As %String = "apiPub.samples.petServices";
+Parameter DispatchClass As %String = "apiPub.samples.api";
 
 /// Useful to treat documentation and api (urls) separately (different web applications)
 Parameter DispatchBaseURL As %String;
