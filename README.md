@@ -48,7 +48,7 @@ Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-w
 *pending*
 
 ## Teste com os teus serviços SOAP já existentes 
-Ao publicar métodos com tipos complexos é necessário que a classe do mesmo seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
 
 ![](XMLAdaptorCompat.png)
 
