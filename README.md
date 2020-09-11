@@ -10,7 +10,7 @@ Este projeto também inclui uma implementação de exemplo completa (**apiPub.sa
 
 ## **Instalação**
 
-Importe o pacote apiPub_vX.X.xml no namespace desejado terminal.
+Importe o pacote apiPub_vX.X.xml no namespace desejado via terminal.
 
 ```
 zn "USER"
