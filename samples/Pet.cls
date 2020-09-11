@@ -6,7 +6,7 @@ Property id As %Integer;
 Property category As apiPub.samples.Category;
 
 /// @apiPub[example="doggie"]
-Property name As %String(MAXLEN = "") [ InitialExpression = "doggie", Required ];
+Property name As %String(MAXLEN = "") [ Required ];
 
 Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element");
 
