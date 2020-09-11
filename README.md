@@ -4,7 +4,7 @@ IRIS ApiPub é um projeto de iniciativa pessoal que tem como principal objetivo 
 
 Ele permite que o usuário foque principalmente na **implementação** das API’s (Web Methods), automatizando os demais aspectos relacionados a **exposição, execução, documentação e monitoramento** dos serviços.
 
-Este projeto também inclui uma implementação completa em IRIS (**apiPub.samples,api**) do serviço [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1),  utilizado como sample oficial do [swagger](https://swagger.io/). 
+Este projeto também inclui uma implementação completa (**apiPub.samples.api**) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
 ![](PetStore.gif)
 
 
