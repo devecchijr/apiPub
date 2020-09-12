@@ -117,26 +117,36 @@ Visualização do exemplo anterior (XDATA)
 ![](OASheader.png)
 
 ## Customize as tuas API's
-*pending*
 É possível customizar vários aspectos das API's. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
 
 Sintaxe:
-```
-/// @apiPub[comando de atribuição]
-```
-## Customize os Verbos
-A ferramenta atribui automaticamente os verbos Get ou Post para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
+>/// @apiPub[*assignment clause*]
 
-Caso se queira customizar, adiciona-se a seguinte linha nos comentários do método.
-```
-/// @apiPub[verb="Put"]
-```
+## Customize os Verbos das API's
+Esta ferramenta atribui automaticamente os verbos *Get* ou *Post* para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
+
+Caso se queira customizar o método adiciona-se a seguinte linha nos comentários do método.
+
+>/// @apiPub[verb="*verb*"]
+
+Onde *verb* pode ser **get, post, put, delete ou patch**.
 Na classe apiPub.samples.api.cls há vários exemplos desta customização.
+
+## Customize os Caminhos (Paths) das API's
+Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
+
+Caso se queira customizar o **path** adiciona-se a seguinte linha nos comentários do método.
+
+>/// @apiPub[path="*path*"]
+
+Onde *path* pode ser qualquer valor precedido com barra normal, desde que não conflita com outro *path* na mesma classe de implementação. 
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
 
 ## Teste com os teus serviços SOAP já existentes 
+Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
+
 Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
 
 ![](XMLAdaptorCompat.png)
