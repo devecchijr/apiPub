@@ -124,13 +124,18 @@ Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
 Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ```
 ## Customize as tuas API's
-É possível customizar vários aspectos das API's. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
+![](customizeYourAPI.png)
+
+É possível customizar vários aspectos das API's, como *paths* e *verbos http*. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
 
 Sintaxe:
->/// @apiPub[*assignment clause*]
+>/// @apiPub[*assignment clause*]  
+[*Method/ClassMethod*] *methodName(params as type) As returnType* {  
+>    
+>}
 
-## Customize os Verbos das API's
-Esta ferramenta atribui automaticamente os verbos *Get* ou *Post* para os métodos. Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, o verbo é atribuido como *Get*. Caso contrário é atribuído o verbo *Post*. 
+## Customizando os Verbos das API's
+Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
 
 Caso se queira customizar o método adiciona-se a seguinte linha nos comentários do método.
 
@@ -139,14 +144,49 @@ Caso se queira customizar o método adiciona-se a seguinte linha nos comentário
 Onde *verb* pode ser **get, post, put, delete ou patch**.
 Na classe apiPub.samples.api.cls há vários exemplos desta customização.
 
-## Customize os Caminhos (Paths) das API's
+## Customizando os Caminhos (Paths) das API's
 Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
 
 Caso se queira customizar o **path** adiciona-se a seguinte linha nos comentários do método.
 
 >/// @apiPub[path="*path*"]
 
-Onde *path* pode ser qualquer valor precedido com barra normal, desde que não conflita com outro *path* na mesma classe de implementação. 
+Onde *path* pode ser qualquer valor precedido com barra, desde que não conflita com outro *path* na mesma classe de implementação. 
+
+Exemplo:
+>/// @apiPub[path="/pet"]
+
+Outro uso bastante comum do path é definir um ou mais parâmetros no próprio path. Para tal, é necessário que o nome do parâmetro definido no método esteja entre chaves. 
+
+Exemplo:
+>/// @apiPub[path="/pet/{petId}"]  
+Method getPetById(petId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
+{  
+}
+
+Exemplo quando o nome do parâmetro difere do nome do parametro exposto:
+>/// @apiPub[path="/pet/{petId}"]  
+/// @apiPub[params.pId.name="petId"]  
+Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
+{  
+}
+
+## Customizando nomes e outras funcionalidades dos parametros
+Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
+
+Para se customizar os parâmetros utiliza-se a seguinte notação
+
+>/// @apiPub[params.*paramId.property*="*value*"]
+
+ou para respostas:
+
+>/// @apiPub[*response.property*="*value*"]
+
+Exemplo:
+>/// @apiPub[params.pId.name="petId"]  
+/// @apiPub[params.pId.description="ID of pet to return"]
+
+Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return"* para o parâmetro definido como *pId*
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
