@@ -126,7 +126,7 @@ Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ## Customize as tuas API's
 ![](customizeYourAPI.png)
 
-É possível customizar vários aspectos das API's, como *paths* e *verbos http*. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
+É possível customizar vários aspectos das API's, como ***tags, paths e verbos***. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
 
 Sintaxe:
 >/// @apiPub[*assignment clause*]  
@@ -196,10 +196,6 @@ Exemplo:
 /// @apiPub[params.description="This can only be done by the logged in user."]
 
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
-
-> params.***paramId***.property
-ou
-> response.property
 
 Onde property pode ser:  
 ***name***: nome  
