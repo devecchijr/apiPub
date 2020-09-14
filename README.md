@@ -47,42 +47,11 @@ Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-w
 ![](testingFirstMethod.gif)
 
 ## Defina o cabeçalho da especificação OAS
+![](OASheader.png)
+
 Há duas maneiras de definir o cabeçalho OAS 3.0: 
-A primeira forma é através da definição de parâmetros na classe de implementação, assim como no exemplo a seguir:
 
-```
-Parameter SERVICENAME = "My Service";
-
-Parameter SERVICEURL = "http://localhost:52776/apipub";
-
-Parameter TITLE As %String = "REST to SOAP APIs";
-
-Parameter DESCRIPTION As %String = "APIs to Proxy SOAP Web Services via REST";
-
-Parameter TERMSOFSERVICE As %String = "http://www.intersystems.com/terms-of-service/";
-
-Parameter CONTACTNAME As %String = "John Doe";
-
-Parameter CONTACTURL As %String = "https://www.intersystems.com/who-we-are/contact-us/";
-
-Parameter CONTACTEMAIL As %String = "support@intersystems.com";
-
-Parameter LICENSENAME As %String = "Copyright InterSystems Corporation, all rights reserved.";
-
-Parameter LICENSEURL As %String = "http://docs.intersystems.com/latest/csp/docbook/copyright.pdf";
-
-Parameter VERSION As %String = "1.0.0";
-
-Parameter TAGNAME As %String = "Services";
-
-Parameter TAGDESCRIPTION As %String = "Legacy Services";
-
-Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
-
-Parameter TAGDOCSURL As %String = "http://intersystems.com";
-```
-
-A segunda é através da criação de um bloco JSON XDATA nomeado como apiPub na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0.
+A primeira é através da criação de um bloco JSON XDATA nomeado como apiPub na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0. 
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -121,9 +90,39 @@ XData apiPub [ MimeType = application/json ]
     }
 }
 ```
-Visualização do exemplo anterior (XDATA)
-![](OASheader.png)
+A segunda maneira é através da definição de parâmetros na classe de implementação, assim como no exemplo a seguir:
 
+```
+Parameter SERVICENAME = "My Service";
+
+Parameter SERVICEURL = "http://localhost:52776/apipub";
+
+Parameter TITLE As %String = "REST to SOAP APIs";
+
+Parameter DESCRIPTION As %String = "APIs to Proxy SOAP Web Services via REST";
+
+Parameter TERMSOFSERVICE As %String = "http://www.intersystems.com/terms-of-service/";
+
+Parameter CONTACTNAME As %String = "John Doe";
+
+Parameter CONTACTURL As %String = "https://www.intersystems.com/who-we-are/contact-us/";
+
+Parameter CONTACTEMAIL As %String = "support@intersystems.com";
+
+Parameter LICENSENAME As %String = "Copyright InterSystems Corporation, all rights reserved.";
+
+Parameter LICENSEURL As %String = "http://docs.intersystems.com/latest/csp/docbook/copyright.pdf";
+
+Parameter VERSION As %String = "1.0.0";
+
+Parameter TAGNAME As %String = "Services";
+
+Parameter TAGDESCRIPTION As %String = "Legacy Services";
+
+Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
+
+Parameter TAGDOCSURL As %String = "http://intersystems.com";
+```
 ## Customize as tuas API's
 É possível customizar vários aspectos das API's. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
 
