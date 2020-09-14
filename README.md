@@ -172,9 +172,9 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
-## Outras customizações possíveis
+## Customizando a tag das API's
 
-Definir a **tag**(agrupamento) do método. Quando há mais que uma tag definida no cabeçalho.
+Definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
 >/// @apiPub[tag="*value*"]
 
 Exemplo:
