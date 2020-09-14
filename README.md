@@ -165,7 +165,7 @@ Method getPetById(petId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
-Exemplo quando o nome do parâmetro difere do nome do parametro exposto:
+Exemplo quando o nome do parâmetro interno difere do nome do parâmetro exposto:
 >/// @apiPub[path="/pet/{petId}"]  
 /// @apiPub[params.pId.name="petId"]  
 Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
