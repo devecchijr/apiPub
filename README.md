@@ -180,7 +180,7 @@ Definir a **tag**(agrupamento) do método quando há mais que uma tag definida n
 Exemplo:
 >/// @apiPub[tag="user"]
 
-## Descontinuar a API
+## Como marcar a API como Descontinuada
 
 Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
 
@@ -228,5 +228,11 @@ Onde property também pode ser:
 ***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).  
 ***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls).
 
+## Associe Schemas Parseáveis para tipos JSON Dinâmicos
+*pending*
+
 ## Monitore a chamada das suas API's com o IRIS Analytics 
+*pending*
+
+## Utilize esta ferramenta em conjunto com o IRIS API Manager
 *pending*
