@@ -1,4 +1,4 @@
-Class apiPub.samples.rawapi Extends %RegisteredObject [ ProcedureBlock ]
+Class apiPub.samples.apiBeforeCustom Extends %RegisteredObject [ ProcedureBlock ]
 {
 
 /// Add a new pet to the store
