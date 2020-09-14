@@ -175,7 +175,7 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 ## Customizando nomes e outras funcionalidades dos parametros
 Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
 
-Para se customizar os parâmetros utiliza-se a seguinte notação
+Para se customizar um parametro específico utiliza-se a seguinte notação
 
 >/// @apiPub[params.*paramId.property*="*value*"]
 
@@ -188,6 +188,25 @@ Exemplo:
 /// @apiPub[params.pId.description="ID of pet to return"]
 
 Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return* para o parâmetro definido como *pId*
+
+Quando a customização não é específica para um parâmetro, utiliza-se a seguinte notação
+>/// @apiPub[params.*property*="*value*"]
+
+Exemplo:
+/// @apiPub[params.description="This can only be done by the logged in user."]
+
+## Outras Propriedades que podem ser customizadas para parâmetros específicos
+
+> params.***paramId***.property
+ou
+> response.property
+
+Onde property pode ser:  
+***name***: nome  
+***description***: descrição  
+***required***: se o parâmetro é requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos  
+***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON.  
+***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Dowload de uma imagem, que normalmente não é do tipo JSON.
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
