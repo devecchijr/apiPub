@@ -126,13 +126,15 @@ Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ## Customize as tuas API's
 ![](customizeYourAPI.png)
 
-É possível customizar vários aspectos das API's, como *paths* e *verbos http*. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado.
+É possível customizar vários aspectos das API's, como *paths* e *verbos http*. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
 
 Sintaxe:
 >/// @apiPub[*assignment clause*]  
 [*Method/ClassMethod*] *methodName(params as type) As returnType* {  
 >    
 >}
+
+Todas estas customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
 
 ## Customizando os Verbos das API's
 Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
@@ -141,8 +143,7 @@ Caso se queira customizar o método adiciona-se a seguinte linha nos comentário
 
 >/// @apiPub[verb="*verb*"]
 
-Onde *verb* pode ser **get, post, put, delete ou patch**.
-Na classe apiPub.samples.api.cls há vários exemplos desta customização.
+Onde *verb* pode ser **get, post, put, delete ou patch**. 
 
 ## Customizando os Caminhos (Paths) das API's
 Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
@@ -186,7 +187,7 @@ Exemplo:
 >/// @apiPub[params.pId.name="petId"]  
 /// @apiPub[params.pId.description="ID of pet to return"]
 
-Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return"* para o parâmetro definido como *pId*
+Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return* para o parâmetro definido como *pId*
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
