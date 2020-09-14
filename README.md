@@ -137,7 +137,7 @@ Sintaxe:
 Todas estas customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
 
 ## Customizando os Verbos das API's
-Quando não há nenhum tipo complexo como parâmetro de entrada ou retorno, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
+Quando não há nenhum tipo complexo como parâmetro de entrada, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
 
 Caso se queira customizar o método adiciona-se a seguinte linha nos comentários do método.
 
