@@ -136,7 +136,7 @@ Sintaxe:
 
 Todas estas customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
 
-## Customizando os Verbos das API's
+## Customizando os Verbos
 Quando não há nenhum tipo complexo como parâmetro de entrada, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
 
 Caso se queira customizar o método adiciona-se a seguinte linha nos comentários do método.
@@ -145,7 +145,7 @@ Caso se queira customizar o método adiciona-se a seguinte linha nos comentário
 
 Onde *verb* pode ser **get, post, put, delete ou patch**. 
 
-## Customizando os Caminhos (Paths) das API's
+## Customizando os Caminhos (Paths)
 Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
 
 Caso se queira customizar o **path** adiciona-se a seguinte linha nos comentários do método.
@@ -172,7 +172,7 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
-## Customizando a tag das API's
+## Customizando as Tags
 
 Definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
 >/// @apiPub[tag="*value*"]
@@ -196,7 +196,7 @@ Exemplo:
 
 >/// @apiPub[charset="UTF-8"]
 
-## Customizando nomes e outras funcionalidades dos parametros
+## Customizando nomes e outras funcionalidades dos parâmetros
 Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
 
 Para se customizar um parametro específico utiliza-se a seguinte notação
