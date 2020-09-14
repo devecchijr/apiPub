@@ -1,6 +1,6 @@
 # IRIS ApiPub
 
-IRIS ApiPub é um projeto de iniciativa pessoal que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas com a tecnologia [Intersystems IRIS](https://www.intersystems.com/try-intersystems-iris-for-free/), da forma mais simples e rápida possível, utilizando o padrão [Open API Specification](https://swagger.io/specification/) (OAS) versão 3.0.
+IRIS ApiPub é um projeto [Open Source](https://en.wikipedia.org/wiki/Open_source), de iniciativa pessoal, que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas com a tecnologia [Intersystems IRIS](https://www.intersystems.com/try-intersystems-iris-for-free/), da forma mais simples e rápida possível, utilizando o padrão [Open API Specification](https://swagger.io/specification/) (OAS) versão 3.0.  
 
 Ele permite que o usuário foque principalmente na **implementação** das API’s (Web Methods), automatizando os demais aspectos relacionados a **exposição, execução, documentação e monitoramento** dos serviços.
 
@@ -8,13 +8,21 @@ Este projeto também inclui uma implementação de exemplo completa (**apiPub.sa
 
 ![](PetStore.gif)
 
+## Faça um teste com os teus serviços SOAP já existentes 
+Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
+![](soapToOASRest.png)
+
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
+
+![](XMLAdaptorCompat.png)
+
 ## **Instalação**
 
-Importe o pacote apiPub_vX.X.xml no namespace desejado via terminal.
+Importe o pacote apiPub_vx.xml no namespace desejado via terminal.
 
 ```
 zn "USER"
-Do $System.OBJ.Load("/path/apiPub_vX.X.xml","ck")
+Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 ```
 Ou através do portal de Administração
 ![](importingPackage.png)
@@ -144,11 +152,5 @@ Onde *path* pode ser qualquer valor precedido com barra normal, desde que não c
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
 
-## Teste com os teus serviços SOAP já existentes 
-Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
-
-Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já existentes são automaticamente compatíveis.
-
-![](XMLAdaptorCompat.png)
 
 
