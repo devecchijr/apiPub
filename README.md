@@ -172,6 +172,20 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
+## Outras customizações possíveis
+
+Definir a **tag**(agrupamento) do método. Quando há mais que uma tag definida no cabeçalho.
+>/// @apiPub[tag="*value*"]
+
+Exemplo:
+>/// @apiPub[tag="user"]
+
+Customizar a **tag** do método. Quando há mais que uma tag definida no cabeçalho.
+>/// @apiPub[tag="*value*"]
+
+Exemplo:
+>/// @apiPub[tag="user"]
+
 ## Customizando nomes e outras funcionalidades dos parametros
 Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
 
@@ -192,20 +206,17 @@ Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to r
 Quando a customização não é específica para um parâmetro, utiliza-se a seguinte notação
 >/// @apiPub[params.*property*="*value*"]
 
-Exemplo:
-/// @apiPub[params.description="This can only be done by the logged in user."]
+Exemplo:  
+>/// @apiPub[params.description="This can only be done by the logged in user."]
 
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
 
-Onde property pode ser:  
-***name***: nome  
-***description***: descrição  
+Onde property também pode ser:  
 ***required***: se o parâmetro é requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos  
-***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON.  
-***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Dowload de uma imagem, que normalmente não é do tipo JSON.
+***schema.items.enum***: Exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls).  
+***schema.default***: Aponta para um valor default para enumeradores.  
+***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).  
+***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls).
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
-
-
-
