@@ -180,11 +180,21 @@ Definir a **tag**(agrupamento) do método quando há mais que uma tag definida n
 Exemplo:
 >/// @apiPub[tag="user"]
 
-Customizar a **tag** do método. Quando há mais que uma tag definida no cabeçalho.
->/// @apiPub[tag="*value*"]
+## Descontinuar a API
+
+Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
+
+>/// @apiPub[deprecated="true"]
+
+## Alterando o charset do método
+
+O charset padrão da geralmente é definido através do parâmetro CHARSET na classe de serviço, descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2). Caso se queira customizar o charset de um método, deve se utilizar a seguinte notação:
+
+>/// @apiPub[charset="*value*"]
 
 Exemplo:
->/// @apiPub[tag="user"]
+
+>/// @apiPub[charset="UTF-8"]
 
 ## Customizando nomes e outras funcionalidades dos parametros
 Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
