@@ -248,7 +248,7 @@ Onde property também pode ser:
 
 É possível associar [schemas](https://swagger.io/docs/specification/data-models/) no padrão OAS 3.0 a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
-O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado User pode ser utilizado por qualquer método. Ele segue as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
+O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado User pode ser utilizado por qualquer método. Ele deve seguir as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -306,7 +306,7 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
 }
 ```
 
-A grande vantagem neste caso é o ***parsing automático*** do tipo que está sendo associado. Se o usuário da API enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória um erro ou mais erros são retornados.
+A grande vantagem neste caso é o ***parsing automático*** do tipo que está sendo associado. Se o usuário da API enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória um ou mais erros são retornados.
 
 Exemplo de request com erro a ser submetido. A propriedade username2 não existe no schema *User*. A propriedade id também não foi especificada e é requerida:
 ```
