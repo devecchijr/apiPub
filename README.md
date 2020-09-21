@@ -165,14 +165,14 @@ Method getPetById(petId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
-Exemplo quando o nome do parâmetro interno difere do nome do parâmetro exposto:
+Quando o nome do parâmetro interno difere do nome do parâmetro exposto, pode-se equalizar o nome conforme exemplo a seguir:
 >/// @apiPub[path="/pet/{petId}"]  
 /// @apiPub[params.pId.name="petId"]  
 Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
 {  
 }
 
-No exemplo acima, o valor do parâmetro *petId* informado pelo usuário da api é atribuído para o parâmetro interno *pId*.
+No exemplo acima, o parâmetro interno *pId* é exposto como *petId*.
 
 ## Customizando as Tags
 
@@ -187,6 +187,16 @@ Exemplo:
 Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
 
 >/// @apiPub[deprecated="true"]
+
+## Customizando o *operationId*
+
+Segundo a especificação OAS, ***operationId*** é uma string única usada para identificar uma API ou operação. Nesta ferramenta ela é utilizada para a mesma finalizade no monitoramento e rastreamento das operações.
+
+Por padrão, ela recebe o mesmo nome do método da classe de implementação.
+
+Caso se queira alterá-la utiliza-se a seguinte notação 
+
+>/// @apiPub[operationId="updatePetWithForm"]
 
 ## Alterando o charset do método
 
@@ -215,7 +225,7 @@ Exemplo:
 
 Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return* para o parâmetro definido como *pId*
 
-Quando a customização não é específica para um parâmetro, utiliza-se a seguinte notação
+Quando a customização não é específica para um determinado parâmetro, utiliza-se a seguinte notação
 >/// @apiPub[params.*property*="*value*"]
 
 Exemplo:  
