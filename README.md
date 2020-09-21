@@ -217,7 +217,7 @@ Para se customizar um parametro específico utiliza-se a seguinte notação
 
 ou para respostas:
 
->/// @apiPub[*response.property*="*value*"]
+>/// @apiPub[response.*property*="*value*"]
 
 Exemplo:
 >/// @apiPub[params.pId.name="petId"]  
@@ -228,7 +228,7 @@ Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to r
 Quando a customização não é específica para um determinado parâmetro, utiliza-se a seguinte notação
 >/// @apiPub[params.*property*="*value*"]
 
-Exemplo:  
+No exemplo abaixo, a descrição *This can only be done by the logged in user* é atribuída para todo o *request*, não apenas para um parâmetro:  
 >/// @apiPub[params.description="This can only be done by the logged in user."]
 
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
