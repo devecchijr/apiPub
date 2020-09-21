@@ -237,12 +237,19 @@ No exemplo abaixo, a descrição *This can only be done by the logged in user* �
 
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
 
-Onde property também pode ser:  
-***required***: se o parâmetro é requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos  
-***schema.items.enum***: Exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls).  
-***schema.default***: Aponta para um valor default para enumeradores.  
-***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).  
-***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls).
+Para parâmetros de entrada ou saída:
+>/// @apiPub[params.*paramId.property*="*value*"]
+
+ou para respostas:
+>/// @apiPub[response.*property*="*value*"]
+
+|   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
+|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   required           |   se o parâmetro é requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos                                                                                                                                                                                                                                                 |
+|   schema.items.enum  |   Exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls)                                                                                                                                                                                           |
+|   schema.default     |   Aponta para um valor default para enumeradores.                                                                                                                                                                                                                                                                                                    |
+|   inputType          |   por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).    |
+|   outputType         |   por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls)                                                   |
 
 ## Associe Schemas Parseáveis a tipos JSON Dinâmicos ***(%Library.DynamicObject)***
 
