@@ -134,7 +134,7 @@ Sintaxe:
 >    
 >}
 
-Todas estas customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
+Todas as customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
 
 ## Customizando os Verbos
 Quando não há nenhum tipo complexo como parâmetro de entrada, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
@@ -144,6 +144,10 @@ Caso se queira customizar o método adiciona-se a seguinte linha nos comentário
 >/// @apiPub[verb="*verb*"]
 
 Onde *verb* pode ser **get, post, put, delete ou patch**. 
+
+Exemplo:
+
+>/// @apiPub[verb="put"]
 
 ## Customizando os Caminhos (Paths)
 Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
