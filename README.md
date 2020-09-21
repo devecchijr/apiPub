@@ -307,11 +307,6 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
     code...
 }
 ```
-| Tables   |      Are      |  Cool |
-|----------|:-------------:|------:|
-| col 1 is |  left-aligned | $1600 |
-| col 2 is |    centered   |   $12 |
-| col 3 is | right-aligned |    $1 |
 
 Exemplo de request com erro a ser submetido. A propriedade username2 não existe no schema *User*. A propriedade id também não foi especificada e é requerida:
 ```
@@ -342,3 +337,74 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 
 ## Utilize esta ferramenta em conjunto com o IRIS API Manager
 *pending*
+
+## Tipos Primitivos Suportados
+
+|   Primitive Type           |   OAS JSON Type           |   OAS Format Type  |
+|----------------------------|---------------------------|--------------------|
+|   %Binary                  |   string                  |                    |
+|   %xsd.base64Binary        |   string                  |                    |
+|   %Boolean                 |   boolean                 |                    |
+|   %Date                    |   string                  |   date             |
+|   %PosixTime               |   string                  |   date-time        |
+|   %StringTimeStamp         |   string                  |   date-time        |
+|   %TimeStamp               |   string                  |   date-time        |
+|   %DateTime                |   string                  |   date-time        |
+|   %Currency                |   number                  |                    |
+|   %Float                   |   number                  |                    |
+|   %Decimal                 |   number                  |                    |
+|   %Numeric                 |   number                  |                    |
+|   %Double                  |   number                  |                    |
+|   %Float                   |   number                  |                    |
+|   %BigInt                  |   integer                 |   int64            |
+|   %xsd.int                 |   integer                 |                    |
+|   %xsd.long                |   integer                 |   int64            |
+|   %Integer                 |   integer                 |                    |
+|   %SmallInt                |   integer                 |   int32            |
+|   %Time                    |   string                  |                    |
+|   %TinyInt                 |   integer                 |                    |
+|   %xsd.byte                |   integer                 |   int32            |
+|   %String                  |   string                  |                    |
+|   %Stream.FileBinary       |   string                  |   binary           |
+|   %Stream.Filecharacter    |   string                  |                    |
+|   %Stream.GlobalBinary     |   string                  |   binary           |
+|   %Stream.GlobalCharacter  |   string                  |                    |
+|   %Status                  |   special type as output  |                    |
+
+## Tipos Complexos Suportados (Propriedades de %XML.Adaptor)
+
+|   Property Type             |   OAS JSON Type                   |   OAS Format Type  |
+|-----------------------------|-----------------------------------|--------------------|
+|   %BigInt                   |   integer                         |   int64            |
+|   %Binary                   |   string                          |                    |
+|   %Boolean                  |   boolean                         |                    |
+|   %Char                     |   string                          |                    |
+|   %Counter                  |   integer                         |   int64            |
+|   %Currency                 |   number                          |                    |
+|   %Date                     |   string                          |   date             |
+|   %DateTime                 |   string                          |   date-time        |
+|   %Decimal                  |   number                          |                    |
+|   %Double                   |   number                          |                    |
+|   %EnumString               |   string                          |                    |
+|   %ExactString              |   string                          |                    |
+|   %Integer                  |   integer                         |   int64            |
+|   %List                     |   array                           |                    |
+|   %ListOfBinary             |   array                           |                    |
+|   %Name                     |   string                          |                    |
+|   %Numeric                  |   number                          |                    |
+|   %SmallInt                 |   integer                         |                    |
+|   %Status                   |   string                          |   binary           |
+|   %String                   |   string                          |                    |
+|   %Time                     |   string                          |                    |
+|   %TimeStamp                |   string                          |   date-time        |
+|   %TinyInt                  |   integer                         |                    |
+|   %Stream.GlobalCharacter   |   string                          |                    |
+|   %Stream.GlobalBinary      |   string                          |   binary           |
+|   %Stream.GlobalCharacter   |   string                          |                    |
+|   %Stream.GlobalBinary      |   string                          |   binary           |
+|   Complex Type              |   object                          |                    |
+|   list Of (Primitive Type)  |   array of (Primitive JSON Type)  |                    |
+|   list Of (Complex Type)    |   array of (Complex Type)         |                    |
+|   array Of (Primitive)	      |   array of (Primitive JSON Type)  |                    |
+|   array Of (Complex Type)   |   array of (Complex Type)         |                    |
+|   RelationShip              |   object or array                 |                    |
