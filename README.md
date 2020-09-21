@@ -172,6 +172,8 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {  
 }
 
+No exemplo acima, o valor do parâmetro *petId* informado pelo usuário da api é atribuído para o parâmetro interno *pId*.
+
 ## Customizando as Tags
 
 Definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
