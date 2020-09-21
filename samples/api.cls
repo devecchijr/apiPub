@@ -384,6 +384,31 @@ Method updateUser(pUserName As %String, pUser As apiPub.samples.User) As %Status
     Quit tSC
 }
 
+/// Update user using OAS schema
+/// @apiPub[path="/user"]
+/// @apiPub[verb="put"]
+/// @apiPub[tag="user"]
+/// @apiPub[params.description="This can only be done by the logged in user."]
+/// @apiPub[params.user.schema="User"]
+Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObject) As %Status [ WebMethod ]
+{
+    Set tSC = $System.Status.OK()
+    Try {
+
+        If '$IsObject(##class(apiPub.samples.User).usernameIDXOpen(username)) {
+            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
+        }
+        Set tSC = ##class(apiPub.core.converter).JSONToObj(user, "apiPub.samples.User", .pUser)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = ..saveUser(pUser)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    }
+    Catch(e) {
+        Set tSC = e.AsStatus()      
+    }
+    Quit tSC
+}
+
 Method saveUser(pUser As apiPub.samples.User) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -515,8 +540,42 @@ XData apiPub [ MimeType = application/json ]
                     "type" : "integer",
                     "format" : "int32"
                 }
-            }           
-        }        
+            },
+            "User": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "userStatus": {
+                        "type": "integer",
+                        "description": "(short) User Status"
+                    }
+                }
+            }            
+        }
     }
 }
 

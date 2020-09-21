@@ -239,13 +239,98 @@ No exemplo abaixo, a descrição *This can only be done by the logged in user* �
 
 Onde property também pode ser:  
 ***required***: se o parâmetro é requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos  
-***schema.items.enum***: Exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls).  
+***schema.items.enum***: Exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls).  
 ***schema.default***: Aponta para um valor default para enumeradores.  
 ***inputType***: por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).  
 ***outputType***: por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls).
 
-## Associe Schemas Parseáveis para tipos JSON Dinâmicos
-*pending*
+## Associe Schemas Parseáveis para tipos JSON Dinâmicos ***(%Library.DynamicObject)***
+
+É possível associar [schemas](https://swagger.io/docs/specification/data-models/) no padrão OAS 3.0 a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
+
+O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado User pode ser utilizado por qualquer método. Ele segue as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
+```
+XData apiPub [ MimeType = application/json ]
+{
+    {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "userStatus": {
+                        "type": "integer",
+                        "description": "(short) User Status"
+                    }
+                }
+            }            
+        }
+    }
+}
+```
+
+O segundo passo é asssociar o nome do schema informado no passo anterior ao parâmetro interno do tipo [%Library.DynamicObject](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) usando a seguinte notação:
+
+>/// @apiPub[params.*paramId*.*schema*="*schema name*"]
+
+Exemplo associando o parâmetro *user* ao schema *User*:
+```
+/// @apiPub[params.user.schema="User"]
+Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObject) As %Status [ WebMethod ]
+{
+    code...
+}
+```
+
+A grande vantagem neste caso é o ***parsing automático*** do tipo que está sendo associado. Se o usuário da API enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória um erro ou mais erros são retornados.
+
+Exemplo de request com erro a ser submetido. A propriedade username2 não existe no schema *User*. A propriedade id também não foi especificada e é requerida:
+```
+{
+  "username2": "devecchijr",
+  "firstName": "claudio",
+  "lastName": "devecchi junior",
+  "email": "devecchijr@gmail.com",
+  "password": "string",
+  "phone": "string",
+  "userStatus": 0
+}
+```
+
+Exemplo de erro retornado:
+```
+{
+  "statusCode": 0,
+  "message": "ERRO #5001: <Bad Request> Path User.id is required; Invalid path: User.username2",
+  "errorCode": 5001
+}
+```
+
+Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
 *pending*
