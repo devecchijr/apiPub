@@ -340,12 +340,24 @@ Exemplo de erro retornado:
 Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
 ## Monitore a chamada das suas API's com o IRIS Analytics 
-*pending*
 
-## Utilize esta ferramenta em conjunto com o IRIS API Manager
-*pending*
 
-## Tipos Primitivos Suportados
+### Configuração
+
+Importe os seguintes componentes em uma Produção (IRIS Interoperability)
+
+|   Component          |    Type           |  
+|----------------------|-------------------|  
+|  apiPub.tracer.bm    |  Service (BS)     |
+|  apiPub.tracer.bs    |  Service (BS)     |
+|  apiPub.tracer.bo    |  Operation (BO)   |
+
+Ligue o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
+
+## Utilize esta ferramenta em conjunto com o Intersystems API Manager
+Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
+
+## Tipos Primitivos Suportados 
 
 |   Primitive Type           |   OAS JSON Type           |   OAS Format Type  |
 |----------------------------|---------------------------|--------------------|
