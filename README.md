@@ -306,7 +306,7 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
 }
 ```
 
-A grande vantagem neste caso é o ***parsing automático*** do tipo que está sendo associado. Se o usuário da API enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória um ou mais erros são retornados.
+A grande vantagem neste caso, além da documentação da API, é o ***parsing automático*** do tipo que está sendo associado. Se o usuário da API enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória um ou mais erros são retornados.
 
 Exemplo de request com erro a ser submetido. A propriedade username2 não existe no schema *User*. A propriedade id também não foi especificada e é requerida:
 ```
