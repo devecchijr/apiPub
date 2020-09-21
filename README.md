@@ -246,9 +246,9 @@ Onde property também pode ser:
 
 ## Associe Schemas Parseáveis para tipos JSON Dinâmicos ***(%Library.DynamicObject)***
 
-É possível associar [schemas](https://swagger.io/docs/specification/data-models/) no padrão OAS 3.0 a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
+É possível associar [schemas OAS 3.0](https://swagger.io/docs/specification/data-models/) a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
-O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado User pode ser utilizado por qualquer método. Ele deve seguir as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
+O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado *User* pode ser utilizado por qualquer método. Ele deve seguir as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
 ```
 XData apiPub [ MimeType = application/json ]
 {
