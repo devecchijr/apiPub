@@ -190,7 +190,7 @@ Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notaç�
 
 ## Customizando o *operationId*
 
-Segundo a especificação OAS, ***operationId*** é uma string única usada para identificar uma API ou operação. Nesta ferramenta ela é utilizada para a mesma finalizade no monitoramento e rastreamento das operações.
+Segundo a especificação OAS, ***operationId*** é uma string única usada para identificar uma API ou operação. Nesta ferramenta ela é utilizada para a mesma finalidade no monitoramento e rastreamento das operações.
 
 Por padrão, ela recebe o mesmo nome do método da classe de implementação.
 
