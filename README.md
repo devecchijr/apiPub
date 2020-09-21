@@ -371,7 +371,7 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 |   %Stream.GlobalCharacter  |   string                  |                    |
 |   %Status                  |   special type as output  |                    |
 
-## Tipos de Propriedades Suportados (%XML.Adaptor)
+## Tipos Complexos - Propriedades de %XML.Adaptor
 
 |   Property Type             |   OAS JSON Type                   |   OAS Format Type  |
 |-----------------------------|-----------------------------------|--------------------|
