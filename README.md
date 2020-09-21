@@ -240,7 +240,7 @@ No exemplo abaixo, a descrição *This can only be done by the logged in user* �
 Para parâmetros de entrada ou saída:
 >/// @apiPub[params.*paramId.property*="*value*"]
 
-ou para respostas:
+Para respostas:
 >/// @apiPub[response.*property*="*value*"]
 
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
