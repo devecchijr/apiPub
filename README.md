@@ -237,7 +237,7 @@ No exemplo abaixo, a descrição *This can only be done by the logged in user* �
 
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
 
-Para parâmetros de entrada ou saída:
+Utilize a seguinte notação para parâmetros de entrada ou saída:
 >/// @apiPub[params.*paramId.property*="*value*"]
 
 Para respostas:
