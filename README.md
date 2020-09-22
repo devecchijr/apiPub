@@ -442,6 +442,6 @@ Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems AP
 
 ## Roadmap
 
-|   Item                                                 |
-|--------------------------------------------------------|
-|   ***Api First Aproach*** - Ler uma especificação OAS 3.0 e criar o Spec dos métodos, assim como na classe [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
+|   Item                                                        |
+|---------------------------------------------------------------|
+|   ***Api First Approach*** - Ler uma especificação OAS 3.0 e criar o Spec dos métodos, assim como na classe [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
