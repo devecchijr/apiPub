@@ -253,7 +253,7 @@ Method placeOrder(pOrder As apiPub.samples.Order) As %Status [ WebMethod ]
 /// @apiPub[path="/store/order/{orderId}"]
 /// @apiPub[tag="store"]
 /// @apiPub[params.description="For valid response try integer IDs with value >\= 1 and <\= 10. Other values will generated exceptions"]
-/// @apiPub[params.orderId.description="ID of pet that needs to be fetched"]
+/// @apiPub[params.orderId.description="ID of the order that needs to be fetched"]
 Method getOrderById(orderId As %Integer(MINVAL=1,MAXVAL=10)) As apiPub.samples.Order [ WebMethod ]
 {
     Set order = ##class(apiPub.samples.Order).idIDXOpen(orderId)
