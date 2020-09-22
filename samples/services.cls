@@ -5,7 +5,7 @@ Parameter OASPath As %String = "Get:/doc";
 
 Parameter DispatchClass As %String = "apiPub.samples.api";
 
-/// When the class is also a Business Service 
+/// When the Dispatch class is also a Business Service Component
 Parameter DispatchBSName As %String;
 
 /// Useful to treat documentation and api (urls) separately (different web applications)
