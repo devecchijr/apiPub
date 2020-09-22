@@ -344,7 +344,7 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 
 ### Configuração
 
-***Passo 1*** - Adicione os seguintes componentes na *Production* (*IRIS Interoperability*)
+***Passo 1*** - Adicione e Ative os seguintes componentes na *Production* (*IRIS Interoperability*)
 
 |   Component          |    Type           |  
 |----------------------|-------------------|  
@@ -364,7 +364,7 @@ Parameter APIDomain = "samples";
 ```
 O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
 
-***Passo 3*** - Importe o dashboard de exemplo no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
+***Passo 3*** - Importe o dashboard de exemplo (***apiPub_Analytics_vx.xml***) no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
 
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
