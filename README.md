@@ -252,7 +252,7 @@ Para respostas:
 |   outputType         |   por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls)                                                   |
 
 ## Associe Schemas Parseáveis a tipos JSON Dinâmicos ***(%Library.DynamicObject)***
-
+![](parsingDynamicTypes.gif)
 É possível associar [schemas OAS 3.0](https://swagger.io/docs/specification/data-models/) a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
 A grande vantagem neste caso, além da documentação da API para tipos dinâmicos, é o ***parsing automático*** do request. Se o usuário da API por exemplo enviar uma propriedade que não está no schema ou não enviar uma propriedade obrigatória, um ou mais erros são retornados.

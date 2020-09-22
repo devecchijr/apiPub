@@ -394,7 +394,6 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
 {
     Set tSC = $System.Status.OK()
     Try {
-
         If '$IsObject(##class(apiPub.samples.User).usernameIDXOpen(username)) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
         }
