@@ -186,7 +186,7 @@ Definir a **tag**(agrupamento) do método quando há mais que uma tag definida n
 Exemplo:
 >/// @apiPub[tag="user"]
 
-## Como marcar a API como Descontinuada
+## Marcando a API como Descontinuada
 
 Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
 
