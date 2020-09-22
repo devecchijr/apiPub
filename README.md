@@ -344,7 +344,7 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 
 ### Configuração
 
-Adicione os seguintes componentes na *Production* (*IRIS Interoperability*)
+***Passo 1*** - Adicione os seguintes componentes na *Production* (*IRIS Interoperability*)
 
 |   Component          |    Type           |  
 |----------------------|-------------------|  
@@ -352,9 +352,7 @@ Adicione os seguintes componentes na *Production* (*IRIS Interoperability*)
 |  apiPub.tracer.bs    |  Service (BS)     |
 |  apiPub.tracer.bo    |  Operation (BO)   |
 
-Importe o dashboard de exemplo em (*Analytics/Admin/Folder Manager*). Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
-
-Ligue o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
+***Passo 2*** - Ligue o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
 
 O parâmetro ***Traceable*** deve estar ligado.
 ```
@@ -365,6 +363,8 @@ Parameter TracerBSName = "apiPub.tracer.bs";
 Parameter APIDomain = "samples";
 ```
 O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
+
+***Passo 3*** - Importe o dashboard de exemplo no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
 
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
