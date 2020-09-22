@@ -8,7 +8,7 @@ Este projeto também inclui uma implementação de exemplo completa (**apiPub.sa
 
 ![](PetStore.gif)
 
-## Faça um teste com os teus serviços SOAP já existentes 
+## Faça um teste com os teus serviços SOAP existentes 
 Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
 ![](soapToOASRest.png)
 
