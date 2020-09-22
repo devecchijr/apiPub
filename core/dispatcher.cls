@@ -39,7 +39,8 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             If '$Data(pInstance) {
                 Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(tMethodKey,"||",1),,,.tIsBS,)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                Set tBusinessServiceName=minfo.%Get("customParams").%Get("bsName")
+                Set tBusinessServiceName=""
+                If pRequest.ServiceClass '="" Set tBusinessServiceName = $Parameter(pRequest.ServiceClass,"DispatchBSName") 
                 If tBusinessServiceName="" {
                     Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(tMethodKey,"||",1)_"||BSNAME")
                     If $IsObject(tMParam) Set tBusinessServiceName = tMParam.Default

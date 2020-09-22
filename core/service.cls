@@ -31,6 +31,9 @@ Parameter Traceable As %Boolean = 0;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
+/// When the class is also a Business Service 
+Parameter DispatchBSName As %String;
+
 Parameter SSL As %String = "DEFAULT";
 
 Parameter HTTPS As %Boolean = 0;
