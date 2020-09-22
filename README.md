@@ -255,7 +255,7 @@ Para respostas:
 ![](parsingDynamicTypes.gif)
 É possível associar [schemas OAS 3.0](https://swagger.io/docs/specification/data-models/) a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
-A grande vantagem neste caso, além de informar ao usuário o tipo de objeto requerido, o  ***parsing automático*** do request é realizado na chamada da API. Se o usuário da API por exemplo enviar uma propriedade que não está no schema, enviar uma data em um formato inválido ou não enviar uma propriedade obrigatória, um ou mais erros serão retornados ao usuário informando o que está irregular.
+A grande vantagem neste caso, além de informar ao usuário o tipo de objeto requerido, o  ***parsing automático*** do request é realizado na chamada da API. Se o usuário da API por exemplo enviar uma propriedade que não está no schema, enviar uma data em um formato inválido ou não enviar uma propriedade obrigatória, um ou mais erros serão retornados ao usuário informando as irregularidades.
 
 O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado *User* pode ser utilizado por qualquer método. Ele deve seguir as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
 ```
