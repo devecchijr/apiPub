@@ -302,7 +302,7 @@ XData apiPub [ MimeType = application/json ]
 }
 ```
 
-O segundo passo é asssociar o nome do schema informado no passo anterior ao parâmetro interno do tipo [%Library.DynamicObject](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) usando a seguinte notação:
+O segundo passo é relacionar o nome do schema informado no passo anterior ao parâmetro interno do tipo [%Library.DynamicObject](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) usando a seguinte notação:
 
 >/// @apiPub[params.*paramId*.*schema*="*schema name*"]
 
