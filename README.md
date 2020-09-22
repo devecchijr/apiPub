@@ -439,3 +439,9 @@ Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems AP
 |   array Of (Primitive)	      |   array of (Primitive JSON Type)  |                    |
 |   array Of (Complex Type)   |   array of (Complex Type)         |                    |
 |   RelationShip              |   object or array                 |                    |
+
+## Roadmap
+
+|   Item                                                 |
+|--------------------------------------------------------|
+|   ***Api First Aproach*** - Ler uma especificação OAS 3.0 e criar o Spec dos métodos, assim como na classe [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
