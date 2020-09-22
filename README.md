@@ -129,7 +129,7 @@ Parameter TAGDOCSURL As %String = "http://intersystems.com";
 É possível customizar vários aspectos das API's, como ***tags, paths e verbos***. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
 
 Sintaxe:
->/// @apiPub[*assignment clause*]  
+>***/// @apiPub[assignment clause]***  
 [*Method/ClassMethod*] *methodName(params as type) As returnType* {  
 >    
 >}
