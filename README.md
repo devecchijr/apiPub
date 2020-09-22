@@ -339,7 +339,7 @@ Exemplo de erro retornado:
 
 Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
-## Monitore a chamada das suas API's com o IRIS Analytics 
+## Monitore a chamada das tuas API's com o IRIS Analytics 
 ![](monitorYourAPI.gif)
 
 ### Configuração
