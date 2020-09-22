@@ -344,7 +344,7 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 
 ### Configuração
 
-***Passo 1*** - Adicione e Ative os seguintes componentes na *Production* (*IRIS Interoperability*)
+***Passo 1*** - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
 
 |   Component          |    Type           |  
 |----------------------|-------------------|  
