@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2019.1.1 (Build 612_0_19677U)" ts="2020-09-22 12:11:54">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2019.1.1 (Build 612_0_19677U)" ts="2020-09-23 14:06:58">
 <Class name="apiPub.core.converter">
 <Super>apiPub.core.jsonBuilder</Super>
 <TimeChanged>65611,57597.268024</TimeChanged>
@@ -514,7 +514,7 @@
 
 <Class name="apiPub.core.dispatcher">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65626,59201.318885</TimeChanged>
+<TimeChanged>65644,53596.670434</TimeChanged>
 <TimeCreated>65568,45530.144369</TimeCreated>
 
 <Method name="Dispatch">
@@ -558,7 +558,8 @@
             If '$Data(pInstance) {
                 Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(tMethodKey,"||",1),,,.tIsBS,)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                Set tBusinessServiceName=minfo.%Get("customParams").%Get("bsName")
+                Set tBusinessServiceName=""
+                If pRequest.ServiceClass '="" Set tBusinessServiceName = $Parameter(pRequest.ServiceClass,"DispatchBSName") 
                 If tBusinessServiceName="" {
                     Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(tMethodKey,"||",1)_"||BSNAME")
                     If $IsObject(tMParam) Set tBusinessServiceName = tMParam.Default
@@ -2957,7 +2958,7 @@
 
 <Class name="apiPub.core.service">
 <Super>%CSP.REST,%Projection.AbstractProjection,apiPub.core.jsonBuilder</Super>
-<TimeChanged>65631,59469.57433</TimeChanged>
+<TimeChanged>65644,53103.655336</TimeChanged>
 <TimeCreated>65587,59412.779764</TimeCreated>
 
 <Parameter name="CONTENTTYPEJSON">
@@ -3026,6 +3027,12 @@ Use TracerBSName for monitoring</Description>
 
 <Parameter name="TracerBSName">
 <Default>apiPub.tracer.bs</Default>
+</Parameter>
+
+<Parameter name="DispatchBSName">
+<Description>
+When the class is also a Business Service </Description>
+<Type>%String</Type>
 </Parameter>
 
 <Parameter name="SSL">
@@ -4210,7 +4217,7 @@ User Status</Description>
 <Class name="apiPub.samples.api">
 <ProcedureBlock>1</ProcedureBlock>
 <Super>%RegisteredObject</Super>
-<TimeChanged>65644,40586.798957</TimeChanged>
+<TimeChanged>65645,36893.140452</TimeChanged>
 <TimeCreated>65596,63305.409729</TimeCreated>
 
 <Method name="addPet">
@@ -4567,7 +4574,8 @@ Delete purchase order by ID
 Create user
 @apiPub[path="/user"]
 @apiPub[tag="user"]
-@apiPub[params.description="This can only be done by the logged in user."]</Description>
+@apiPub[params.description="This can only be done by the logged in user."]
+@apiPub[successfulCode="201"]</Description>
 <FormalSpec>pUser:apiPub.samples.User</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <WebMethod>1</WebMethod>
@@ -6097,7 +6105,7 @@ Add a new pet to the store</Description>
 
 <Class name="apiPub.samples.services">
 <Super>apiPub.core.service</Super>
-<TimeChanged>65644,41914.935915</TimeChanged>
+<TimeChanged>65644,54042.989794</TimeChanged>
 <TimeCreated>65596,61722.645303</TimeCreated>
 
 <Parameter name="OASPath">
@@ -6108,6 +6116,12 @@ Add a new pet to the store</Description>
 <Parameter name="DispatchClass">
 <Type>%String</Type>
 <Default>apiPub.samples.api</Default>
+</Parameter>
+
+<Parameter name="DispatchBSName">
+<Description>
+When the Dispatch class is also a Business Service Component and has a different name</Description>
+<Type>%String</Type>
 </Parameter>
 
 <Parameter name="DispatchBaseURL">
@@ -7769,7 +7783,7 @@ Use TracerBSName for monitoring</Description>
 </Description>
 <ProcedureBlock>1</ProcedureBlock>
 <Super>%DeepSee.CubeDefinition</Super>
-<TimeChanged>65560,64164.224115</TimeChanged>
+<TimeChanged>65645,50714.658267</TimeChanged>
 <TimeCreated>65560,64164.224115</TimeCreated>
 <DependsOn>apiPub.tracer.message</DependsOn>
 
@@ -7778,7 +7792,7 @@ Use TracerBSName for monitoring</Description>
 Cube definition from Architect.</Description>
 <XMLNamespace>http://www.intersystems.com/deepsee</XMLNamespace>
 <Data><![CDATA[
-<cube xmlns="http://www.intersystems.com/deepsee" name="apiPub" displayName="apiPub Monitor" disabled="false" abstract="false" sourceClass="apiPub.tracer.message" actionClass="apiPub.tracer.kpi" countMeasureName="%COUNT" bucketSize="8" bitmapChunkInMemory="false" precompute="0" disableListingGroups="false" enableSqlRestrict="false">
+<cube xmlns="http://www.intersystems.com/deepsee" name="apiPub" displayName="apiPub Monitor" disabled="false" abstract="false" sourceClass="apiPub.tracer.message" actionClass="apiPub.tracer.kpi" countMeasureName="%COUNT" bucketSize="8" bitmapChunkInMemory="false" precompute="0" disableListingGroups="false">
   <dimension name="Date" disabled="false" hasAll="false" allCaption="All Date" allDisplayName="Date" sourceProperty="reqDt" type="time" calendar="gregorian" iKnowType="entity" hidden="false" showHierarchies="default">
     <hierarchy name="H1" disabled="false" hidden="false">
       <level name="Year" disabled="false" timeFunction="Year" list="false" useDisplayValue="true" useAsFilter="true" hidden="false">
