@@ -17,7 +17,7 @@ Ao publicar métodos com tipos complexos é necessário que a classe do objeto s
 ![](XMLAdaptorCompat.png)
 
 ## Monitore as tuas API's com o IRIS Analytics 
-Habilite o monitoramento das API's para administrar e rastrear todps os *Requests Rest*. Monte também os seus próprios indicadores.
+Habilite o monitoramento das API's para **administrar** e **rastrear todas** as *chamadas Rest*. Monte também os seus próprios indicadores.
 
 ![](monitorYourAPI.gif)
 
@@ -51,7 +51,7 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
-### Configurando o Monitoramento
+## Habilite o Monitoramento *(Opcional))
 
 1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
 
