@@ -12,7 +12,7 @@ Este projeto também inclui uma implementação de exemplo completa (**apiPub.sa
 Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
 ![](soapToOASRest.png)
 
-Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já construídos são automaticamente compatíveis.
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já construídos se tornam automaticamente compatíveis.
 
 ![](XMLAdaptorCompat.png)
 
