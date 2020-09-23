@@ -5,7 +5,7 @@ Class apiPub.tracer.cube Extends %DeepSee.CubeDefinition [ DependsOn = apiPub.tr
 /// Cube definition from Architect.
 XData Cube [ XMLNamespace = "http://www.intersystems.com/deepsee" ]
 {
-<cube xmlns="http://www.intersystems.com/deepsee" name="apiPub" displayName="apiPub Monitor" disabled="false" abstract="false" sourceClass="apiPub.tracer.message" actionClass="apiPub.tracer.kpi" countMeasureName="%COUNT" bucketSize="8" bitmapChunkInMemory="false" precompute="0" disableListingGroups="false" enableSqlRestrict="false">
+<cube xmlns="http://www.intersystems.com/deepsee" name="apiPub" displayName="apiPub Monitor" disabled="false" abstract="false" sourceClass="apiPub.tracer.message" actionClass="apiPub.tracer.kpi" countMeasureName="%COUNT" bucketSize="8" bitmapChunkInMemory="false" precompute="0" disableListingGroups="false">
   <dimension name="Date" disabled="false" hasAll="false" allCaption="All Date" allDisplayName="Date" sourceProperty="reqDt" type="time" calendar="gregorian" iKnowType="entity" hidden="false" showHierarchies="default">
     <hierarchy name="H1" disabled="false" hidden="false">
       <level name="Year" disabled="false" timeFunction="Year" list="false" useDisplayValue="true" useAsFilter="true" hidden="false">
