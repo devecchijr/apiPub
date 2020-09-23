@@ -18,7 +18,7 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
             "defaultForEmptyContentType":(..DefaultForEmptyContentType)
 			,"beautifyJsonBodyResponse":(..BeautifyJsonBodyResponse)
         }
-        Set tSC = ##class(apiPub.service.rest).TreatMsgResponse(pRequest,.pResponse,tResponseParams)
+        Set tSC = $ClassMethod(pRequest.ServiceClass,"TreatMsgResponse",pRequest,.pResponse,tResponseParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
     }
     Catch(e) {
