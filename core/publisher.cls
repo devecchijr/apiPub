@@ -355,8 +355,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     }
                 }
             }
-            Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
-            Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^description","Bad Request",,"^")
+            //Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
+            //Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^description","Bad Request",,"^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^description","Internal Server Error",,"^")
             //Request
