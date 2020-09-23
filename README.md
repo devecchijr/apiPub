@@ -61,9 +61,9 @@ Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-w
 |  apiPub.tracer.bs    |  Service (BS)     |
 |  apiPub.tracer.bo    |  Operation (BO)   |
 
-2 - Ligue o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
+2 - Ative o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
 
-O parâmetro ***Traceable*** deve estar ligado.
+O parâmetro ***Traceable*** deve estar ativado.
 ```
 Parameter Traceable As %Boolean = 1;
 
