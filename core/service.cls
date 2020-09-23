@@ -339,6 +339,9 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 			"message":(tMessage),
 			"errorCode":(tErrorCode)
 	}
+	Do %response.SetHeader("iris-statuscode",$$$ISOK(pStatusException.AsStatus()))
+	Do %response.SetHeader("iris-statusmessage",tMessage)
+	Do %response.SetHeader("iris-errorCode",tErrorCode)
 	Write tErrorTrap.%ToJSON()
 	Set pSC = $$$OK
 }
