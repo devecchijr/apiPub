@@ -188,7 +188,7 @@ Exemplo:
 
 ## Customizando o *Status Code* de Sucesso
 
-Caso se queira alterar o *Status Code* sucesso do método, utiliza-se a seguinte notação.
+Caso se queira alterar o *Status Code* sucesso do método, que é por padrão ***200***, utiliza-se a seguinte notação.
 >/// @apiPub[successfulCode="*code*"]
 
 Exemplo:
