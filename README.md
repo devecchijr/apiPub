@@ -17,7 +17,7 @@ Ao publicar métodos com tipos complexos é necessário que a classe do objeto s
 ![](XMLAdaptorCompat.png)
 
 ## Monitore as tuas API's com o IRIS Analytics 
-Habilite o monitoramento das API's para **administrar** e **rastrear todas** as *chamadas Rest*. Monte também os seus próprios indicadores.
+Habilite o monitoramento das API's para **administrar** e **rastrear** todas as *chamadas Rest*. Monte também os seus próprios indicadores.
 
 ![](monitorYourAPI.gif)
 
