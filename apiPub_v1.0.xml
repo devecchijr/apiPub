@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2019.1.1 (Build 612_0_19677U)" ts="2020-09-23 16:49:28">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2019.1.1 (Build 612_0_19677U)" ts="2020-09-23 17:08:25">
 <Class name="apiPub.core.converter">
 <Super>apiPub.core.jsonBuilder</Super>
 <TimeChanged>65611,57597.268024</TimeChanged>
@@ -6130,7 +6130,7 @@ Add a new pet to the store</Description>
 
 <Class name="apiPub.samples.services">
 <Super>apiPub.core.service</Super>
-<TimeChanged>65645,57243.545753</TimeChanged>
+<TimeChanged>65645,61200.752553</TimeChanged>
 <TimeCreated>65596,61722.645303</TimeCreated>
 
 <Parameter name="OASPath">
@@ -7713,7 +7713,7 @@ Use TracerBSName for monitoring</Description>
 
 <Class name="apiPub.tracer.bo">
 <Super>Ens.BusinessOperation</Super>
-<TimeChanged>65631,49422.890027</TimeChanged>
+<TimeChanged>65645,61625.282631</TimeChanged>
 <TimeCreated>65560,65586.225121</TimeCreated>
 
 <Property name="DefaultForEmptyContentType">
@@ -7744,7 +7744,7 @@ Use TracerBSName for monitoring</Description>
             "defaultForEmptyContentType":(..DefaultForEmptyContentType)
 			,"beautifyJsonBodyResponse":(..BeautifyJsonBodyResponse)
         }
-        Set tSC = ##class(apiPub.service.rest).TreatMsgResponse(pRequest,.pResponse,tResponseParams)
+        Set tSC = $ClassMethod(pRequest.ServiceClass,"TreatMsgResponse",pRequest,.pResponse,tResponseParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
     }
     Catch(e) {
