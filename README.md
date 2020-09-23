@@ -56,7 +56,7 @@ Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-w
 
 Há duas maneiras de definir o cabeçalho OAS 3.0: 
 
-A primeira é através da criação de um bloco JSON XDATA nomeado como *apiPub* na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0. 
+A primeira é através da criação de um bloco JSON XDATA nomeado como *apiPub* na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0. As propriedades permitidas para customização são *info, tags* e *servers*.
 ```
 XData apiPub [ MimeType = application/json ]
 {
