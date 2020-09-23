@@ -51,7 +51,7 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
-## Habilite o Monitoramento *(Opcional))
+## Habilite o Monitoramento *(Opcional)*
 
 1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
 
