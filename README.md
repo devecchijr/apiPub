@@ -16,7 +16,7 @@ Ao publicar métodos com tipos complexos é necessário que a classe do objeto s
 
 ![](XMLAdaptorCompat.png)
 
-## Monitore a chamada das tuas API's com o IRIS Analytics 
+## Monitore as tuas API's com o IRIS Analytics 
 ![](monitorYourAPI.gif)
 
 ## **Instalação**
