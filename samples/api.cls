@@ -290,6 +290,7 @@ Method deleteOrder(orderId As %Integer(MINVAL=1)) As %Status [ WebMethod ]
 /// @apiPub[path="/user"]
 /// @apiPub[tag="user"]
 /// @apiPub[params.description="This can only be done by the logged in user."]
+/// @apiPub[successfulCode="201"]
 Method createUser(pUser As apiPub.samples.User) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()

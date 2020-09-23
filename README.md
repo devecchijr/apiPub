@@ -180,11 +180,19 @@ No exemplo acima, o parâmetro interno *pId* é exposto como *petId*.
 
 ## Customizando as Tags
 
-Definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
+É possível definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
 >/// @apiPub[tag="*value*"]
 
 Exemplo:
 >/// @apiPub[tag="user"]
+
+## Customizando o *Status Code* de Sucesso
+
+Caso se queira alterar o *Status Code* sucesso do método, utiliza-se a seguinte notação.
+>/// @apiPub[successfulCode="*code*"]
+
+Exemplo:
+>/// @apiPub[successfulCode="201"]
 
 ## Marcando a API como Descontinuada
 
