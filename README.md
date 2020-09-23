@@ -51,30 +51,6 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
-## Habilite o Monitoramento *(Opcional)*
-
-1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
-
-|   Component          |    Type           |  
-|----------------------|-------------------|  
-|  apiPub.tracer.bm    |  Service (BS)     |
-|  apiPub.tracer.bs    |  Service (BS)     |
-|  apiPub.tracer.bo    |  Operation (BO)   |
-
-2 - Ative o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
-
-O parâmetro ***Traceable*** deve estar ativado.
-```
-Parameter Traceable As %Boolean = 1;
-
-Parameter TracerBSName = "apiPub.tracer.bs";
-
-Parameter APIDomain = "samples";
-```
-O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
-
-3 - Importe o dashboard de exemplo (***apiPub_Analytics_vx.xml***) no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
-
 ## Defina o cabeçalho da especificação OAS
 ![](OASheader.png)
 
@@ -375,6 +351,30 @@ Exemplo de erro retornado:
 ```
 
 Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
+
+## Habilite o Monitoramento *(Opcional)*
+
+1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
+
+|   Component          |    Type           |  
+|----------------------|-------------------|  
+|  apiPub.tracer.bm    |  Service (BS)     |
+|  apiPub.tracer.bs    |  Service (BS)     |
+|  apiPub.tracer.bo    |  Operation (BO)   |
+
+2 - Ative o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
+
+O parâmetro ***Traceable*** deve estar ativado.
+```
+Parameter Traceable As %Boolean = 1;
+
+Parameter TracerBSName = "apiPub.tracer.bs";
+
+Parameter APIDomain = "samples";
+```
+O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
+
+3 - Importe o dashboard de exemplo (***apiPub_Analytics_vx.xml***) no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
 
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
