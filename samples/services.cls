@@ -15,7 +15,7 @@ Parameter DispatchBaseURL As %String;
 Parameter OnlyOAS As %Boolean = 0;
 
 /// Use TracerBSName for monitoring
-Parameter Traceable As %Boolean = 1;
+Parameter Traceable As %Boolean = 0;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
