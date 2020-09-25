@@ -122,11 +122,15 @@ Method findByTags(pTags As %Library.DynamicArray) As %ListOfObjects(ELEMENTTYPE=
 /// @apiPub[path="/pet/{petId}"]
 /// @apiPub[params.pId.description="ID of pet to return"]
 /// @apiPub[params.pId.name="petId"]
+/// @apiPub[statusCodes=[
+///     {"code":"400","description":"Invalid ID supplied"}
+///     ,{"code":"404","description":"Pet not found"}]
+/// ]
 Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {
     Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
     If '$IsObject(tPet) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404>Pet not found"))
     }
     Return tPet
 }

@@ -355,8 +355,14 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     }
                 }
             }
-            //Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
-            //Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*400^description","Bad Request",,"^")
+            Set tStatusCodes = value.%Get("customParams").%Get("statusCodes")
+            If tStatusCodes'="",$ClassName(tStatusCodes)="%Library.DynamicArray" {
+                Set tStat = tStatusCodes.%GetIterator()
+                While tStat.%GetNext(.pSkey,.pSvalue) {
+                    Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
+                    Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^description",pSvalue.%Get("description"),,"^")
+                }
+            }          
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^description","Internal Server Error",,"^")
             //Request
