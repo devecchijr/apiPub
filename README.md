@@ -199,6 +199,18 @@ Caso se queira alterar o *Status Code* sucesso do método, que é por padrão **
 Exemplo:
 >/// @apiPub[successfulCode="201"]
 
+## Customizando *Status Codes* de Exceção
+
+Esta ferramenta assume como padrão o código ***500*** para quaisquer exceções. Caso se queira adicionar novos códigos para exceção na documentação, utiliza-se a seguinte notação.
+>/// @apiPub[statusCodes=[{code:"*code*",description:"*description*"}]]
+
+Onde a propriedade *statusCodes* é um array de objetos com código e descrição. Veja o método ***getPetById*** da classe [apiPub.samples.api](/samples/api.cls)
+
+Ao disparar a exceção, Inclua o código entre os sinais de "<" e ">".
+
+Exemplo:
+> Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "***<400>*** Invalid ID supplied"))}
+
 ## Marcando a API como Descontinuada
 
 Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
