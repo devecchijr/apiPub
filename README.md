@@ -204,12 +204,20 @@ Exemplo:
 Esta ferramenta assume como padrão o código ***500*** para quaisquer exceções. Caso se queira adicionar novos códigos para exceção na documentação, utiliza-se a seguinte notação.
 >/// @apiPub[statusCodes=[{code:"*code*",description:"*description*"}]]
 
-Onde a propriedade *statusCodes* é um array de objetos com código e descrição. Veja o método ***getPetById*** da classe [apiPub.samples.api](/samples/api.cls)
+Onde a propriedade *statusCodes* é um array de objetos com código e descrição. 
 
-Ao disparar a exceção, Inclua o código entre os sinais de "<" e ">".
+Exemplo:
+> /// @apiPub[statusCodes=[  
+    ///     {"code":"400","description":"Invalid ID supplied"}  
+    ///     ,{"code":"404","description":"Pet not found"}]  
+    /// ]
+
+Ao disparar a exceção, Inclua o *Status Code* na descrição da exceção entre os sinais de "<" e ">".
 
 Exemplo:
 > Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "***<400>*** Invalid ID supplied"))}
+
+Veja o método ***getPetById*** da classe [apiPub.samples.api](/samples/api.cls)
 
 ## Marcando a API como Descontinuada
 
