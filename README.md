@@ -201,7 +201,7 @@ Exemplo:
 
 ## Customizando *Status Codes* de Exceção
 
-Esta ferramenta assume como padrão o código ***500*** para quaisquer exceções. Caso se queira adicionar novos códigos para exceção na documentação, utiliza-se a seguinte notação.
+Esta ferramenta assume como padrão o ***Status Code 500*** para quaisquer exceções. Caso se queira adicionar novos códigos para exceção na documentação, utiliza-se a seguinte notação.
 >/// @apiPub[statusCodes=[{code:"*code*",description:"*description*"}]]
 
 Onde a propriedade *statusCodes* é um array de objetos com código e descrição. 
