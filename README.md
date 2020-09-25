@@ -399,6 +399,10 @@ O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
 
+## Compatibilidade
+
+[ApiPub](https://github.com/devecchijr/apiPub#iris-apipub) é compatível com o produto [Intersystems IRIS](https://www.intersystems.com/products/intersystems-iris/) ou [Intersystems IRIS for Health](https://www.intersystems.com/products/intersystems-iris-for-health/) a partir da versão 2018.1.
+
 ## Tipos Primitivos Suportados 
 
 |   Primitive Type           |   OAS JSON Type           |   OAS Format Type  |
@@ -432,7 +436,7 @@ Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems AP
 |   %Stream.GlobalCharacter  |   string                  |                    |
 |   %Status                  |   special type as output  |                    |
 
-## Tipos Complexos (Propriedades)
+## Tipos Complexos (Propriedades) Suportados
 
 |   Property Type             |   OAS JSON Type                   |   OAS Format Type  |
 |-----------------------------|-----------------------------------|--------------------|
