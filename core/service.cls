@@ -345,6 +345,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 	} Else {
 		Set %response.Status = ..#HTTP500INTERNALSERVERERROR
 	}
+	If $Extract(tMessage,1,1)=" " Set tMessage = $Extract(tMessage,2,*)
 	Set tErrorTrap={
 			"statusCode":($$$ISOK(pStatusException.AsStatus())),
 			"message":(tMessage),

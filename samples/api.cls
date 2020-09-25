@@ -128,9 +128,10 @@ Method findByTags(pTags As %Library.DynamicArray) As %ListOfObjects(ELEMENTTYPE=
 /// ]
 Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {
+    If pId'=+pId {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid ID supplied"))}
     Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
     If '$IsObject(tPet) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404>Pet not found"))
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet not found"))
     }
     Return tPet
 }

@@ -359,8 +359,10 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             If tStatusCodes'="",$ClassName(tStatusCodes)="%Library.DynamicArray" {
                 Set tStat = tStatusCodes.%GetIterator()
                 While tStat.%GetNext(.pSkey,.pSvalue) {
-                    Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
-                    Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^description",pSvalue.%Get("description"),,"^")
+                    If pSvalue.%Get("code")'="" {
+                        Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
+                        Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_pSvalue.%Get("code")_"^description",pSvalue.%Get("description"),,"^")
+                    }
                 }
             }          
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*500^content^application/json^schema^$ref","#/components/schemas/responseStatus",,"^")
