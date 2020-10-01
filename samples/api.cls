@@ -149,18 +149,21 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
         If '$IsObject(tPet) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
-        Set tFile = ##class(%Stream.FileBinary).%New()
-        Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_".jpg")
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = tFile.CopyFromAndSave(pContent)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_".jpg"
-	    Set photoUrl = ##class(%ListOfDataTypes).%New()
-        Do photoUrl.Insert(tUrl)
-        Set tPet.photoUrls=photoUrl
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = tPet.%Save()
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        If pContent.SizeGet()>0 {
+            Set tExtension = $Extract(pContent.Read(),2,4)
+            Set tFile = ##class(%Stream.FileBinary).%New()
+            Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tSC = tFile.CopyFromAndSave(pContent)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_"."_tExtension
+            Set photoUrl = ##class(%ListOfDataTypes).%New()
+            Do photoUrl.Insert(tUrl)
+            Set tPet.photoUrls=photoUrl
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tSC = tPet.%Save()
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        }
     }
     Catch(e) {
         Set tSC = e.AsStatus()      
