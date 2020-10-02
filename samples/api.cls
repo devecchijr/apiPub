@@ -150,7 +150,7 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
         If pContent.SizeGet()>0 {
-            Set tExtension = $Extract(pContent.Read(),2,4)
+            Set tExtension = "jpg"
             Set tFile = ##class(%Stream.FileBinary).%New()
             Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
@@ -498,6 +498,8 @@ Method deleteUser(pUserName As %String) As %Status [ WebMethod ]
 /// @apiPub[response.outputType="text/plain"]
 Method loginUser(username As %String, password As %String, Output expiresAfter As %DateTime, Output rateLimit As %BigInt) As %String [ WebMethod ]
 {
+    Set expiresAfter=$ZDT($H,3)
+    Set rateLimit=5
     Quit $Horolog
 }
 
