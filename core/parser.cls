@@ -97,8 +97,9 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
                     }
                 }
                 If tSchemaVal="" {
+                    Set tMessage = $Replace($Replace(tOKey,"^","."),".[","[")
                     Do pResult.%Set("valid",0)
-                    Do pResult.%Get("invalidItems").%Push("Invalid path: "_$Replace($Replace(tOKey,"^","."),".[","["))
+                    Do pResult.%Get("invalidItems").%Push("Invalid Property "_tMessage)
                 } 
 			}
 		}
