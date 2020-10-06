@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2020.3.0AA (Build 331U)" ts="2020-09-28 18:08:29">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2020.3.0AA (Build 331U)" ts="2020-10-06 12:36:51">
 <Class name="apiPub.core.converter">
 <Super>apiPub.core.jsonBuilder</Super>
 <TimeChanged>65611,57597.268024</TimeChanged>
@@ -1938,7 +1938,7 @@
 
 <Class name="apiPub.core.parser">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65625,56113.83532</TimeChanged>
+<TimeChanged>65658,43785.035556</TimeChanged>
 <TimeCreated>65581,50046.521105</TimeCreated>
 
 <Method name="Parse">
@@ -2040,8 +2040,9 @@
                     }
                 }
                 If tSchemaVal="" {
+                    Set tMessage = $Replace($Replace(tOKey,"^","."),".[","[")
                     Do pResult.%Set("valid",0)
-                    Do pResult.%Get("invalidItems").%Push("Invalid path: "_$Replace($Replace(tOKey,"^","."),".[","["))
+                    Do pResult.%Get("invalidItems").%Push("Invalid Property "_tMessage)
                 } 
 			}
 		}
@@ -2966,7 +2967,7 @@
 
 <Class name="apiPub.core.service">
 <Super>%CSP.REST,%Projection.AbstractProjection,apiPub.core.jsonBuilder</Super>
-<TimeChanged>65650,63091.209853</TimeChanged>
+<TimeChanged>65653,58135.663013</TimeChanged>
 <TimeCreated>65587,59412.779764</TimeCreated>
 
 <Parameter name="CONTENTTYPEJSON">
@@ -4266,7 +4267,7 @@ User Status</Description>
 <Class name="apiPub.samples.api">
 <ProcedureBlock>1</ProcedureBlock>
 <Super>%RegisteredObject</Super>
-<TimeChanged>65647,36752.50642</TimeChanged>
+<TimeChanged>65658,42393.615858</TimeChanged>
 <TimeCreated>65596,63305.409729</TimeCreated>
 
 <Method name="addPet">
@@ -4425,6 +4426,7 @@ Find pet by ID
 <ReturnType>apiPub.samples.Pet</ReturnType>
 <WebMethod>1</WebMethod>
 <Implementation><![CDATA[
+    //If not numeric
     If pId'=+pId {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid ID supplied"))}
     Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
     If '$IsObject(tPet) {
@@ -4450,18 +4452,21 @@ uploads an image
         If '$IsObject(tPet) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
-        Set tFile = ##class(%Stream.FileBinary).%New()
-        Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_".jpg")
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = tFile.CopyFromAndSave(pContent)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_".jpg"
-	    Set photoUrl = ##class(%ListOfDataTypes).%New()
-        Do photoUrl.Insert(tUrl)
-        Set tPet.photoUrls=photoUrl
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = tPet.%Save()
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        If pContent.SizeGet()>0 {
+            Set tExtension = "png"
+            Set tFile = ##class(%Stream.FileBinary).%New()
+            Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tSC = tFile.CopyFromAndSave(pContent)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_"."_tExtension
+            Set photoUrl = ##class(%ListOfDataTypes).%New()
+            Do photoUrl.Insert(tUrl)
+            Set tPet.photoUrls=photoUrl
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tSC = tPet.%Save()
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        }
     }
     Catch(e) {
         Set tSC = e.AsStatus()      
@@ -4867,7 +4872,10 @@ Logs user into the system
 <FormalSpec>username:%String,password:%String,*expiresAfter:%DateTime,*rateLimit:%BigInt</FormalSpec>
 <ReturnType>%String</ReturnType>
 <WebMethod>1</WebMethod>
-<Implementation><![CDATA[    Quit $Horolog
+<Implementation><![CDATA[
+    Set expiresAfter=$ZDT($H,3)
+    Set rateLimit=5
+    Quit $Horolog
 ]]></Implementation>
 </Method>
 
@@ -6159,7 +6167,7 @@ Add a new pet to the store</Description>
 
 <Class name="apiPub.samples.services">
 <Super>apiPub.core.service</Super>
-<TimeChanged>65650,57339.142048</TimeChanged>
+<TimeChanged>65658,40332.355896</TimeChanged>
 <TimeCreated>65596,61722.645303</TimeCreated>
 
 <Parameter name="OASPath">
@@ -7479,5 +7487,28 @@ Property reqHQueryString As %String [ SqlComputeCode = {set {*}=##class(APITrace
 </Value>
 </Data>
 </Storage>
+</Class>
+
+
+<Class name="apiPub.tracer.production">
+<ProcedureBlock>0</ProcedureBlock>
+<Super>Ens.Production</Super>
+<TimeChanged>65651,34465.219723</TimeChanged>
+<TimeCreated>65651,34465.219723</TimeCreated>
+
+<XData name="ProductionDefinition">
+<Data><![CDATA[
+<Production Name="apiPub.tracer.production" LogGeneralTraceEvents="false">
+  <Description></Description>
+  <ActorPoolSize>1</ActorPoolSize>
+  <Item Name="apiPub.tracer.bs" Category="" ClassName="apiPub.tracer.bs" PoolSize="0" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  </Item>
+  <Item Name="apiPub.tracer.bm" Category="" ClassName="apiPub.tracer.bm" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  </Item>
+  <Item Name="apiPub.tracer.bo" Category="" ClassName="apiPub.tracer.bo" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  </Item>
+</Production>
+]]></Data>
+</XData>
 </Class>
 </Export>
