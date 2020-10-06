@@ -454,7 +454,11 @@ ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
                 for sup=1:1:$l(classDefinition.Super,",") {  continue:$p(classDefinition.Super,",",sup)=""
-                    Set tSC = ..GetClassDefInfo($p(classDefinition.Super,",",sup),.timeChanged,.isXMLAdaptor,.isBusinessService,level+1)
+                    Set tSuper = $p(classDefinition.Super,",",sup)
+                    If $Find(tSuper,"%")=0,$Length(tSuper,".")=1,$Length(aClassName,".")>1 {
+                        Set tSuper = $Piece(aClassName,".",1,*-1)_"."_tSuper
+                    }
+                    Set tSC = ..GetClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,level+1)
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 }
             }
