@@ -150,7 +150,7 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
         If pContent.SizeGet()>0 {
-            Set tExtension = "jpg"
+            Set tExtension = "png"
             Set tFile = ##class(%Stream.FileBinary).%New()
             Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
