@@ -32,7 +32,7 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Ou através do portal de Administração
 ![](importingPackage.png)
 
-## **Publique sua API no padrão OAS 3.0 com apenas 3 passos:**
+## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
 ## Passo 1  
 Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]
