@@ -776,6 +776,11 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                         Set tExType = ..GetByLineKey(pOpenApiJSON,tKey_pDelim_"type",pDelim)
                         If tExType'="",tCType'=tExType Set tCType = "string"
                         Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"type",tCType,,pDelim)
+                        If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
+                            Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"format","date",,pDelim)
+                        } ElseIf $Extract($TR(value,"0123456789","XXXXXXXXXX"),1,17)="XXXX-XX-XXTXX:XX:" {
+                            Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"format","date-time",,pDelim)
+                        }
                         Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"example",value,tCType,pDelim)
                     } Else {
                         Set tOrigProp = $Piece($Piece(tKey,pDelim,*),"@",1)
