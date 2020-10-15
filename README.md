@@ -138,6 +138,7 @@ Syntax:
 [*Method/ClassMethod*] *methodName(params as type) As returnType* {  
 >    
 >}
+
 All customizations given as an example in this documentation are available in the [apiPub.samples.api](/samples/api.cls) class.
 
 ## Customizing HTTP Verbs
