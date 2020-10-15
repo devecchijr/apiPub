@@ -193,7 +193,7 @@ Example:
 
 ## Customizing The Successful Code
 
-If you want to change the *Status Code* of success, which is by default *** 200 ***, the following notation is used.
+If you want to change the *Status Code* of success, which is by default ***200***, the following notation is used.
 >/// @apiPub[successfulCode="*code*"]
 
 Example:
