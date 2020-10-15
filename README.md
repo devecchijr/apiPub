@@ -217,7 +217,7 @@ Example:
 
 See the ***getPetById*** method of the [apiPub.samples.api](/samples/api.cls) class.
 
-## Setting the API as Deprecated
+## Setting the API as deprecated
 
 To expose the API as ***deprecated***, the following notation is used:
 
@@ -225,7 +225,7 @@ To expose the API as ***deprecated***, the following notation is used:
 
 ## Customizing the operationId*
 
-According to the  OAS, ***operationId*** is a unique string used to identify an API or operation. In this tool it is used for the same purpose in [monitoring and tracking](https://github.com/devecchijr/apiPub#monitore-a-chamada-das-suas-apis-com-o-iris-analytics) operations.
+According to the  OAS, ***operationId*** is a unique string used to identify an API or operation. In this tool it is used for the same purpose in [monitoring and tracking](https://github.com/devecchijr/apiPub#monitor-your-apis-with-iris-analytics) operations.
 
 By default, the *method name* is used.
 
@@ -233,9 +233,9 @@ If you want to change it, use the following notation:
 
 >/// @apiPub[operationId="updatePetWithForm"]
 
-## Changing the CHARSET
+## Changing the charset
 
-The default *CHARSET* for rest services is defined in the service class (%CSP.Rest), described in [Step 2](https://github.com/devecchijr/apiPub#passo-2). If you want to change it for a method, the following notation must be used:
+The default *CHARSET* for rest services is defined in the service class (%CSP.Rest), described in [Step 2](https://github.com/devecchijr/apiPub#step-2). If you want to change it for a method, the following notation must be used:
 
 >/// @apiPub[charset="*value*"]
 
@@ -378,7 +378,7 @@ See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub
 |  apiPub.tracer.bs    |  Service (BS)     |
 |  apiPub.tracer.bo    |  Operation (BO)   |
 
-2 - Enable monitoring in the class described in [Step 2](https://github.com/devecchijr/apiPub#passo-2)
+2 - Enable monitoring in the class described in [Step 2](https://github.com/devecchijr/apiPub#step-2)
 
 The ***Traceable*** parameter must be enabled.
 ```
