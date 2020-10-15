@@ -1,62 +1,62 @@
 # IRIS ApiPub
 
-IRIS ApiPub is an [Open Source](https://en.wikipedia.org/wiki/Open_source) project with the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
+IRIS ApiPub é um projeto [Open Source](https://en.wikipedia.org/wiki/Open_source), de iniciativa pessoal, que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas com a tecnologia [Intersystems IRIS](https://www.intersystems.com/try-intersystems-iris-for-free/), da forma mais simples e rápida possível, utilizando o padrão [Open API Specification](https://swagger.io/specification/) (OAS) versão 3.0.  
 
-It allows the user to focus mainly on the **implementation** and business rules of API’s (Web Methods), abstracting and automating other aspects related to **documentation, exposure, dispatching and monitoring** of services.
+Ele permite que o usuário foque principalmente na **implementação** das API’s (Web Methods), automatizando os demais aspectos relacionados a **documentação, exposição, execução e monitoramento** dos serviços.
 
-This project also includes a full IRIS sample class ([apiPub.samples.api](/samples/api.cls)), based on the official [Swagger Petstore sample](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1).
+Este projeto também inclui uma implementação de exemplo completa (**apiPub.samples.api**) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
 
 ![](PetStore.gif)
 
-## Test with your existing SOAP services
-If you already have any SOAP services published, you can try this tool with the same code.
+## Faça um teste com os teus serviços SOAP existentes 
+Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
 ![](soapToOASRest.png)
 
-When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP services already built automatically become compatible.
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já construídos se tornam automaticamente compatíveis.
 
 ![](XMLAdaptorCompat.png)
 
-## Monitor your APIs with IRIS Analytics
-Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
+## Monitore as tuas API's com o IRIS Analytics 
+Habilite o monitoramento das API's para **administrar** e **rastrear** todas as *chamadas Rest*. Monte também os seus próprios indicadores.
 
 ![](monitorYourAPI.gif)
 
-## **How to install**
+## **Instalação**
 
-Import the [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.0.xml) package into the target namespace via terminal.
+Importe o pacote [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.0.xml) no namespace desejado via terminal.
 
 ```
 zn "USER"
 Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 ```
-Or through the administration portal
+Ou através do portal de Administração
 ![](importingPackage.png)
 
-## **Publish your OAS 3.0 API in just 3 steps:**
+## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
-## Step 1  
-Define your API’s implementation class and **label** your methods with the [WebMethod] attribute
+## Passo 1  
+Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]
 ![](labelingImplementationMethod.gif)
-*If you already have a Web Method in place, you can try it.*
+*Caso você já possua alguma implementação com WebServices esse passo não é necessário.*
 
-## Step 2
-Create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path. You can also point to the existent apiPub.samples.api class (PetStore sample).
+## Passo 2
+Crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. Se desejar, aponte para a classe apiPub.samples.api (PetStore).
 ![](configuringServiceClass.gif)
 
-## Step 3
-Create a Web Application and point the Dispatch class to the service class created previously (Step 2).
+## Passo 3
+Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço criada anteriomente.
 ![](creatingWebApp.gif)
 
-## Use the Swagger
-With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
+## Utilize o Swagger
+Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](testingFirstMethod.gif)
 
-## Define the OAS header
+## Defina o cabeçalho da especificação OAS
 ![](OASheader.png)
 
-There are two ways to set the OAS 3.0 header: 
+Há duas maneiras de definir o cabeçalho OAS 3.0: 
 
-The first is by creating a XDATA JSON block named as *apiPub* in the implementation class. This method allows having more than one Tag (grouping) and the modeling is compatible with the OAS 3.0 standard. The properties allowed for customization are *info, tags and servers*.
+A primeira é através da criação de um bloco JSON XDATA nomeado como *apiPub* na classe de implementação. Este método permite que se tenha mais de uma Tag e a modelagem é compatível com o padrão OAS 3.0. As propriedades permitidas para customização são *info, tags* e *servers*.
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -95,7 +95,7 @@ XData apiPub [ MimeType = application/json ]
     }
 }
 ```
-The second way is through the definition of parameters in the implementation class, as in the following example:
+A segunda maneira é através da definição de parâmetros na classe de implementação, assim como no exemplo a seguir:
 
 ```
 Parameter SERVICENAME = "My Service";
@@ -128,168 +128,169 @@ Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
 
 Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ```
-## Customize your API
+## Customize as tuas API's
 ![](customizeYourAPI.png)
 
-It is possible to customize various aspects of the API's, such as tags, paths and verbs. For this, it is necessary to use a specific notation, defined in the comment of the method to be customized. 
+É possível customizar vários aspectos das API's, como ***tags, paths e verbos***. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
 
-Syntax:
+Sintaxe:
 >***/// @apiPub[assignment clause]***  
 [*Method/ClassMethod*] *methodName(params as type) As returnType* {  
 >    
 >}
-All customizations given as an example in this documentation are available in the [apiPub.samples.api](/samples/api.cls) class.
 
-## Customizing HTTP Verbs
-When there is no complex type as an input parameter in your method, apiPub automatically sets the verb as *Get*. Otherwise, the verb *Post* is set.
+Todas as customizações dadas como exemplo nesta documentação estão disponíveis na classe [apiPub.samples.api](/samples/api.cls).
 
-If you want to customize the method, add the following line to the method comments.
+## Customizando os Verbos
+Quando não há nenhum tipo complexo como parâmetro de entrada, apiPub atribui automaticamente o verbo como *Get*. Caso contrário é atribuído o verbo *Post*. 
+
+Caso se queira customizar o método adiciona-se a seguinte linha nos comentários do método.
 
 >/// @apiPub[verb="*verb*"]
 
-Where *verb* can be **get, post, put, delete ou patch**. 
+Onde *verb* pode ser **get, post, put, delete ou patch**. 
 
-Example:
+Exemplo:
 
 >/// @apiPub[verb="put"]
 
-## Customizing Paths
-This tool automatically sets paths or routing based on the *method name*.
+## Customizando os Caminhos (Paths)
+Esta ferramenta atribui automaticamente os *paths* ou o roteamento para os *Web Methods*. Ele utiliza como padrão o nome do método como *path*.
 
-If you want to customize the **path**, add the following line in the method comments.
+Caso se queira customizar o **path** adiciona-se a seguinte linha nos comentários do método.
 
 >/// @apiPub[path="*path*"]
 
-Where *path* can be any value preceded by a slash, as long as it does not conflict with another *path* in the same implementation class.
+Onde *path* pode ser qualquer valor precedido com barra, desde que não conflita com outro *path* na mesma classe de implementação. 
 
-Example:
+Exemplo:
 >/// @apiPub[path="/pet"]
 
-Another very common use is to define one or more parameters in the path itself. To do this, it is necessary that the name of the parameter defined in the method is enclosed in curly braces.
+Outro uso bastante comum do path é definir um ou mais parâmetros no próprio path. Para tal, é necessário que o nome do parâmetro definido no método esteja entre chaves. 
 
-Example:
+Exemplo:
 >/// @apiPub[path="/pet/{petId}"]  
 Method getPetById(petId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
 {  
 }
 
-When internal (method) parameter name differs from the exposed parameter, they can be equalized according to the following example:
+Quando o nome do parâmetro interno difere do nome do parâmetro exposto, pode-se equalizar o nome conforme exemplo a seguir:
 >/// @apiPub[path="/pet/{petId}"]  
 /// @apiPub[params.pId.name="petId"]  
 Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]   
 {  
 }
 
-In the example above, the internal parameter *pId* is exposed as *petId*.
+No exemplo acima, o parâmetro interno *pId* é exposto como *petId*.
 
-## Customizing the Tags
+## Customizando as Tags
 
-It is possible to define the method **tag** (group) when there is more than one *tag* defined in the header
+É possível definir a **tag**(agrupamento) do método quando há mais que uma tag definida no cabeçalho.
 >/// @apiPub[tag="*value*"]
 
-Example:
+Exemplo:
 >/// @apiPub[tag="user"]
 
-## Customizing The Successful Code
+## Customizando o *Status Code* de Sucesso
 
-If you want to change the *Status Code* of success, which is by default *** 200 ***, the following notation is used.
+Caso se queira alterar o *Status Code* sucesso do método, que é por padrão ***200***, utiliza-se a seguinte notação.
 >/// @apiPub[successfulCode="*code*"]
 
-Example:
+Exemplo:
 >/// @apiPub[successfulCode="201"]
 
-## Customizing Exception Codes
-This tool defaults to the **Status Code 500** for any exceptions. If you want to add new codes for exception in the documentation, the following notation is used.
+## Customizando *Status Codes* de Exceção
+
+Esta ferramenta assume como padrão o ***Status Code 500*** para quaisquer exceções. Caso se queira adicionar novos códigos para exceção na documentação, utiliza-se a seguinte notação.
 >/// @apiPub[statusCodes=[{code:"*code*",description:"*description*"}]]
 
-Where the *statusCodes* property is an object array with *code* and *description*. 
+Onde a propriedade *statusCodes* é um array de objetos com código e descrição. 
 
-Example:
+Exemplo:
 > /// @apiPub[statusCodes=[  
     ///     {"code":"400","description":"Invalid ID supplied"}  
     ///     ,{"code":"404","description":"Pet not found"}]  
     /// ]
 
-When throwing the exception, include the *Status Code* in the exception description between the "<" and ">" signs.
+Ao disparar a exceção, Inclua o *Status Code* na descrição da exceção entre os sinais de "<" e ">".
 
-Example:
+Exemplo:
 > Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "***<400>*** Invalid ID supplied"))}
 
-See the ***getPetById*** method of the [apiPub.samples.api](/samples/api.cls) class.
+Veja o método ***getPetById*** da classe [apiPub.samples.api](/samples/api.cls)
 
-## Setting the API as Deprecated
+## Marcando a API como Descontinuada
 
-To expose the API as ***deprecated***, the following notation is used:
+Para que a API seja exposta como ***deprecated***, utiliza-se a seguinte notação:
 
 >/// @apiPub[deprecated="true"]
 
-## Customizing the operationId*
+## Customizando o *operationId*
 
-According to the  OAS, ***operationId*** is a unique string used to identify an API or operation. In this tool it is used for the same purpose in [monitoring and tracking](https://github.com/devecchijr/apiPub#monitore-a-chamada-das-suas-apis-com-o-iris-analytics) operations.
+Segundo a especificação OAS, ***operationId*** é uma string única usada para identificar uma API ou operação. Nesta ferramenta ela é utilizada para a mesma finalidade no [monitoramento e rastreamento](https://github.com/devecchijr/apiPub#monitore-a-chamada-das-suas-apis-com-o-iris-analytics) das operações.
 
-By default, the *method name* is used.
+Por padrão, ela recebe o mesmo nome do método da classe de implementação.
 
-If you want to change it, use the following notation:
+Caso se queira alterá-la utiliza-se a seguinte notação 
 
 >/// @apiPub[operationId="updatePetWithForm"]
 
-## Changing the CHARSET
+## Alterando o charset do método
 
-The default *CHARSET* for rest services is defined in the service class (%CSP.Rest), described in [Step 2](https://github.com/devecchijr/apiPub#passo-2). If you want to change it for a method, the following notation must be used:
+O charset padrão da geralmente é definido através do parâmetro CHARSET na classe de serviço, descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2). Caso se queira customizar o charset de um método, deve se utilizar a seguinte notação:
 
 >/// @apiPub[charset="*value*"]
 
-Example:
+Exemplo:
 
 >/// @apiPub[charset="UTF-8"]
 
-## Customizing parameter names and other parameters functionality
-ou can customize various aspects of each input and output method parameter, such as the names and descriptions that will be exposed.
+## Customizando nomes e outras funcionalidades dos parâmetros
+Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
 
-To customize a specific method parameter, use the following notation:
+Para se customizar um parametro específico utiliza-se a seguinte notação
 
 >/// @apiPub[params.*paramId.property*="*value*"]
 
-Or for responses:
+ou para respostas:
 
 >/// @apiPub[response.*property*="*value*"]
 
-Example:
+Exemplo:
 >/// @apiPub[params.pId.name="petId"]  
 /// @apiPub[params.pId.description="ID of pet to return"]
 
-In this case, the external name *petId* and the *ID of pet to return* description are being assigned to the *pId* method parameter.
+Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return* para o parâmetro definido como *pId*
 
-When customization is not specific to a given parameter, but to the entire request, the following notation is used:
+Quando a customização não é específica para um determinado parâmetro, utiliza-se a seguinte notação
 >/// @apiPub[params.*property*="*value*"]
 
-In the example below, the *This can only be done by the logged in user* description is assigned to the entire *request*, not just a parameter:
-  
+No exemplo abaixo, a descrição *This can only be done by the logged in user* é atribuída para todo o *request*, não apenas para um parâmetro:  
 >/// @apiPub[params.description="This can only be done by the logged in user."]
 
-## Other Properties that can be customized for specific method parameters
+## Outras Propriedades que podem ser customizadas para parâmetros específicos
 
-Use the following notation for input or output method parameters:
+Utilize a seguinte notação para parâmetros de entrada ou saída:
 >/// @apiPub[params.*paramId.property*="*value*"]
 
-For responses:
+Para respostas:
 >/// @apiPub[response.*property*="*value*"]
 
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|   required           |   "true" if the parameter is required. All **path** parameters are already automatically required.                                                                                                                                                                                                                                        |
-|   schema.items.enum  |   display of enumerators for %String or %Library.DynamicArray param types. See the **findByStatus** method of the [apiPub.samples.api](/samples/api.cls) class.                                                                                                                                                                                  |
-|   schema.default     |   default value for enumerators.                                                                                                                                                                                                                                                                                                    |
-|   inputType          |   By default it is **query parameter** for simple types and **application/json** for complex types (body). If you want to change input type, you can use this parameter. Usage example: Uploading an image, which is not normally of the JSON type. See ***uploadImage*** method of the [apiPub.samples.api](/samples/api.cls) class.    |
-|   outputType         |   By default it is **header** for the %Status and **application/json** type for the rest. If you want to change the output type, you can use this parameter. Usage example: Returning a "text / plain" token.  See ***loginUser*** method of the [apiPub.samples.api](/samples/api.cls) class.                                                   |
+|   required           |   "true" se o parâmetro for requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos                                                                                                                                                                                                                                        |
+|   schema.items.enum  |   exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/samples/api.cls)                                                                                                                                                                                           |
+|   schema.default     |   aponta para um valor default para enumeradores.                                                                                                                                                                                                                                                                                                    |
+|   inputType          |   por padrão é **query parameter** para os tipos simples e **application/json** para os tipos complexo (body). Caso se queira alterar o tipo de input, pode se utilizar este parâmetro. Exemplo de uso: Upload de uma imagem, que normalmente não é do tipo JSON. Veja método ***uploadImage*** da classe [apiPub.samples.api](/samples/api.cls).    |
+|   outputType         |   por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/samples/api.cls)                                                   |
 
-## Relate Parseable Schemas to Dynamic JSON Types ***(%Library.DynamicObject)***
+## Relacione Schemas Parseáveis a tipos JSON Dinâmicos ***(%Library.DynamicObject)***
 ![](parsingDynamicTypes.gif)
-It is possible to relate [OAS 3.0 schemas](https://swagger.io/docs/specification/data-models/) to internal [dynamic types](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create).
+É possível relacionar [schemas OAS 3.0](https://swagger.io/docs/specification/data-models/) a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
-The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If the API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.
+A vantagem de se relacionar o schema com o parâmetro, além de informar ao usuário a especificação do objeto requerido, é o ***parsing automático*** do request é realizado na chamada da API. Se o usuário da API por exemplo enviar uma propriedade que não está no schema, enviar uma data em um formato inválido ou não enviar uma propriedade obrigatória, um ou mais erros serão retornados ao usuário informando as irregularidades.
 
-The first step is to include the desired schema in the XDATA block as shown below. In this case the schema called User can be used by any method. It must follow the same rules as [OAS 3.0](https://swagger.io/docs/specification/data-models/) modeling.
+O primeiro passo é incluir o schema desejado no bloco XDATA conforme exemplo abaixo. Neste caso o schema chamado *User* pode ser utilizado por qualquer método. Ele deve seguir as mesmas regras da modelagem [OAS 3.0](https://swagger.io/docs/specification/data-models/). 
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -333,11 +334,12 @@ XData apiPub [ MimeType = application/json ]
     }
 }
 ```
-The second step is to relate the name of the schema informed in the previous step to the internal method parameter of type [%Library.DynamicObject](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) using the following notation:
+
+O segundo passo é relacionar o nome do schema informado no passo anterior ao parâmetro interno do tipo [%Library.DynamicObject](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) usando a seguinte notação:
 
 >/// @apiPub[params.*paramId*.*schema*="*schema name*"]
 
-Example relating the *user* method parameter to the *User* schema:
+Exemplo associando o parâmetro *user* ao schema *User*:
 ```
 /// @apiPub[params.user.schema="User"]
 Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObject) As %Status [ WebMethod ]
@@ -345,7 +347,8 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
     code...
 }
 ```
-Request example with error to be submitted. The *username2* property does not exist in the *User* schema. The id property is also not specified and is required:
+
+Exemplo de request com erro a ser submetido. A propriedade username2 não existe no schema *User*. A propriedade id também não foi especificada e é requerida:
 ```
 {
   "username2": "devecchijr",
@@ -358,7 +361,7 @@ Request example with error to be submitted. The *username2* property does not ex
 }
 ```
 
-Example of Error returned:
+Exemplo de erro retornado:
 ```
 {
   "statusCode": 0,
@@ -366,11 +369,12 @@ Example of Error returned:
   "errorCode": 5001
 }
 ```
-See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub.samples.api](/samples/api.cls) class. The ***getInventory*** method is an example of a schema associated with the response method, so it is not parseable.
 
-## Enable Monitoring *(Optional)*
+Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
-1 - Add and activate the following components in your *Production* (*IRIS Interoperability*)
+## Habilite o Monitoramento *(Opcional)*
+
+1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
 
 |   Component          |    Type           |  
 |----------------------|-------------------|  
@@ -378,9 +382,9 @@ See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub
 |  apiPub.tracer.bs    |  Service (BS)     |
 |  apiPub.tracer.bo    |  Operation (BO)   |
 
-2 - Enable monitoring in the class described in [Step 2](https://github.com/devecchijr/apiPub#passo-2)
+2 - Ative o monitoramento na classe descrita no [Passo 2](https://github.com/devecchijr/apiPub#passo-2)
 
-The ***Traceable*** parameter must be enabled.
+O parâmetro ***Traceable*** deve estar ativado.
 ```
 Parameter Traceable As %Boolean = 1;
 
@@ -388,18 +392,18 @@ Parameter TracerBSName = "apiPub.tracer.bs";
 
 Parameter APIDomain = "samples";
 ```
-The ***APIDomain*** parameter is used to determine the API group for monitoring (specific dimension).
+O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
 
-3 - Import the sample dashboard (***[apiPub_Analytics_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_Analytics_v1.0.xml)***) in the administration portal (*Analytics/Admin/Folder Manager* option). Other dashboards can also be created based on the apiPub Monitor cube.
+3 - Importe o dashboard de exemplo (***apiPub_Analytics_vx.xml***) no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
 
-## Use this tool in conjunction with the Intersystems API Manager
-Route your generated APIs and get several benefits with the [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
+## Utilize esta ferramenta em conjunto com o Intersystems API Manager
+Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
 
-## Compatibility
+## Compatibilidade
 
-[ApiPub](https://github.com/devecchijr/apiPub#iris-apipub) is compatible with [Intersystems IRIS](https://www.intersystems.com/products/intersystems-iris/) or [Intersystems IRIS for Health](https://www.intersystems.com/products/intersystems-iris-for-health/) products from version 2018.1.
+[ApiPub](https://github.com/devecchijr/apiPub#iris-apipub) é compatível com o produto [Intersystems IRIS](https://www.intersystems.com/products/intersystems-iris/) ou [Intersystems IRIS for Health](https://www.intersystems.com/products/intersystems-iris-for-health/) a partir da versão 2018.1.
 
-## Supported Primitive Types (Method Params) 
+## Tipos Primitivos Suportados 
 
 |   Primitive Type           |   OAS JSON Type           |   OAS Format Type  |
 |----------------------------|---------------------------|--------------------|
@@ -432,7 +436,7 @@ Route your generated APIs and get several benefits with the [Intersystems API Ma
 |   %Stream.GlobalCharacter  |   string                  |                    |
 |   %Status                  |   special type as output  |                    |
 
-## Supported Property Types (for Objects)
+## Tipos Complexos (Propriedades) Suportados
 
 |   Property Type             |   OAS JSON Type                   |   OAS Format Type  |
 |-----------------------------|-----------------------------------|--------------------|
@@ -474,4 +478,4 @@ Route your generated APIs and get several benefits with the [Intersystems API Ma
 
 |   Item                                                        |
 |---------------------------------------------------------------|
-|   ***Api First Approach (Introspection)*** - Read an OAS 3.0 specification file and create the Spec of the methods, just like in the class [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
+|   ***Api First Approach*** - Ler uma especificação OAS 3.0 e criar o Spec dos métodos, assim como na classe [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
