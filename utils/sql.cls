@@ -141,7 +141,7 @@ ClassMethod SQLToJSON(pSQLCommand As %String, pSQLParams As %Library.DynamicObje
             Set pCheckNotInformedParams = $Select(pParams.checkNotInformedParams'="":pParams.checkNotInformedParams,1:0)
         
             Kill pJSON
-            If '$Data(pInternal) Set pInternal={"keyCtrl":{},"level":0}
+            If '$Data(pInternal) Set pInternal={"keyCtrl":{},"level":0,"className":""}
             Set tParams = {}.%FromJSON(pParams.%ToJSON())
             Set tParams.printResults = 0
 
@@ -183,6 +183,9 @@ ClassMethod SQLToJSON(pSQLCommand As %String, pSQLParams As %Library.DynamicObje
                     Set tLineObj = {}
                     Set tCol = tMetaData.columns.%GetIterator()
                     While (tCol.%GetNext(.key,.value)) {
+                        //avoid duplicities
+                        If tLineObj.%Get(value.%Get("colName"))'="" Continue
+                        If pInternal.%Get("className")="",value.%Get("typeClass")'="" Do pInternal.%Set("className",value.%Get("typeClass"))
                         If value.%Get("isRowId")=1 {
                             Set tRowId = tRS.%GetData(key)
                             Set tMainClass = value.%Get("typeClass")
@@ -246,7 +249,7 @@ ClassMethod SQLToJSON(pSQLCommand As %String, pSQLParams As %Library.DynamicObje
                                     Set tSQL = tSQL_" Where "_tRowIdName_" = {id}"                                 
                                     If pInternal.%Get("keyCtrl").%Get(value.%Get("colName")_"|"_value.%Get("sqlTableName")_"|"_tValue)="" {
                                         Do pInternal.%Get("keyCtrl").%Set(value.%Get("colName")_"|"_value.%Get("sqlTableName")_"|"_tValue,1)
-                                        Set tSC = ..SQLToJSON(tSQL,{"id":(tValue)},.tSJSON,tParams,{"keyCtrl":(pInternal.keyCtrl),"level":(pInternal.level+1)})
+                                        Set tSC = ..SQLToJSON(tSQL,{"id":(tValue)},.tSJSON,tParams,{"keyCtrl":(pInternal.keyCtrl),"level":(pInternal.level+1),"className":(pInternal.className)})
                                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                         If $Data(tSJSON),tSJSON'="",tSJSON.%Size()>0 {
                                             Set tRes = tSJSON.%GetIterator()
@@ -294,7 +297,7 @@ ClassMethod SQLToJSON(pSQLCommand As %String, pSQLParams As %Library.DynamicObje
                     While ((tRowId'="")&&(tCol.%GetNext(.key,.value))) {
                         If pInternal.%Get("level") = 0 Do pInternal.%Set("keyCtrl",{})
                         Set tSQL = "Select * From "_value.%Get("sqlTableName")_ " Where "_value.%Get("inverse")_" = {id}"
-                        Set tSC = ..SQLToJSON(tSQL,{"id":(tRowId)},.tSJSON,tParams,{"keyCtrl":(pInternal.keyCtrl),"level":(pInternal.level+1)})
+                        Set tSC = ..SQLToJSON(tSQL,{"id":(tRowId)},.tSJSON,tParams,{"keyCtrl":(pInternal.keyCtrl),"level":(pInternal.level+1),"className":(pInternal.className)})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                         If $Data(tSJSON),tSJSON'="",tSJSON.%Size()>0 {
                             Set tRes = tSJSON.%GetIterator()
@@ -326,7 +329,7 @@ ClassMethod SQLToJSON(pSQLCommand As %String, pSQLParams As %Library.DynamicObje
                     Set pJSON = tFlatResult
                 }
                 If (pShowSchema) {
-                    Set tSC = ##class(apiPub.core.publisher).TemplateToOpenApiSchema(pJSON,"SchemaName",.tDocJSON,{"printResults":0})
+                    Set tSC = ##class(apiPub.core.publisher).TemplateToOpenApiSchema(pJSON,$Select(pInternal.className'="":$Piece(pInternal.className,".",*)_"List", 1:"SchemaName"),.tDocJSON,{"printResults":0})
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     Set pJSON = tDocJSON
                 } ElseIf (pShowMetadata) {

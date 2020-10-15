@@ -350,6 +350,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 		Set tMessage = $Replace(tMessage,"  "," ")
 	}
 	If $Extract(tMessage,1,1)=" " Set tMessage = $Extract(tMessage,2,*)
+	Set tMessage = $Replace(tMessage,"XML input","JSON input")
 	Set tErrorTrap={
 			"statusCode":($$$ISOK(pStatusException.AsStatus())),
 			"message":(tMessage),
