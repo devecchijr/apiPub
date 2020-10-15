@@ -37,7 +37,7 @@ Ou através do portal de Administração
 ## Passo 1  
 Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]
 ![](labelingImplementationMethod.gif)
-*Caso você já possua alguma implementação com WebServices esse passo não é necessário.*
+*Você pode testar os seus serviços SOAP já implementados.*
 
 ## Passo 2
 Crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. Se desejar, aponte para a classe apiPub.samples.api (PetStore).
