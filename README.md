@@ -224,7 +224,7 @@ To expose the API as ***deprecated***, the following notation is used:
 
 >/// @apiPub[deprecated="true"]
 
-## Customizing the operationId*
+## Customizing the *operationId*
 
 According to the  OAS, ***operationId*** is a unique string used to identify an API or operation. In this tool it is used for the same purpose in [monitoring and tracking](https://github.com/devecchijr/apiPub#monitor-your-apis-with-iris-analytics) operations.
 
