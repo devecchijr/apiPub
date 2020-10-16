@@ -245,7 +245,7 @@ Example:
 >/// @apiPub[charset="UTF-8"]
 
 ## Customizing parameter names and other parameters functionality
-ou can customize various aspects of each input and output method parameter, such as the names and descriptions that will be exposed.
+It's possible to customize various aspects of each input and output method parameter, such as the names and descriptions that will be exposed.
 
 To customize a specific method parameter, use the following notation:
 
@@ -288,7 +288,7 @@ For responses:
 ![](parsingDynamicTypes.gif)
 It is possible to relate [OAS 3.0 schemas](https://swagger.io/docs/specification/data-models/) to internal [dynamic types](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create).
 
-The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If the API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.
+The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If an API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.
 
 The first step is to include the desired schema in the XDATA block as shown below. In this case the schema called User can be used by any method. It must follow the same rules as [OAS 3.0](https://swagger.io/docs/specification/data-models/) modeling.
 ```
