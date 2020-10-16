@@ -1,6 +1,6 @@
 # IRIS ApiPub
 
-IRIS ApiPub is an [Open Source](https://en.wikipedia.org/wiki/Open_source) project with the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
+This personal [Open Source](https://en.wikipedia.org/wiki/Open_source) project has the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
 
 It allows the user to focus mainly on the **implementation** and business rules of API’s (Web Methods), abstracting and automating other aspects related to **documentation, exposure, dispatching and monitoring** of services.
 
@@ -56,7 +56,7 @@ With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iri
 
 There are two ways to set the OAS 3.0 header: 
 
-The first is by creating a XDATA JSON block named as *apiPub* in the implementation class. This method allows having more than one Tag (grouping) and the modeling is compatible with the OAS 3.0 standard. The properties allowed for customization are *info, tags and servers*.
+The first is by creating a XDATA JSON block named as *apiPub* in the implementation class. This method allows having more than one Tag (group) and the modeling is compatible with the OAS 3.0 standard. The properties allowed for customization are *info, tags and servers*.
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -290,7 +290,7 @@ It is possible to relate [OAS 3.0 schemas](https://swagger.io/docs/specification
 
 The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If an API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.
 
-The first step is to include the desired schema in the XDATA block as shown below. In this case the schema called User can be used by any method. It must follow the same rules as [OAS 3.0](https://swagger.io/docs/specification/data-models/) modeling.
+The first step is to include the desired schema in the XDATA block as shown below. In this case the schema called **User** can be used by any method. It must follow the same rules as [OAS 3.0](https://swagger.io/docs/specification/data-models/) modeling.
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -394,7 +394,7 @@ The ***APIDomain*** parameter is used to determine the API group for monitoring 
 3 - Import the sample dashboard (***[apiPub_Analytics_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_Analytics_v1.0.xml)***) in the administration portal (*Analytics/Admin/Folder Manager* option). Other dashboards can also be created based on the apiPub Monitor cube.
 
 ## Use this tool in conjunction with the Intersystems API Manager
-Route your generated APIs and get several benefits with the [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
+Route your generated APIs and get several benefits with the [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM).
 
 ## Compatibility
 
