@@ -1,4 +1,4 @@
-# IRIS ApiPub
+# IRIS apiPub
 
 This personal [open source](https://en.wikipedia.org/wiki/Open_source) project has the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
 
