@@ -400,7 +400,7 @@ Route your generated APIs and get several benefits with the [Intersystems API Ma
 
 [ApiPub](https://github.com/devecchijr/apiPub#iris-apipub) is compatible with [Intersystems IRIS](https://www.intersystems.com/products/intersystems-iris/) or [Intersystems IRIS for Health](https://www.intersystems.com/products/intersystems-iris-for-health/) products from version 2018.1.
 
-## Supported Primitive Types (Method Params) 
+## Supported primitive types for method params 
 
 |   Primitive Type           |   OAS JSON Type           |   OAS Format Type  |
 |----------------------------|---------------------------|--------------------|
@@ -433,7 +433,7 @@ Route your generated APIs and get several benefits with the [Intersystems API Ma
 |   %Stream.GlobalCharacter  |   string                  |                    |
 |   %Status                  |   special type as output  |                    |
 
-## Supported Property Types (for Objects)
+## Supported property types for complex type params (object)
 
 |   Property Type             |   OAS JSON Type                   |   OAS Format Type  |
 |-----------------------------|-----------------------------------|--------------------|
