@@ -385,6 +385,7 @@ do ##class(apiPub.core.publisher).TemplateToOpenApiSchema(myObject,"objectName",
 ```
 
 Copie e cole o schema retornado no bloco XDATA:
+
 Exemplo:
 ```
 XData apiPub [ MimeType = application/json ]
