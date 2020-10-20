@@ -372,6 +372,57 @@ Exemplo de erro retornado:
 
 Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
+Para auxiliar na geração do schema OAS 3.0, você pode usar o seguinte recurso:
+
+Defina uma variável com uma amostra do objeto JSON.
+```
+set myObject = {"prop1":"2020-10-15","prop2":true, "prop3":555.55, "prop4":["banana","orange","apple"]}
+```
+
+Utilize o método utilitário da classe apiPub.core.publisher para gerar o schema:
+```
+do ##class(apiPub.core.publisher).TemplateToOpenApiSchema(myObject,"objectName",.schema)
+```
+
+Copie e cole o schema retornado no bloco XDATA:
+Exemplo:
+```
+XData apiPub [ MimeType = application/json ]
+{
+    {
+        "schemas": {
+            {
+                "objectName":
+                    {"type":"object",
+                    "properties":{
+                        "prop1":{
+                            "type":"string",
+                            "format":"date",
+                            "example":"2020-10-15"      
+                        },
+                        "prop2":{
+                            "type":"boolean",
+                            "example":true
+                        },
+                        "prop3":{
+                            "type":"number",
+                            "example":555.55
+                        },
+                        "prop4":{
+                            "type":"array",
+                            "items":{
+                                "type":"string",
+                                "example":"apple"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
 ## Habilite o Monitoramento *(Opcional)*
 
 1 - Adicione e ative os seguintes componentes na tua *Production* (*IRIS Interoperability*)
