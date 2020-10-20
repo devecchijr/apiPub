@@ -372,6 +372,8 @@ Exemplo de erro retornado:
 
 Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [apiPub.samples.api](/samples/api.cls). O método ***getInventory*** é um exemplo de schema associado à saída do método (response), portanto não é parseável.
 
+### Gere o schema OAS 3.0 com base em um objeto JSON
+
 Para auxiliar na geração do schema OAS 3.0, você pode usar o seguinte recurso:
 
 **Defina** uma variável com uma amostra do objeto JSON.
