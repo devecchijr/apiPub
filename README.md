@@ -291,6 +291,7 @@ It is possible to relate [OAS 3.0 schemas](https://swagger.io/docs/specification
 The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If an API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.
 
 The first step is to include the desired schema in the XDATA block as shown below. In this case the schema called **User** can be used by any method. It must follow the same rules as [OAS 3.0](https://swagger.io/docs/specification/data-models/) modeling.
+
 ```
 XData apiPub [ MimeType = application/json ]
 {
@@ -368,6 +369,62 @@ Example of Error returned:
 }
 ```
 See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub.samples.api](/samples/api.cls) class. The ***getInventory*** method is an example of a schema associated with the response method, so it is not parseable.
+
+### Generate the OAS 3.0 schema based on a JSON instance
+
+To facilitate the OAS schema generation, you can use the following feature:
+
+**Set** your sample JSON object.
+```
+set myObject = {"prop1":"2020-10-15","prop2":true, "prop3":555.55, "prop4":["banana","orange","apple"]}
+```
+
+**Use the utility method** of the class [apiPub.core.publisher](/core/publisher.cls) to generate the schema:
+```
+do ##class(apiPub.core.publisher).TemplateToOpenApiSchema(myObject,"objectName",.schema)
+```
+**Copy and paste** the response schema in the XDATA block:
+
+Example:
+
+```
+XData apiPub [ MimeType = application/json ]
+{
+    {
+        "schemas": {
+            {
+                "objectName":   
+                {
+                    "type":"object",
+                    "properties":{
+                        "prop1":{
+                            "type":"string",
+                            "format":"date",
+                            "example":"2020-10-15"      
+                        },
+                        "prop2":{
+                            "type":"boolean",
+                            "example":true
+                        },
+                        "prop3":{
+                            "type":"number",
+                            "example":555.55
+                        },
+                        "prop4":{
+                            "type":"array",
+                            "items":{
+                                "type":"string",
+                                "example":"apple"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
 
 ## Enable Monitoring *(Optional)*
 
