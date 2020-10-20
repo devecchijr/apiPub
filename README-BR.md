@@ -374,27 +374,29 @@ Veja métodos ***updateUserUsingOASSchema*** e ***getInventory*** da classe [api
 
 Para auxiliar na geração do schema OAS 3.0, você pode usar o seguinte recurso:
 
-Defina uma variável com uma amostra do objeto JSON.
+**Defina** uma variável com uma amostra do objeto JSON.
 ```
 set myObject = {"prop1":"2020-10-15","prop2":true, "prop3":555.55, "prop4":["banana","orange","apple"]}
 ```
 
-Utilize o método utilitário da classe apiPub.core.publisher para gerar o schema:
+**Utilize o método utilitário** da classe [apiPub.core.publisher](/core/publisher.cls) para gerar o schema:
 ```
 do ##class(apiPub.core.publisher).TemplateToOpenApiSchema(myObject,"objectName",.schema)
 ```
 
-Copie e cole o schema retornado no bloco XDATA:
+**Copie e cole** o schema retornado no bloco XDATA:
 
 Exemplo:
+
 ```
 XData apiPub [ MimeType = application/json ]
 {
     {
         "schemas": {
             {
-                "objectName":
-                    {"type":"object",
+                "objectName":   
+                {
+                    "type":"object",
                     "properties":{
                         "prop1":{
                             "type":"string",
