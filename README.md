@@ -1,4 +1,11 @@
-# IRIS apiPub
+
+## Introduction
+
+We are in the **multi-platform economy** era, and API's are the “glue” of this digital landscape. Being so important, they are seen by developers as a **service** or **product** to be consumed. Therefore, the **experience** in its use is a crucial success factor.
+
+In order to **improve this experience**, specification standards, such as the [Open API Specification (OAS)](https://swagger.io/specification/) are increasingly being adopted in the RESTFul API’s development.
+
+# What IRIS apiPub is for?
 
 This personal [open source](https://en.wikipedia.org/wiki/Open_source) project has the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
 
