@@ -345,7 +345,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 	} Else {
 		Set %response.Status = ..#HTTP500INTERNALSERVERERROR
 	}
-	If $Find(tMessage,":")>0 Set tMessage = $Piece(tMessage,":",2)
+	If $Find(tMessage,":")>0 Set tMessage = $Piece(tMessage,":",2,*)
 	While $Find(tMessage,"  ")>0 {
 		Set tMessage = $Replace(tMessage,"  "," ")
 	}

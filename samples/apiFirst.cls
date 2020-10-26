@@ -143,9 +143,10 @@ Method getInventory() As %Library.DynamicObject [ WebMethod ]
 /// @apiPub[path="/store/order"]
 /// @apiPub[tag="store"]
 /// @apiPub[params.description="order placed for purchasing the pet"]
-/// @apiPub[params.pOrder.schema="Order"]
+/// @apiPub[params.order.schema="Order"]
 Method placeOrder(order As %Library.DynamicObject) As %Status [ WebMethod ]
 {
+    Quit $$$OK
     //your code here
 }
 
