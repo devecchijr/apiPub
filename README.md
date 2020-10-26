@@ -30,7 +30,7 @@ Enable API monitoring to **manage** and **track** all *rest service calls*. Also
 
 ## **How to install**
 
-Import the [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.0.xml) package into the target namespace via terminal.
+Import the [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.1.xml) package into the target namespace via terminal.
 
 ```
 zn "USER"
