@@ -38,13 +38,13 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Ou através do portal de Administração
 ![](importingPackage.png)
 
-Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplicação Web (Passo 3) and aponte a classe de Dispatch para [apiPub.samples.services](/samples/services.cls).
+Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplicação Web ([Step 3](https://github.com/devecchijr/apiPub#[passo]-3)) e aponte a classe de Dispatch para [apiPub.samples.services](/samples/services.cls).
 
 ## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
 ## Passo 1  
-Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]
-![](labelingImplementationMethod.gif). Se preferir, utilize a classe já criada ([apiPub.samples.api](/samples/api.cls)) (PetStore).
+Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]. Se preferir, utilize a classe ([apiPub.samples.api](/samples/api.cls)) (PetStore sample).
+![](labelingImplementationMethod.gif)
 *Você pode testar os seus serviços SOAP já implementados.*
 
 ## Passo 2
