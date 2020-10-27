@@ -48,7 +48,7 @@ Defina a classe de implementação das tuas API’s e **rotule** os métodos com
 *Você pode testar os seus serviços SOAP já implementados.*
 
 ## Passo 2
-Use a classe [apiPub.samples.services](/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
+Use a classe de amostra [apiPub.samples.services](/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
 ![](configuringServiceClass.gif)
 
 ## Passo 3
