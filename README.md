@@ -39,15 +39,17 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Or through the administration portal
 ![](importingPackage.png)
 
+If you want to use the PetStore sample, create a Web Application (Step 3) and point the Dispatch class to [apiPub.samples.services](/samples/services.cls).
+
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
 ## Step 1  
 Define your API’s implementation class and **label** your methods with the [WebMethod] attribute
-![](labelingImplementationMethod.gif)
+![](labelingImplementationMethod.gif). If you prefer, use the class ([apiPub.samples.api](/samples/api.cls)) (PetStore sample).
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
-Create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path. You can also point to the existent apiPub.samples.api class (PetStore sample).
+Use the sample class [apiPub.samples.services](/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
 ![](configuringServiceClass.gif)
 
 ## Step 3

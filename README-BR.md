@@ -10,7 +10,7 @@ IRIS ApiPub é um projeto [Open Source](https://en.wikipedia.org/wiki/Open_sourc
 
 Ele permite que o usuário foque principalmente na **implementação** das API’s (Web Methods), automatizando os demais aspectos relacionados a **documentação, exposição, execução e monitoramento** dos serviços.
 
-Este projeto também inclui uma implementação de exemplo completa (**apiPub.samples.api**) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
+Este projeto também inclui uma implementação de exemplo completa ([apiPub.samples.api](/samples/api.cls)) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
 
 ![](PetStore.gif)
 
@@ -38,15 +38,17 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Ou através do portal de Administração
 ![](importingPackage.png)
 
+Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplicação Web (Passo 3) and aponte a classe de Dispatch para [apiPub.samples.services](/samples/services.cls).
+
 ## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
 ## Passo 1  
 Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]
-![](labelingImplementationMethod.gif)
+![](labelingImplementationMethod.gif). Se preferir, utilize a classe já criada ([apiPub.samples.api](/samples/api.cls)) (PetStore).
 *Você pode testar os seus serviços SOAP já implementados.*
 
 ## Passo 2
-Crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. Se desejar, aponte para a classe apiPub.samples.api (PetStore).
+Use a classe [apiPub.samples.services](/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
 ![](configuringServiceClass.gif)
 
 ## Passo 3
