@@ -44,8 +44,8 @@ If you want to use the PetStore sample, create a Web Application (Step 3) and po
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
 ## Step 1  
-Define your API’s implementation class and **label** your methods with the [WebMethod] attribute
-![](labelingImplementationMethod.gif). If you prefer, use the class ([apiPub.samples.api](/samples/api.cls)) (PetStore sample).
+Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/samples/api.cls) (PetStore sample).
+![](labelingImplementationMethod.gif) 
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
