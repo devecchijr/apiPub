@@ -29,7 +29,7 @@ Habilite o monitoramento das API's para **administrar** e **rastrear** todas as 
 
 ## **Instalação**
 
-Importe o pacote [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.1.xml) no namespace desejado via terminal.
+Importe o pacote [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.2.xml) no namespace desejado via terminal.
 
 ```
 zn "USER"
