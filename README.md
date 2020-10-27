@@ -39,7 +39,7 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Or through the administration portal
 ![](importingPackage.png)
 
-If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-2)) and point the Dispatch class to [apiPub.samples.services](/samples/services.cls).
+If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-3)) and point the Dispatch class to [apiPub.samples.services](/samples/services.cls).
 
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
