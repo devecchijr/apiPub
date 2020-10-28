@@ -1,7 +1,7 @@
 Class apiPub.samples.services Extends apiPub.core.service
 {
 
-Parameter OASPath As %String = "Get:/doc";
+Parameter OASPath As %String = "Get:/_spec";
 
 Parameter DispatchClass As %String = "apiPub.samples.api";
 
