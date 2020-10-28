@@ -11,7 +11,7 @@ This personal [open source](https://en.wikipedia.org/wiki/Open_source) project h
 
 It allows the user to focus mainly on the **implementation** and business rules of API’s (Web Methods), abstracting and automating other aspects related to **documentation, exposure, dispatching and monitoring** of services.
 
-This project also includes a full IRIS sample class ([apiPub.samples.api](/samples/api.cls)), based on the official [Swagger Petstore sample](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1).
+This project also includes a full IRIS sample class ([apiPub.samples.api](/src/apiPub/samples/api.cls)), based on the official [Swagger Petstore sample](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1).
 
 ![](PetStore.gif)
 
@@ -39,17 +39,17 @@ Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 Or through the administration portal
 ![](importingPackage.png)
 
-If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-3)) and point the Dispatch class to [apiPub.samples.services](/samples/services.cls).
+If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-3)) and point the Dispatch class to [apiPub.samples.services](/src/apiPub/samples/services.cls).
 
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
 ## Step 1  
-Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/samples/api.cls) (PetStore sample).
+Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/src/apiPub/samples/api.cls) (PetStore sample).
 ![](labelingImplementationMethod.gif) 
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
-Use the sample class [apiPub.samples.services](/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
+Use the sample class [apiPub.samples.services](/src/apiPub/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
 ![](configuringServiceClass.gif)
 
 ## Step 3
@@ -148,7 +148,7 @@ Syntax:
 >    
 >}
 
-All customizations given as an example in this documentation are available in the [apiPub.samples.api](/samples/api.cls) class.
+All customizations given as an example in this documentation are available in the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.
 
 ## Customizing HTTP Verbs
 When there is no complex type as an input parameter in your method, apiPub automatically sets the verb as *Get*. Otherwise, the verb *Post* is set.
@@ -225,7 +225,7 @@ When throwing the exception, include the *Status Code* in the exception descript
 Example:
 > Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "***<400>*** Invalid ID supplied"))}
 
-See the ***getPetById*** method of the [apiPub.samples.api](/samples/api.cls) class.
+See the ***getPetById*** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.
 
 ## Setting the API as deprecated
 
@@ -288,10 +288,10 @@ For responses:
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |   required           |   "true" if the parameter is required. All **path** parameters are already automatically required.                                                                                                                                                                                                                                        |
-|   schema.items.enum  |   display of enumerators for %String or %Library.DynamicArray param types. See the **findByStatus** method of the [apiPub.samples.api](/samples/api.cls) class.                                                                                                                                                                                  |
+|   schema.items.enum  |   display of enumerators for %String or %Library.DynamicArray param types. See the **findByStatus** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.                                                                                                                                                                                  |
 |   schema.default     |   default value for enumerators.                                                                                                                                                                                                                                                                                                    |
-|   inputType          |   By default it is **query parameter** for simple types and **application/json** for complex types (body). If you want to change input type, you can use this parameter. Usage example: Uploading an image, which is not normally of the JSON type. See ***uploadImage*** method of the [apiPub.samples.api](/samples/api.cls) class.    |
-|   outputType         |   By default it is **header** for the %Status and **application/json** type for the rest. If you want to change the output type, you can use this parameter. Usage example: Returning a "text / plain" token.  See ***loginUser*** method of the [apiPub.samples.api](/samples/api.cls) class.                                                   |
+|   inputType          |   By default it is **query parameter** for simple types and **application/json** for complex types (body). If you want to change input type, you can use this parameter. Usage example: Uploading an image, which is not normally of the JSON type. See ***uploadImage*** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.    |
+|   outputType         |   By default it is **header** for the %Status and **application/json** type for the rest. If you want to change the output type, you can use this parameter. Usage example: Returning a "text / plain" token.  See ***loginUser*** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.                                                   |
 
 ## Relate Parseable Schemas to Dynamic JSON Types ***(%Library.DynamicObject)***
 ![](parsingDynamicTypes.gif)
@@ -377,7 +377,7 @@ Example of Error returned:
   "errorCode": 5001
 }
 ```
-See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub.samples.api](/samples/api.cls) class. The ***getInventory*** method is an example of a schema associated with the response method, so it is not parseable.
+See ***updateUserUsingOASSchema*** and ***getInventory*** methods of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class. The ***getInventory*** method is an example of a schema associated with the response method, so it is not parseable.
 
 ### Generate the OAS 3.0 schema based on a JSON instance
 
@@ -388,7 +388,7 @@ To facilitate the OAS schema generation, you can use the following feature:
 set myObject = {"prop1":"2020-10-15","prop2":true, "prop3":555.55, "prop4":["banana","orange","apple"]}
 ```
 
-**Use the utility method** of the class [apiPub.core.publisher](/core/publisher.cls) to generate the schema:
+**Use the utility method** of the class [apiPub.core.publisher](/src/apiPub/core/publisher.cls) to generate the schema:
 ```
 do ##class(apiPub.core.publisher).TemplateToOpenApiSchema(myObject,"objectName",.schema)
 ```
@@ -541,4 +541,4 @@ Route your generated APIs and get several benefits with the [Intersystems API Ma
 
 |   Item                                                        |
 |---------------------------------------------------------------|
-|   ***Api First Approach (Introspection)*** - Read an OAS 3.0 specification file and create the Spec of the methods, just like in the class [apiPub.samples.apiFirst](/samples/apiFirst.cls) |
+|   ***Api First Approach (Introspection)*** - Read an OAS 3.0 specification file and create the Spec of the methods, just like in the class [apiPub.samples.apiFirst](/src/apiPub/samples/apiFirst.cls) |
