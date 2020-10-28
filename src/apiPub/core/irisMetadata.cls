@@ -24,7 +24,7 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                 Set xdataID=pClassName_"||apiPub"
                 Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                 If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)
+                    Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("schemas")'="" {
                         Set tProp = tXDataJSON.%Get("schemas").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
@@ -67,7 +67,7 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                     If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..GetByLineKey(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.mInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,{}.%FromJSON(mInfo.%ToJSON()),,pDelim)
+                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(mInfo.%ToJSON()),,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -96,7 +96,7 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
             Set tAttBlock = $Piece($Piece(tComm,"[",2,*),"]",1,*-1)
             Set pOutputCom = $Replace($Piece(pOutputCom,"[",1),pTag,"")_$Piece(pOutputCom,tAttBlock_"]",2,*)
             If $Find(tAttBlock,"{")>0,$Find(tAttBlock,"}")>0,$Find(tAttBlock,"=")=0 {
-                Set pOutputParams = {}.%FromJSON(tAttBlock)
+                Set pOutputParams = ##class(%Library.DynamicObject).%New().%FromJSON(tAttBlock)
                 Quit
             } ElseIf ($Find(tAttBlock,"=")>0) {
                 Set tCmd = "(tVal) Set tVal ="_$Replace($Replace($Replace($Piece($Replace(tAttBlock,"\=","\*"),"=",2),"\*","="),$Char(10),""),$Char(13),"")
@@ -131,7 +131,7 @@ ClassMethod GetCacheCustomPaths(pClassName As %String, Output pJSON As %Library.
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set ^TmpApipubPaths(pClassName)=tTimeChanged_"||"_pJSON.%ToJSON()
         } Else {
-            Set pJSON = {}.%FromJSON($Piece(^TmpApipubPaths(pClassName),"||",2))
+            Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubPaths(pClassName),"||",2))
         }
     }
     Catch(e) {
@@ -222,7 +222,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                 Set tXDataJSON={"schemas":{}}
                 If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)                        
+                    Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)                        
                     If tXDataJSON.%Get($Piece(pMethodKey,"||",2))'="" {
                         Set tProp = tXDataJSON.%Get($Piece(pMethodKey,"||",2)).%GetIterator()
                         While tProp.%GetNext(.key,.value) {
@@ -310,7 +310,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                     Do tParamObj.%Set("customSchemaName",tSchema)
                                 }
                             } ElseIf $IsObject(tSchema),tSchema.%Size()=1 {
-                                Do tParamObj.%Set("customSchema",{}.%FromJSON(tSchema.%ToJSON()))
+                                Do tParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tParamObj.%Set("customSchemaName",tKey)
@@ -397,7 +397,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                     Do tRetParamObj.%Set("customSchemaName",tSchema)
                                 }
                             } ElseIf tSchema.%Size()=1 {
-                                Do tRetParamObj.%Set("customSchema",{}.%FromJSON(tSchema.%ToJSON()))
+                                Do tRetParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tRetParamObj.%Set("customSchemaName",tKey)
@@ -515,7 +515,7 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
             }
             //Correct Auto-Reference Limitation
             Do pCircRefCtrl.%Set(pParentType_pDelim_pParentType,pParentKey)
-            Set tParentCircRefCtrl = {}.%FromJSON(pCircRefCtrl.%ToJSON())
+            Set tParentCircRefCtrl = ##class(%Library.DynamicObject).%New().%FromJSON(pCircRefCtrl.%ToJSON())
             Set prop = pJSON.%GetIterator()
             While prop.%GetNext(.key,.value) {
                 If $IsObject(value) {
@@ -579,7 +579,7 @@ ClassMethod ClassNameToXSDInfo(pClassName As %String, Output pXSDInfo As %Librar
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set ^TmpApipubCache(pClassName)=tTimeChanged_"||"_pXSDInfo.%ToJSON()
         } Else {
-            Set pXSDInfo = {}.%FromJSON($Piece(^TmpApipubCache(pClassName),"||",2))
+            Set pXSDInfo = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubCache(pClassName),"||",2))
         }
         If pPrintResults {
             Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""

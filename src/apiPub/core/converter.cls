@@ -125,7 +125,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
 
 		If pParentType="" {
             Set pRootDefined=0
-			Set pJSON = {}.%FromJSON(pJSON.%ToJSON())
+			Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(pJSON.%ToJSON())
             Set pWriter=##class(%XML.Writer).%New()
             Set pWriter.Indent=1
             Set tSC = pWriter.OutputToStream(.pXmlStream)
@@ -424,7 +424,7 @@ ClassMethod ObjArrayToJSONArray(pObjArray As %Collection.AbstractIterator, Outpu
                 Set tIt = tJsonObj.%GetIterator()
                 Do tIt.%GetNext(.jkey,.jvalue)
             }
-            Do pJSONArray.%Push({}.%FromJSON(jvalue.%ToJSON()))
+            Do pJSONArray.%Push(##class(%Library.DynamicObject).%New().%FromJSON(jvalue.%ToJSON()))
         }
     }
 	Catch(e)

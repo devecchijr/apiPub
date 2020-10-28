@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2020.3.0AA (Build 331U)" ts="2020-10-27 14:28:20">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Apple Mac OS X for x86-64) 2020.3.0AA (Build 331U)" ts="2020-10-28 15:18:22">
 <Class name="apiPub.core.converter">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65671,65424.632948</TimeChanged>
+<TimeChanged>65680,54582.594862</TimeChanged>
 <TimeCreated>65671,65424.632948</TimeCreated>
 
 <Method name="JSONToObj">
@@ -144,7 +144,7 @@
 
 		If pParentType="" {
             Set pRootDefined=0
-			Set pJSON = {}.%FromJSON(pJSON.%ToJSON())
+			Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(pJSON.%ToJSON())
             Set pWriter=##class(%XML.Writer).%New()
             Set pWriter.Indent=1
             Set tSC = pWriter.OutputToStream(.pXmlStream)
@@ -451,7 +451,7 @@
                 Set tIt = tJsonObj.%GetIterator()
                 Do tIt.%GetNext(.jkey,.jvalue)
             }
-            Do pJSONArray.%Push({}.%FromJSON(jvalue.%ToJSON()))
+            Do pJSONArray.%Push(##class(%Library.DynamicObject).%New().%FromJSON(jvalue.%ToJSON()))
         }
     }
 	Catch(e)
@@ -857,7 +857,7 @@
 
 <Class name="apiPub.core.irisMetadata">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65671,65424.656499</TimeChanged>
+<TimeChanged>65680,54937.977881</TimeChanged>
 <TimeCreated>65671,65424.656499</TimeCreated>
 
 <Method name="GetMethodsInfo">
@@ -886,7 +886,7 @@
                 Set xdataID=pClassName_"||apiPub"
                 Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                 If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)
+                    Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("schemas")'="" {
                         Set tProp = tXDataJSON.%Get("schemas").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
@@ -929,7 +929,7 @@
                     If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..GetByLineKey(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.mInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,{}.%FromJSON(mInfo.%ToJSON()),,pDelim)
+                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(mInfo.%ToJSON()),,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -962,7 +962,7 @@
             Set tAttBlock = $Piece($Piece(tComm,"[",2,*),"]",1,*-1)
             Set pOutputCom = $Replace($Piece(pOutputCom,"[",1),pTag,"")_$Piece(pOutputCom,tAttBlock_"]",2,*)
             If $Find(tAttBlock,"{")>0,$Find(tAttBlock,"}")>0,$Find(tAttBlock,"=")=0 {
-                Set pOutputParams = {}.%FromJSON(tAttBlock)
+                Set pOutputParams = ##class(%Library.DynamicObject).%New().%FromJSON(tAttBlock)
                 Quit
             } ElseIf ($Find(tAttBlock,"=")>0) {
                 Set tCmd = "(tVal) Set tVal ="_$Replace($Replace($Replace($Piece($Replace(tAttBlock,"\=","\*"),"=",2),"\*","="),$Char(10),""),$Char(13),"")
@@ -1001,7 +1001,7 @@
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set ^TmpApipubPaths(pClassName)=tTimeChanged_"||"_pJSON.%ToJSON()
         } Else {
-            Set pJSON = {}.%FromJSON($Piece(^TmpApipubPaths(pClassName),"||",2))
+            Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubPaths(pClassName),"||",2))
         }
     }
     Catch(e) {
@@ -1100,7 +1100,7 @@
                 Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                 Set tXDataJSON={"schemas":{}}
                 If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                    Set tXDataJSON = {}.%FromJSON(tCompiledXdata.Data)                        
+                    Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)                        
                     If tXDataJSON.%Get($Piece(pMethodKey,"||",2))'="" {
                         Set tProp = tXDataJSON.%Get($Piece(pMethodKey,"||",2)).%GetIterator()
                         While tProp.%GetNext(.key,.value) {
@@ -1188,7 +1188,7 @@
                                     Do tParamObj.%Set("customSchemaName",tSchema)
                                 }
                             } ElseIf $IsObject(tSchema),tSchema.%Size()=1 {
-                                Do tParamObj.%Set("customSchema",{}.%FromJSON(tSchema.%ToJSON()))
+                                Do tParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tParamObj.%Set("customSchemaName",tKey)
@@ -1275,7 +1275,7 @@
                                     Do tRetParamObj.%Set("customSchemaName",tSchema)
                                 }
                             } ElseIf tSchema.%Size()=1 {
-                                Do tRetParamObj.%Set("customSchema",{}.%FromJSON(tSchema.%ToJSON()))
+                                Do tRetParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tRetParamObj.%Set("customSchemaName",tKey)
@@ -1401,7 +1401,7 @@
             }
             //Correct Auto-Reference Limitation
             Do pCircRefCtrl.%Set(pParentType_pDelim_pParentType,pParentKey)
-            Set tParentCircRefCtrl = {}.%FromJSON(pCircRefCtrl.%ToJSON())
+            Set tParentCircRefCtrl = ##class(%Library.DynamicObject).%New().%FromJSON(pCircRefCtrl.%ToJSON())
             Set prop = pJSON.%GetIterator()
             While prop.%GetNext(.key,.value) {
                 If $IsObject(value) {
@@ -1469,7 +1469,7 @@
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set ^TmpApipubCache(pClassName)=tTimeChanged_"||"_pXSDInfo.%ToJSON()
         } Else {
-            Set pXSDInfo = {}.%FromJSON($Piece(^TmpApipubCache(pClassName),"||",2))
+            Set pXSDInfo = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubCache(pClassName),"||",2))
         }
         If pPrintResults {
             Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
@@ -1942,7 +1942,7 @@
 
 <Class name="apiPub.core.parser">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65671,65424.635308</TimeChanged>
+<TimeChanged>65680,54416.213587</TimeChanged>
 <TimeCreated>65671,65424.635308</TimeCreated>
 
 <Method name="Parse">
@@ -2083,7 +2083,7 @@
                 Set tSC = $$$ERROR($$$GeneralError, "invalid schema")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }        
-			Set tSC = ..GetFlatSchema(pObjName,{}.%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+			Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
@@ -2158,7 +2158,7 @@
 
 <Class name="apiPub.core.publisher">
 <Super>apiPub.core.jsonBuilder</Super>
-<TimeChanged>65671,65424.645793</TimeChanged>
+<TimeChanged>65680,54759.456397</TimeChanged>
 <TimeCreated>65671,65424.645793</TimeCreated>
 
 <Method name="GetOASFromClass">
@@ -2414,14 +2414,14 @@
                             Set tObjectName = pvalue.%Get("customSchemaName")
                             If tJSONSchema'="",'$IsObject(tJSONSchema) {
                                 If mInfo.%Get("customSchemas").%Get(tObjectName)'="" {
-                                    Set tJSONSchema={}.%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
+                                    Set tJSONSchema=##class(%Library.DynamicObject).%New().%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
                                 }
                             }
                             If $IsObject(tJSONSchema),tJSONSchema.%Size()=1 {
                                 Do pvalue.%Set("paramType",tObjectName)
                                 Set tParamType = tObjectName
-                                Set jsonResp={}.%FromJSON(tJSONSchema.%ToJSON())
-                                Do ..SetByLineKey(pvalue,"customObj",{}.%FromJSON(jsonResp.%ToJSON()),,pDelim)
+                                Set jsonResp=##class(%Library.DynamicObject).%New().%FromJSON(tJSONSchema.%ToJSON())
+                                Do ..SetByLineKey(pvalue,"customObj",##class(%Library.DynamicObject).%New().%FromJSON(jsonResp.%ToJSON()),,pDelim)
                             } Else {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
@@ -2558,21 +2558,21 @@
                     If pvalue.%Get("complexType")=1,pvalue.%Get("outputOnly")'=1 {
                         Set tParamType = $Piece($Piece(pvalue.%Get("paramType"),"|",1),".",*)
                         If pvalue.%Get("customObj")'="" {
-                            Set jsonResp = {}.%FromJSON(pvalue.%Get("customObj").%ToJSON())
+                            Set jsonResp = ##class(%Library.DynamicObject).%New().%FromJSON(pvalue.%Get("customObj").%ToJSON())
                         } ElseIf "DynamicObject DynamicArray"[tParamType {
                             Set tJSONSchema = pvalue.%Get("customSchema")
                             If tJSONSchema="" Set tJSONSchema = pvalue.%Get("customSchemaName")
                             Set tObjectName = pvalue.%Get("customSchemaName")
                             If tJSONSchema'="",'$IsObject(tJSONSchema) {
                                 If mInfo.%Get("customSchemas").%Get(tObjectName)'="" {
-                                    Set tJSONSchema={}.%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
+                                    Set tJSONSchema=##class(%Library.DynamicObject).%New().%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
                                 }
                             }
                             If $IsObject(tJSONSchema),tJSONSchema.%Size()=1 {
                                 Do pvalue.%Set("paramType",tObjectName)
                                 Set tParamType = tObjectName
-                                Set jsonResp={}.%FromJSON(tJSONSchema.%ToJSON())
-                                Do ..SetByLineKey(pvalue,"customObj",{}.%FromJSON(jsonResp.%ToJSON()),,pDelim)
+                                Set jsonResp=##class(%Library.DynamicObject).%New().%FromJSON(tJSONSchema.%ToJSON())
+                                Do ..SetByLineKey(pvalue,"customObj",##class(%Library.DynamicObject).%New().%FromJSON(jsonResp.%ToJSON()),,pDelim)
                             } Else {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
@@ -2771,7 +2771,7 @@
             }
             //Correct Auto-Reference Limitation
             Do pCircRefCtrl.%Set(pParentType_pDelim_pParentType,pNestedParentKey)
-            Set tParentCircRefCtrl = {}.%FromJSON(pCircRefCtrl.%ToJSON())
+            Set tParentCircRefCtrl = ##class(%Library.DynamicObject).%New().%FromJSON(pCircRefCtrl.%ToJSON())
             If pJSON.%Get("type")="" {
                 Do ..SetByLineKey(pXSDInfo,pParentKey_pDelim_"type","object",,pDelim)  
                 Do ..SetByLineKey(pXSDInfo,pParentKey_pDelim_"xml"_pDelim_"name",$Piece(tOParentKey,pDelim,*),,pDelim)  
@@ -6179,17 +6179,17 @@ Add a new pet to the store</Description>
 
 <Class name="apiPub.samples.services">
 <Super>apiPub.core.service</Super>
-<TimeChanged>65678,51463.967802</TimeChanged>
+<TimeChanged>65680,52135.018819</TimeChanged>
 <TimeCreated>65671,65425.103165</TimeCreated>
 
 <Parameter name="OASPath">
 <Type>%String</Type>
-<Default>Get:/doc</Default>
+<Default>Get:/_spec</Default>
 </Parameter>
 
 <Parameter name="DispatchClass">
 <Type>%String</Type>
-<Default>apiPub.samples.apiFirst</Default>
+<Default>apiPub.samples.api</Default>
 </Parameter>
 
 <Parameter name="DispatchBSName">

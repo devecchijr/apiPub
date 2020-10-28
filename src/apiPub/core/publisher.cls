@@ -251,14 +251,14 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             Set tObjectName = pvalue.%Get("customSchemaName")
                             If tJSONSchema'="",'$IsObject(tJSONSchema) {
                                 If mInfo.%Get("customSchemas").%Get(tObjectName)'="" {
-                                    Set tJSONSchema={}.%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
+                                    Set tJSONSchema=##class(%Library.DynamicObject).%New().%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
                                 }
                             }
                             If $IsObject(tJSONSchema),tJSONSchema.%Size()=1 {
                                 Do pvalue.%Set("paramType",tObjectName)
                                 Set tParamType = tObjectName
-                                Set jsonResp={}.%FromJSON(tJSONSchema.%ToJSON())
-                                Do ..SetByLineKey(pvalue,"customObj",{}.%FromJSON(jsonResp.%ToJSON()),,pDelim)
+                                Set jsonResp=##class(%Library.DynamicObject).%New().%FromJSON(tJSONSchema.%ToJSON())
+                                Do ..SetByLineKey(pvalue,"customObj",##class(%Library.DynamicObject).%New().%FromJSON(jsonResp.%ToJSON()),,pDelim)
                             } Else {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
@@ -395,21 +395,21 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     If pvalue.%Get("complexType")=1,pvalue.%Get("outputOnly")'=1 {
                         Set tParamType = $Piece($Piece(pvalue.%Get("paramType"),"|",1),".",*)
                         If pvalue.%Get("customObj")'="" {
-                            Set jsonResp = {}.%FromJSON(pvalue.%Get("customObj").%ToJSON())
+                            Set jsonResp = ##class(%Library.DynamicObject).%New().%FromJSON(pvalue.%Get("customObj").%ToJSON())
                         } ElseIf "DynamicObject DynamicArray"[tParamType {
                             Set tJSONSchema = pvalue.%Get("customSchema")
                             If tJSONSchema="" Set tJSONSchema = pvalue.%Get("customSchemaName")
                             Set tObjectName = pvalue.%Get("customSchemaName")
                             If tJSONSchema'="",'$IsObject(tJSONSchema) {
                                 If mInfo.%Get("customSchemas").%Get(tObjectName)'="" {
-                                    Set tJSONSchema={}.%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
+                                    Set tJSONSchema=##class(%Library.DynamicObject).%New().%Set(tObjectName,mInfo.%Get("customSchemas").%Get(tObjectName))
                                 }
                             }
                             If $IsObject(tJSONSchema),tJSONSchema.%Size()=1 {
                                 Do pvalue.%Set("paramType",tObjectName)
                                 Set tParamType = tObjectName
-                                Set jsonResp={}.%FromJSON(tJSONSchema.%ToJSON())
-                                Do ..SetByLineKey(pvalue,"customObj",{}.%FromJSON(jsonResp.%ToJSON()),,pDelim)
+                                Set jsonResp=##class(%Library.DynamicObject).%New().%FromJSON(tJSONSchema.%ToJSON())
+                                Do ..SetByLineKey(pvalue,"customObj",##class(%Library.DynamicObject).%New().%FromJSON(jsonResp.%ToJSON()),,pDelim)
                             } Else {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
@@ -604,7 +604,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
             }
             //Correct Auto-Reference Limitation
             Do pCircRefCtrl.%Set(pParentType_pDelim_pParentType,pNestedParentKey)
-            Set tParentCircRefCtrl = {}.%FromJSON(pCircRefCtrl.%ToJSON())
+            Set tParentCircRefCtrl = ##class(%Library.DynamicObject).%New().%FromJSON(pCircRefCtrl.%ToJSON())
             If pJSON.%Get("type")="" {
                 Do ..SetByLineKey(pXSDInfo,pParentKey_pDelim_"type","object",,pDelim)  
                 Do ..SetByLineKey(pXSDInfo,pParentKey_pDelim_"xml"_pDelim_"name",$Piece(tOParentKey,pDelim,*),,pDelim)  

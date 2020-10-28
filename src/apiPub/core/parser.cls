@@ -132,7 +132,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                 Set tSC = $$$ERROR($$$GeneralError, "invalid schema")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }        
-			Set tSC = ..GetFlatSchema(pObjName,{}.%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+			Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
