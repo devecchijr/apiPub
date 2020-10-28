@@ -13,20 +13,20 @@ It allows the user to focus mainly on the **implementation** and business rules 
 
 This project also includes a full IRIS sample class ([apiPub.samples.api](/src/apiPub/samples/api.cls)), based on the official [Swagger Petstore sample](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1).
 
-![](PetStore.gif)
+![](docResources/PetStore.gif)
 
 ## Test with your existing SOAP services
 If you already have any SOAP services published, you can try this tool with the same code.
-![](soapToOASRest.png)
+![](docResources/soapToOASRest.png)
 
 When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP services already built automatically become compatible.
 
-![](XMLAdaptorCompat.png)
+![](docResources/XMLAdaptorCompat.png)
 
 ## Monitor your APIs with IRIS Analytics
 Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
 
-![](monitorYourAPI.gif)
+![](docResources/monitorYourAPI.gif)
 
 ## **How to install**
 
@@ -37,7 +37,7 @@ zn "USER"
 Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 ```
 Or through the administration portal
-![](importingPackage.png)
+![](docResources/importingPackage.png)
 
 If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-3)) and point the Dispatch class to [apiPub.samples.services](/src/apiPub/samples/services.cls).
 
@@ -45,23 +45,23 @@ If you want to use the PetStore sample, create a Web Application ([Step 3](https
 
 ## Step 1  
 Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/src/apiPub/samples/api.cls) (PetStore sample).
-![](labelingImplementationMethod.gif) 
+![](docResources/labelingImplementationMethod.gif) 
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
 Use the sample class [apiPub.samples.services](/src/apiPub/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
-![](configuringServiceClass.gif)
+![](docResources/configuringServiceClass.gif)
 
 ## Step 3
 Create a Web Application and point the Dispatch class to the service class created previously (Step 2).
-![](creatingWebApp.gif)
+![](docResources/creatingWebApp.gif)
 
 ## Use the Swagger
 With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
-![](testingFirstMethod.gif)
+![](docResources/testingFirstMethod.gif)
 
 ## Define the OAS header
-![](OASheader.png)
+![](docResources/OASheader.png)
 
 There are two ways to set the OAS 3.0 header: 
 
@@ -138,7 +138,7 @@ Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
 Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ```
 ## Customize your API
-![](customizeYourAPI.png)
+![](docResources/customizeYourAPI.png)
 
 It is possible to customize various aspects of the API's, such as tags, paths and verbs. For this, it is necessary to use a specific notation, defined in the comment of the method to be customized. 
 
@@ -294,7 +294,7 @@ For responses:
 |   outputType         |   By default it is **header** for the %Status and **application/json** type for the rest. If you want to change the output type, you can use this parameter. Usage example: Returning a "text / plain" token.  See ***loginUser*** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.                                                   |
 
 ## Relate Parseable Schemas to Dynamic JSON Types ***(%Library.DynamicObject)***
-![](parsingDynamicTypes.gif)
+![](docResources/parsingDynamicTypes.gif)
 It is possible to relate [OAS 3.0 schemas](https://swagger.io/docs/specification/data-models/) to internal [dynamic types](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create).
 
 The advantage of this, in addition to informing the user of the required object ***specification***, is the ***automatic parsing*** of the request payload in the API call. If an API user for example submits a property that is not in the schema, sends a date in an invalid format or does not send a mandatory property, one or more errors will be returned to the user informing the irregularities.

@@ -12,20 +12,20 @@ Ele permite que o usuário foque principalmente na **implementação** das API�
 
 Este projeto também inclui uma implementação de exemplo completa ([apiPub.samples.api](/src/apiPub/samples/api.cls)) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
 
-![](PetStore.gif)
+![](docResources/PetStore.gif)
 
 ## Faça um teste com os teus serviços SOAP existentes 
 Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
-![](soapToOASRest.png)
+![](docResources/soapToOASRest.png)
 
 Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já construídos se tornam automaticamente compatíveis.
 
-![](XMLAdaptorCompat.png)
+![](docResources/XMLAdaptorCompat.png)
 
 ## Monitore as tuas API's com o IRIS Analytics 
 Habilite o monitoramento das API's para **administrar** e **rastrear** todas as *chamadas Rest*. Monte também os seus próprios indicadores.
 
-![](monitorYourAPI.gif)
+![](docResources/monitorYourAPI.gif)
 
 ## **Instalação**
 
@@ -36,7 +36,7 @@ zn "USER"
 Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
 ```
 Ou através do portal de Administração
-![](importingPackage.png)
+![](docResources/importingPackage.png)
 
 Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplicação Web ([Passo 3](https://github.com/devecchijr/apiPub/blob/base/README-BR.md#passo-3)) e aponte a classe de Dispatch para [apiPub.samples.services](/src/apiPub/samples/services.cls).
 
@@ -44,23 +44,23 @@ Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplic
 
 ## Passo 1  
 Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]. Se preferir, utilize a classe ([apiPub.samples.api](/src/apiPub/samples/api.cls)) (PetStore sample).
-![](labelingImplementationMethod.gif)
+![](docResources/labelingImplementationMethod.gif)
 *Você pode testar os seus serviços SOAP já implementados.*
 
 ## Passo 2
 Use a classe de amostra [apiPub.samples.services](/src/apiPub/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
-![](configuringServiceClass.gif)
+![](docResources/configuringServiceClass.gif)
 
 ## Passo 3
 Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço criada anteriomente.
-![](creatingWebApp.gif)
+![](docResources/creatingWebApp.gif)
 
 ## Utilize o Swagger
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
-![](testingFirstMethod.gif)
+![](docResources/testingFirstMethod.gif)
 
 ## Defina o cabeçalho da especificação OAS
-![](OASheader.png)
+![](docResources/OASheader.png)
 
 Há duas maneiras de definir o cabeçalho OAS 3.0: 
 
@@ -137,7 +137,7 @@ Parameter TAGDOCSDESCRIPTION As %String = "Find out more";
 Parameter TAGDOCSURL As %String = "http://intersystems.com";
 ```
 ## Customize as tuas API's
-![](customizeYourAPI.png)
+![](docResources/customizeYourAPI.png)
 
 É possível customizar vários aspectos das API's, como ***tags, paths e verbos***. Para tal, é necessária a utilização de uma notação específica, definida no comentário do método a ser customizado. 
 
@@ -293,7 +293,7 @@ Para respostas:
 |   outputType         |   por padrão é **header** para os tipos %Status e **application/json** para o restante. Caso se queira alterar o tipo de output, pode se utilizar este parâmetro. Exemplo de uso: Retorno de um token ("text/plain"). Veja método ***loginUser*** da classe [apiPub.samples.api](/src/apiPub/samples/api.cls)                                                   |
 
 ## Relacione Schemas Parseáveis a tipos JSON Dinâmicos ***(%Library.DynamicObject)***
-![](parsingDynamicTypes.gif)
+![](docResources/parsingDynamicTypes.gif)
 É possível relacionar [schemas OAS 3.0](https://swagger.io/docs/specification/data-models/) a [tipos dinâmicos](https://docs.intersystems.com/hs20201/csp/docbook/DocBook.UI.Page.cls?KEY=GJSON_create) internos. 
 
 A vantagem de se relacionar o schema com o parâmetro, além de informar ao usuário a especificação do objeto requerido, é o ***parsing automático*** do request é realizado na chamada da API. Se o usuário da API por exemplo enviar uma propriedade que não está no schema, enviar uma data em um formato inválido ou não enviar uma propriedade obrigatória, um ou mais erros serão retornados ao usuário informando as irregularidades.
