@@ -1,4 +1,4 @@
-Class apiPub.samples.services Extends apiPub.core.service
+Class apiPub.samples.petStore Extends apiPub.core.service
 {
 
 Parameter OASPath As %String = "Get:/_spec";
@@ -15,7 +15,7 @@ Parameter DispatchBaseURL As %String;
 Parameter OnlyOAS As %Boolean = 0;
 
 /// Use TracerBSName for monitoring
-Parameter Traceable As %Boolean = 0;
+Parameter Traceable As %Boolean = 1;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
