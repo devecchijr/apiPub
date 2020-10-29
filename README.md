@@ -28,18 +28,36 @@ Enable API monitoring to **manage** and **track** all *rest service calls*. Also
 
 ![](docResources/monitorYourAPI.gif)
 
-## **How to install**
+## Prerequisites
+Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
 
-Import the [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.2.xml) package into the target namespace via terminal.
+## Installation
+
+1. Clone/git pull the repo into any local directory
 
 ```
-zn "USER"
-Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
+$ git clone https://github.com/devecchijr/apiPub.git
 ```
-Or through the administration portal
-![](docResources/importingPackage.png)
 
-If you want to use the PetStore sample, create a Web Application ([Step 3](https://github.com/devecchijr/apiPub#step-3)) and point the Dispatch class to [apiPub.samples.services](/src/apiPub/samples/services.cls).
+2. Open the terminal in this directory and run:
+
+```
+$ docker-compose build
+```
+
+3. Run the IRIS container with your project:
+```
+$ docker-compose up -d
+```
+
+## Testing the Application
+Open swagger URL http://localhost:52773/swagger-ui/index.html
+
+Just try to execute some Petstore API's, like Posting a new Pet.
+
+See the Analytics [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Try to drill down the petStore domain to explore and analyse the request messages. You don't have to worry
+
+Change or create methods on the [apiPub.samples.api](/src/apiPub/samples/api.cls) class and turn to see the documentation. Any changes are automatically reflected in the documentation or schemas.
 
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
@@ -457,7 +475,13 @@ Parameter APIDomain = "samples";
 ```
 The ***APIDomain*** parameter is used to determine the API group for monitoring (specific dimension).
 
-3 - Import the sample dashboard (***[apiPub_Analytics_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_Analytics_v1.0.xml)***) in the administration portal (*Analytics/Admin/Folder Manager* option). Other dashboards can also be created based on the apiPub Monitor cube.
+3 - Import the sample dashboard 
+```
+zn "IRISAPP" 
+Set sc = ##class(%DeepSee.UserLibrary.Utils).%ProcessContainer("apiPub.tracer.dashboards",1)
+```
+
+Other dashboards can also be created based on the apiPub Monitor cube.
 
 ## Use this tool in conjunction with the Intersystems API Manager
 Route your generated APIs and get several benefits with the [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM).
