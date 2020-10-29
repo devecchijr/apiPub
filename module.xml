@@ -3,6 +3,12 @@
   <Document name="iris-apipub.ZPM">
     <Module>
       <Name>iris-apipub</Name>
+      <Author>
+        <Person>Claudio Devecchi</Person>
+        <Organization>Intersystems BR</Organization>
+        <CopyrightDate>2020</CopyrightDate>
+        <License>MIT</License>
+      </Author>
       <Version>1.0.0</Version>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
