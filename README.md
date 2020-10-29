@@ -55,9 +55,9 @@ Open swagger URL http://localhost:52773/swagger-ui/index.html
 
 Just try to execute some Petstore API's, like Posting a new Pet.
 
-See the Analytics [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Try to drill down the petStore domain to explore and analyse the rest messages.
+See the [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Try to drill down the petStore domain to explore and analyse the service messages.
 
-Change or create methods on the [apiPub.samples.api](/src/apiPub/samples/api.cls) class and turn to see the documentation. Any changes are automatically reflected in the documentation or schemas.
+Change or create methods on the [apiPub.samples.api](/src/apiPub/samples/api.cls) class and turn to see the documentation. Note that all changes are automatically reflected in the documentation or schemas.
 
 ## **Publish your OAS 3.0 API in just 3 steps:**
 
