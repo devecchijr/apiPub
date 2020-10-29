@@ -8,6 +8,23 @@
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="apiPub.PKG"/>
       <SystemRequirements Version=">=2019.1" Interoperability="enabled"/>
+      <Invokes>
+        <Invoke Class="%DeepSee.UserLibrary.Utils" Method="%ProcessContainer">
+            <Arg>apiPub.tracer.dashboards</Arg>
+            <Arg>1</Arg>
+        </Invoke>      
+      </Invokes>
+       <CSPApplication 
+        Url="/crud"
+        Recurse="1"
+        MatchRoles=":{$dbrole}"
+        PasswordAuthEnabled="1"
+        UnauthenticatedEnabled="0"
+        DispatchClass="apiPub.samples.services"
+        ServeFiles="1"
+        CookiePath="/crud"
+        UseCookies="2"
+       />
     </Module>
   </Document>
 </Export>
