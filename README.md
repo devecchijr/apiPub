@@ -41,7 +41,7 @@ You'll need to install the **swagger-ui** app for testing.
 zpm "install swagger-ui"
 ```
 
-You can also enable the [monitoring] (https://github.com/devecchijr/apiPub#enable-monitoring-optional).
+You can also enable the [monitoring](https://github.com/devecchijr/apiPub#enable-monitoring-optional).
 
 ## docker Installation 
 
