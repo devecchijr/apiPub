@@ -28,9 +28,6 @@ Enable API monitoring to **manage** and **track** all *rest service calls*. Also
 
 ![](docResources/monitorYourAPI.gif)
 
-## Prerequisites
-Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
-
 ## zpm Installation
 ```
 zpm "install iris-apipub"
@@ -44,6 +41,9 @@ zpm "install swagger-ui"
 You can also enable the [monitoring](https://github.com/devecchijr/apiPub#enable-monitoring-optional).
 
 ## docker Installation 
+
+## Prerequisites
+Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
 
 1. Clone/git pull the repo into any local directory
 
