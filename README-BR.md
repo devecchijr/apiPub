@@ -28,7 +28,7 @@ Habilite o monitoramento das API's para **administrar** e **rastrear** todas as 
 ![](docResources/monitorYourAPI.gif)
 
 ## Pre-requisitos
-Verifique se você já possui o [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) e [Docker desktop](https://www.docker.com/products/docker-desktop) instalados.
+Verifique se você já possui o [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) e o [Docker desktop](https://www.docker.com/products/docker-desktop) instalados.
 
 ## Instalação
 
