@@ -31,7 +31,19 @@ Enable API monitoring to **manage** and **track** all *rest service calls*. Also
 ## Prerequisites
 Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
 
-## Installation
+## zpm Installation
+```
+zpm "install iris-apipub"
+```
+
+You'll need to install the **swagger-ui** app for testing.
+```
+zpm "install swagger-ui"
+```
+
+You can also enable the [monitoring] (https://github.com/devecchijr/apiPub#enable-monitoring-optional).
+
+## docker Installation 
 
 1. Clone/git pull the repo into any local directory
 
@@ -56,6 +68,8 @@ Open swagger URL http://localhost:52773/swagger-ui/index.html
 Try to execute some Petstore API's, like Posting a new Pet.
 
 See the [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Try to drill down the petStore domain to explore and analyse the service messages.
+
+![](docResources/monitorYourAPI.gif)
 
 Change or create methods on the [apiPub.samples.api](/src/apiPub/samples/api.cls) class and turn to see the documentation. Note that all changes are automatically reflected in the documentation or schemas.
 
