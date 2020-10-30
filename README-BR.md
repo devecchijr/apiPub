@@ -478,11 +478,13 @@ Parameter APIDomain = "samples";
 ```
 O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
 
-3 - Importe o dashboard de amostra
+3 - Importe os dashboards
 ```
 zn "IRISAPP" 
 Set sc = ##class(%DeepSee.UserLibrary.Utils).%ProcessContainer("apiPub.tracer.dashboards",1)
 ```
+
+Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
 
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
