@@ -27,7 +27,7 @@ Habilite o monitoramento das API's para **administrar** e **rastrear** todas as 
 
 ![](docResources/monitorYourAPI.gif)
 
-## Instalação usando o [ZPM](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
+## Instalação usando o [zpm](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
 ```
 zpm "install iris-apipub"
 ```
@@ -37,7 +37,7 @@ Para testar com o swagger, você deverá instalar a aplicação **swagger-ui**.
 zpm "install swagger-ui"
 ```
 
-Você também pode habilitar o [monitoramento](https://github.com/devecchijr/apiPub/blob/master/README-BR.md#habilite-o-monitoramento-opcional.
+Você também pode habilitar o [monitoramento](https://github.com/devecchijr/apiPub/blob/master/README-BR.md#habilite-o-monitoramento-opcional).
 
 ## Pre-requisitos para a instalação com o Docker
 Verifique se você já possui o [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) e o [Docker desktop](https://www.docker.com/products/docker-desktop) instalados.
