@@ -27,10 +27,22 @@ Habilite o monitoramento das API's para **administrar** e **rastrear** todas as 
 
 ![](docResources/monitorYourAPI.gif)
 
-## Pre-requisitos
+## Instalação usando o [ZPM](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
+```
+zpm "install iris-apipub"
+```
+
+Para testar com o swagger, você deverá instalar a aplicação **swagger-ui**.
+```
+zpm "install swagger-ui"
+```
+
+Você também pode habilitar o [monitoramento](https://github.com/devecchijr/apiPub/blob/master/README-BR.md#habilite-o-monitoramento-opcional.
+
+## Pre-requisitos para a instalação com o Docker
 Verifique se você já possui o [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) e o [Docker desktop](https://www.docker.com/products/docker-desktop) instalados.
 
-## Instalação
+## Instalação usando o Docker
 
 1. Faça um *Clone/git pull* do repositório no diretório local.
 
@@ -56,6 +68,8 @@ Abra a URL do swagger http://localhost:52773/swagger-ui/index.html
 Tente executar alguma API do Petstore, como fazer o *post* de um novo *pet*.
 
 Veja o [dashboard do apiPub Monitor](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Tente fazer um drill down no domínio petStore para explorar e analisar as mensagens.
+
+![](docResources/monitorYourAPI.gif)
 
 Mude ou crie metódos na classe [apiPub.samples.api](/src/apiPub/samples/api.cls) e volte a consultar a documentação gerada. 
 Repare que todas as mudanças são automaticamentes refletidas na documentação OAS ou nos schemas.
