@@ -53,7 +53,7 @@ $ docker-compose up -d
 ## Testing the Application
 Open swagger URL http://localhost:52773/swagger-ui/index.html
 
-Just try to execute some Petstore API's, like Posting a new Pet.
+Try to execute some Petstore API's, like Posting a new Pet.
 
 See the [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Try to drill down the petStore domain to explore and analyse the service messages.
 

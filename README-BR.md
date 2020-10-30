@@ -27,18 +27,38 @@ Habilite o monitoramento das API's para **administrar** e **rastrear** todas as 
 
 ![](docResources/monitorYourAPI.gif)
 
-## **Instalação**
+## Pre-requisitos
+Verifique se você já possui o [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) e [Docker desktop](https://www.docker.com/products/docker-desktop) instalados.
 
-Importe o pacote [apiPub_vx.xml](https://raw.githubusercontent.com/devecchijr/apiPub/base/apiPub_v1.2.xml) no namespace desejado via terminal.
+## Instalação
+
+1. Faça um *Clone/git pull* do repositório no diretório local.
 
 ```
-zn "USER"
-Do $System.OBJ.Load("/path/apiPub_vx.xml","ck")
+$ git clone https://github.com/devecchijr/apiPub.git
 ```
-Ou através do portal de Administração
-![](docResources/importingPackage.png)
 
-Se você preferir utilizar a classe de amostra (PetStore sample), crie uma Aplicação Web ([Passo 3](https://github.com/devecchijr/apiPub/blob/base/README-BR.md#passo-3)) e aponte a classe de Dispatch para [apiPub.samples.services](/src/apiPub/samples/services.cls).
+2. Abra o terminal neste diretorio e execute o seguinte comando:
+
+```
+$ docker-compose build
+```
+
+3. Execute o container IRIS com o projeto:
+
+```
+$ docker-compose up -d
+```
+
+## Testando a Aplicação
+Abra a URL do swagger http://localhost:52773/swagger-ui/index.html
+
+Tente executar alguma API do Petstore, como fazer o *post* um novo *pet*.
+
+Veja o [dashboard do apiPub Monitor](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Tente fazer um drill down no domínio petStore para explorar e analisar as mensagens.
+
+Mude ou crie metódos na classe [apiPub.samples.api](/src/apiPub/samples/api.cls) e volte a consultar a documentação gerada. 
+Repare que todas as mudanças são automaticamentes refletidas na documentação OAS ou nos schemas.
 
 ## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
@@ -458,7 +478,11 @@ Parameter APIDomain = "samples";
 ```
 O parâmetro ***APIDomain*** é utilizado para agrupar as API's no monitoramento.
 
-3 - Importe o dashboard de exemplo (***apiPub_Analytics_vx.xml***) no portal de administração em *Analytics/Admin/Folder Manager*. Outros dashboards também podem ser criados com base no cubo ***apiPub Monitor***.
+3 - Importe o dashboard de amostra
+```
+zn "IRISAPP" 
+Set sc = ##class(%DeepSee.UserLibrary.Utils).%ProcessContainer("apiPub.tracer.dashboards",1)
+```
 
 ## Utilize esta ferramenta em conjunto com o Intersystems API Manager
 Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems API Manager](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_IAM)
