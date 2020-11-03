@@ -362,7 +362,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                                 If pWithNSPrefix Set tVKey=pNode.GetAttributeQName(tAtt)
                                 Set tValue = pNode.GetAttributeValue(tAtt)
                                 Set tType = "string"
-                                If pInferTypes,tXSDNode.%Get("type")'="" {
+                                If pInferTypes {
                                     Set tType = ..GetJSONType(tValue)
                                     If ($zConvert(tValue,"L")="true")||($zConvert(tValue,"L")="false") {
                                         Set tValue=$Select($zConvert(tValue,"L")="true":1,1:0)

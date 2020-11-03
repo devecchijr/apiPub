@@ -36,24 +36,20 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
         }
         Set tServiceObj=""
         If minfo.%Get("classMethod")=0 {
-            If '$Data(pInstance) {
-                Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(tMethodKey,"||",1),,,.tIsBS,)
+            Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(tMethodKey,"||",1),,,.tIsBS,)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tBusinessServiceName=""
+            If pRequest.ServiceClass '="" Set tBusinessServiceName = $Parameter(pRequest.ServiceClass,"DispatchBSName") 
+            If tBusinessServiceName="" {
+                Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(tMethodKey,"||",1)_"||BSNAME")
+                If $IsObject(tMParam) Set tBusinessServiceName = tMParam.Default
+            }
+            If (tIsBS)||(tBusinessServiceName'="") {
+                If tBusinessServiceName="" Set tBusinessServiceName=$Piece(tMethodKey,"||",1)
+                Set tSC = ##Class(Ens.Director).CreateBusinessService(tBusinessServiceName,.tServiceObj)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                Set tBusinessServiceName=""
-                If pRequest.ServiceClass '="" Set tBusinessServiceName = $Parameter(pRequest.ServiceClass,"DispatchBSName") 
-                If tBusinessServiceName="" {
-                    Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(tMethodKey,"||",1)_"||BSNAME")
-                    If $IsObject(tMParam) Set tBusinessServiceName = tMParam.Default
-                }
-                If (tIsBS)||(tBusinessServiceName'="") {
-                    If tBusinessServiceName="" Set tBusinessServiceName=$Piece(tMethodKey,"||",1)
-                    Set tSC = ##Class(Ens.Director).CreateBusinessService(tBusinessServiceName,.tServiceObj)
-                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                } Else {
-                    Set tServiceObj=$ClassMethod($Piece(tMethodKey,"||",1),"%New")
-                }
             } Else {
-                If $IsObject(pInstance) Set tServiceObj=pInstance
+                Set tServiceObj=$ClassMethod($Piece(tMethodKey,"||",1),"%New")
             }
         }
         Set tClStr = ""
@@ -85,7 +81,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     Set tValue = tInputParams.%Get(tPName)
                 }
                 If value.%Get("pmJType")'="",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
-                If (tPType'="")//Primitive Values
+                If (tPType'="") //Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
                     ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) { //Output Values
                     Set tClStr = tClStr_","_$Select((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1):".",1:"")_"tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")
