@@ -239,4 +239,22 @@ ClassMethod GetRequestParams(pReqParams As %String, Output pParams As %Library.D
     Quit tSC
 }
 
+// Print Identation
+
+ClassMethod Ident(pLevel) As %String
+{
+    Set tRet = ""
+    For i=1:1:pLevel Set tRet = tRet_$char(9)
+    Quit tRet
+}
+
+// Get an array size for iteration loop
+
+ClassMethod GetSizeByLineKey(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+{
+    Set tRef=..GetByLineKey(pJSON, pKey, pDelim)
+    If $ClassName(tRef)'="%Library.DynamicArray" Set tRef=[] 
+    Quit tRef.%Size()
+}
+
 }
