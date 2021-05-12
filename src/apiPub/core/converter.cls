@@ -115,6 +115,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
         Set pAttPrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
         Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pGhostDelim = $Select(pParams.ghostDelim'="":pParams.ghostDelim,1:"__")
 
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":"", "level":0, "rootDefined":""}
@@ -184,6 +185,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
                 Set tParentElName = $Piece($Select(pParentKey="":"Root",1:pParentKey),pDelim,*)
                 If tParentElName=+tParentElName Set tParentElName = pNoNamedArray
 				Set tElName = $Select(key=+key:tParentElName,1:key)
+                If $Find(tElName,pGhostDelim)>0 Set tElName=$Piece(tElName,pGhostDelim,1)
                 Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
                 If $IsObject(value) {
                     If ($ClassName(value)="%Library.DynamicObject")||(pParentType="array"){
@@ -248,7 +250,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
 	{
         //If not Defined The Params Set the Default Values
         If '$Data(pParams) Set pParams={}
-        If '$Data(pXSDInfo) Set pXSDInfo={}
+        If '$Data(pXSDInfo) Set pXSDInfo={"list":{},"types":{},"circularRef":{}}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pAttributePrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
         Set pInferTypes = $Select(pParams.inferTypes'="":pParams.inferTypes,1:0)
@@ -260,10 +262,11 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
         Set pListOfArrays = $Select(pParams.listOfArrays'="":pParams.listOfArrays,1:[])
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pObjIsArray = $Select(pParams.objIsArray'="":pParams.objIsArray,1:0)
+        //Avoid problems with xml element order (usefull for repetitive xml nodes) 
+        Set pKeepElemOrder = $Select(pParams.keepElemOrder'="":pParams.keepElemOrder,1:0)
+        Set pGhostDelim = $Select(pParams.ghostDelim'="":pParams.ghostDelim,1:"__")
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"","parentName":"","parentSName":"","level":-1,"arrayCtrlIdx":{},"arrayCtrlName":{}, "xmlJSON":{}, "build":0}
-
-        If '$Data(pXSDInfo) Set pXSDInfo = {"list":{},"types":{},"circularRef":{}}
         Set pParentKey = pInternal.parentKey
         Set pParentName = pInternal.parentName
         Set pParentSName = pInternal.parentSName
@@ -319,7 +322,11 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                         Do pInternal.%Get("arrayCtrlIdx").%Set(tKey,tIdx)
                         If tIdx>0||(pObjIsArray)||(pXSDInfo.%Get("list").%Get(tSName)=1) {
                             Do pInternal.%Get("arrayCtrlName").%Set(tKey,0)                            
-                            Set tKey=tKey_pDelim_tIdx
+                            If (pKeepElemOrder) {
+                              Set tKey=tKey_pGhostDelim_tIdx
+                            } Else {
+                              Set tKey=tKey_pDelim_tIdx
+                            }
                             Do pInternal.%Get("arrayCtrlName").%Set(tName,0)
                         }
                     }
@@ -327,7 +334,11 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                         Set tIdx=pInternal.%Get("arrayCtrlName").%Get($Replace(tKey,"^0",""))
                         If tIdx'="" {
                             Do pInternal.%Get("arrayCtrlName").%Set($Replace(tKey,"^0",""),tIdx+1)
-                            Set tKey=tKey_pDelim_tIdx
+                            If (pKeepElemOrder) {
+                              Set tKey=tKey_pGhostDelim_tIdx
+                            } Else {
+                              Set tKey=tKey_pDelim_tIdx
+                            }
                         } ElseIf pInternal.%Get("arrayCtrlName").%Get(tName)'="" {
                             Set tKey=tKey_pDelim_"0"
                         }
@@ -362,7 +373,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                                 If pWithNSPrefix Set tVKey=pNode.GetAttributeQName(tAtt)
                                 Set tValue = pNode.GetAttributeValue(tAtt)
                                 Set tType = "string"
-                                If pInferTypes {
+                                If pInferTypes,tXSDNode.%Get("type")'="" {
                                     Set tType = ..GetJSONType(tValue)
                                     If ($zConvert(tValue,"L")="true")||($zConvert(tValue,"L")="false") {
                                         Set tValue=$Select($zConvert(tValue,"L")="true":1,1:0)
