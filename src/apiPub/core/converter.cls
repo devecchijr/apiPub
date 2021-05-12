@@ -6,7 +6,7 @@ ClassMethod JSONToObj(pJSON As %Library.DynamicObject, pClassName As %String, Ou
 	Set tSC = $System.Status.OK()
     Try
 	{
-        //Verify if object needs to be wrapped
+        //Verify if object needs to be wrapped 
         Set jkey=""
         Set tIt = pJSON.%GetIterator()
         Do tIt.%GetNext(.jkey,.jvalue)
