@@ -5,18 +5,40 @@ Property DefaultForEmptyContentType As %String(MAXLEN = 200) [ InitialExpression
 
 Property BeautifyJsonBodyResponse As %Boolean [ InitialExpression = 1 ];
 
-Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,";
+Property SSL As %String;
+
+Property HTTPS As %Boolean;
+
+Property TargetBaseURL As %String(MAXLEN = 200);
+
+Property ReservedOutboundParams As %String(MAXLEN = 250);
+
+Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig";
 
 Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
     Try {
         Set pResponse = ##class(apiPub.service.message).%New()
-        Set tSC = $ClassMethod(pRequest.ServiceClass,"ServiceRouter",pRequest,.pResponse)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-		Set tResponseParams = {
+ 		Set tResponseParams = {
             "defaultForEmptyContentType":(..DefaultForEmptyContentType)
 			,"beautifyJsonBodyResponse":(..BeautifyJsonBodyResponse)
+        }
+        // If is not apiPub service method treat as direct http call using apiPub.service.message)
+        // Needed to configure bo parameters ("targetBaseURL,"https","ssl","reservedOutboundParams)
+        If pRequest.ServiceClass="" {
+            Set pRequest.ServiceClass = "apiPub.core.service"
+			Set tRequestParams = {
+				"targetBaseURL":(..TargetBaseURL)
+				,"https":(..HTTPS)
+				,"ssl":(..SSL)
+				,"reservedOutboundParams":(..ReservedOutboundParams)
+			}
+            Set tSC = $ClassMethod(pRequest.ServiceClass,"ToHttpCall",pRequest,tRequestParams,.pResponse)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+        } Else {
+            Set tSC = $ClassMethod(pRequest.ServiceClass,"ServiceRouter",pRequest,.pResponse)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         }
         Set tSC = $ClassMethod(pRequest.ServiceClass,"TreatMsgResponse",pRequest,.pResponse,tResponseParams)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
