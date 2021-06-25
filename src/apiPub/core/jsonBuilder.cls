@@ -72,7 +72,7 @@ ClassMethod GetJSONType(pString As %RawString) As %String
 ClassMethod RegexValidation(pString As %String, pRegex As %String) As %Boolean
 {
 	Set matcher=##class(%Regex.Matcher).%New(pRegex)
-	Set matcher.Text = pString
+	Do matcher.TextSet(pString)
 	Quit matcher.Locate()
 }
 
@@ -255,6 +255,27 @@ ClassMethod GetSizeByLineKey(pJSON As %Library.DynamicObject, pKey As %String, p
     Set tRef=..GetByLineKey(pJSON, pKey, pDelim)
     If $ClassName(tRef)'="%Library.DynamicArray" Set tRef=[] 
     Quit tRef.%Size()
+}
+
+ClassMethod SaveStreamToFile(pStream As %AbstractStream, pFileName As %String) As %Status
+{
+    Set tSC = $System.Status.OK()
+    Try
+	{
+        Set tFileStream=##class(%Stream.FileCharacter).%New()
+        Set tSC=tFileStream.LinkToFile(pFileName)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tSC = tFileStream.CopyFrom(pStream)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+        Set tSC = tFileStream.%Save()
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    }
+    Catch(e)
+	{
+		Write $System.Status.DisplayError(e.AsStatus())
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
 }
 
 }
