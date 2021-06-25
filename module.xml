@@ -10,7 +10,7 @@
         <License>MIT</License>
       </Author>
       <Version>1.0.3</Version>
-      <Description>This personal open source project has the main intention to automatically publish RESTful API's built with Intersystems IRIS technology, in the simplest and fastest way possible, using the Open API Specification (OAS 3.0) standard.</Description>
+      <Description>Publish RESTful API's built with Intersystems IRIS technology, in the simplest and fastest way possible, using the Open API Specification (OAS 3.0) standard.</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="apiPub.PKG"/>
