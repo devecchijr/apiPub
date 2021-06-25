@@ -9,7 +9,7 @@
         <CopyrightDate>2020</CopyrightDate>
         <License>MIT</License>
       </Author>
-      <Version>1.0.3</Version>
+      <Version>1.0.3.1</Version>
       <Description>Publish RESTful API's built with Intersystems IRIS technology, in the simplest and fastest way possible, using the Open API Specification (OAS 3.0) standard.</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
