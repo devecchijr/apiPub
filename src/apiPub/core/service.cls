@@ -191,7 +191,7 @@ ClassMethod ToHttpCall(pRequest As apiPub.service.message, pRequestParams As %Li
 		}
         Set tSC = ..MsgRequestToHttpRequest(pRequest,pRequestParams,.tHttpRequest,.tURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-        Set tSC = $Method(tHttpRequest,pRequest.HttpVerb,$Piece(tURL,tHttpRequest.Server,*))
+        Set tSC = $Method(tHttpRequest,pRequest.HttpVerb,tURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         Set tSC = ..HttpResponseToMsgResponse(tURL,tHttpRequest,pRequest,.pResponse)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -629,6 +629,9 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         While (tProp.%GetNext(.key,.value)) {
             Do pHttpRequest.SetHeader(key,$Select($IsObject(value):value.%ToJSON(),1:value))
         }
+		If $Find("get:put:post:patch:delete:",$Piece($ZCONVERT(pMessageRequest.APIPath,"L"),":",1))>0 {
+			Set pMessageRequest.APIPath = $Piece(pMessageRequest.APIPath,":",2,*)
+		}
         Set tAPIPath = pMessageRequest.APIPath
 		Set tJSONParams = {}
         If $Length(pMessageRequest.Params)>0 Set tJSONParams = {}.%FromJSON(pMessageRequest.Params)
@@ -646,10 +649,10 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
 		While (pMessageRequest.Body.AtEnd=0) {
 			Do pHttpRequest.EntityBody.Write(pMessageRequest.Body.Read())
 		}
-        Set pHttpRequest.Server = pTargetBaseURL
-        Set tTargetBaseURL = pMessageRequest.TargetBaseURL
-        If tTargetBaseURL="" Set tTargetBaseURL = pTargetBaseURL
-        Set tURL = $Select($Extract(tTargetBaseURL,*)="/":$Extract(tTargetBaseURL,1,*-1),1:tTargetBaseURL)_tAPIPath
+		If pTargetBaseURL="" Set pTargetBaseURL = pMessageRequest.TargetBaseURL
+        Set pHttpRequest.Server = $Select($Find(pTargetBaseURL,":")>0:$Piece(pTargetBaseURL,":",*-1),1:pTargetBaseURL)
+		If $Find(pTargetBaseURL,":")>0 Set pHttpRequest.Port = $Piece(pTargetBaseURL,":",*)
+        Set tURL = tAPIPath
     }
     Catch(e) {
 		Set tSC = e.AsStatus()
