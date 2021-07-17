@@ -1,6 +1,21 @@
 Class apiPub.core.jsonBuilder Extends %RegisteredObject
 {
 
+ClassMethod Sj(ByRef pJSON As %Library.DynamicObject, pKey As %String, pValue As %Library.DynamicObject, pType As %String, pDelim As %String = ".", pInferBoolean As %Boolean = 1) As %Status [ SqlProc ]
+{
+    Quit ..SetByLineKey(pJSON, pKey, pValue, pType, pDelim, pInferBoolean)
+}
+
+ClassMethod Gj(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+{
+    Quit ..GetByLineKey(pJSON, pKey, pDelim)
+}
+
+ClassMethod Rj(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+{
+    Quit ..RemoveByLineKey(pJSON, pKey, pDelim)
+}
+
 ClassMethod SetByLineKey(ByRef pJSON As %Library.DynamicObject, pKey As %String, pValue As %Library.DynamicObject, pType As %String, pDelim As %String = ".", pInferBoolean As %Boolean = 1) As %Status [ SqlProc ]
 {
 	Set tSC = $System.Status.OK()
@@ -59,6 +74,32 @@ ClassMethod GetByLineKey(pJSON As %Library.DynamicObject, pKey As %String, pDeli
         Set tSC = e.AsStatus()
 	}
     Quit tRef
+}
+
+ClassMethod RemoveByLineKey(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+{
+    Set tRef=""
+    Try
+	{
+        Set pKey = $Tr(pKey,"[]",pDelim)
+        Set tRef=pJSON
+        If pKey="" Quit
+        For i=1:1:$Length(pKey,pDelim) {
+            If $ClassName(tRef)'["%Library.Dynamic" Quit
+            If $ClassName(tRef)="%Library.DynamicArray",$Piece(pKey,pDelim,i)'=+$Piece(pKey,pDelim,i) Quit
+            If i=$Length(pKey,pDelim) {
+                If tRef.%Get($Piece(pKey,pDelim,i))'="" Do tRef.%Remove($Piece(pKey,pDelim,i))
+            } Else {
+                Set tRef=tRef.%Get($Piece(pKey,pDelim,i))
+            }
+            If tRef="" Quit
+        }
+    }
+	Catch(e)
+	{
+        Set tSC = e.AsStatus()
+	}
+    Quit pJSON
 }
 
 ClassMethod GetJSONType(pString As %RawString) As %String
