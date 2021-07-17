@@ -1,7 +1,7 @@
 Class apiPub.core.service Extends (%CSP.REST, %Projection.AbstractProjection, apiPub.core.jsonBuilder)
 {
 
-Parameter CONTENTTYPEJSON As %String = "application/json";
+Parameter CONTENTTYPEJSON = "application/json";
 
 Parameter HandleCorsRequest = 1;
 
@@ -473,7 +473,6 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			Set tSC = $$$ERROR($$$GeneralError, "param apiDomain is Required")
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		}
-		#Dim pRequest As %CSP.Request
 		Set pRestRequest = ##Class(apiPub.service.message).%New()
 		Set tParams={}
 		Set tIdx = pRequest.Next("")

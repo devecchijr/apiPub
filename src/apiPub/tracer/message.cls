@@ -106,7 +106,7 @@ Method GetJSONProp(propName As %String, pLineKey, pKeyDelimiter As %String = "."
             If $Length(tProp)=0 Return ""
         }
         Set tJson = {}.%FromJSON(tProp)
-        Set tRef = ##class(APITracer.utils.json).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
+        Set tRef = ##class(apiPub.core.jsonBuilder).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
     }
 	Catch(e)
 	{
