@@ -1,17 +1,17 @@
 Class apiPub.core.jsonBuilder Extends %RegisteredObject
 {
 
-ClassMethod Sj(ByRef pJSON As %Library.DynamicObject, pKey As %String, pValue As %Library.DynamicObject, pType As %String, pDelim As %String = ".", pInferBoolean As %Boolean = 1) As %Status [ SqlProc ]
+ClassMethod JSet(ByRef pJSON As %Library.DynamicObject, pKey As %String, pValue As %Library.DynamicObject, pType As %String = "", pDelim As %String = ".", pInferBoolean As %Boolean = 1) As %Status [ SqlProc ]
 {
     Quit ..SetByLineKey(pJSON, pKey, pValue, pType, pDelim, pInferBoolean)
 }
 
-ClassMethod Gj(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+ClassMethod JGet(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
 {
     Quit ..GetByLineKey(pJSON, pKey, pDelim)
 }
 
-ClassMethod Rj(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+ClassMethod JRem(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
 {
     Quit ..RemoveByLineKey(pJSON, pKey, pDelim)
 }
