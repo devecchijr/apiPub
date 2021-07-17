@@ -13,7 +13,9 @@ Property TargetBaseURL As %String(MAXLEN = 200);
 
 Property ReservedOutboundParams As %String(MAXLEN = 250);
 
-Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig";
+Property Headers As %String(MAXLEN = 500);
+
+Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig";
 
 Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
@@ -25,7 +27,7 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
 			,"beautifyJsonBodyResponse":(..BeautifyJsonBodyResponse)
         }
         // If is not apiPub service method treat as direct http call using apiPub.service.message)
-        // Needed to configure bo parameters ("targetBaseURL,"https","ssl","reservedOutboundParams)
+        // Needed to configure bo parameters ("targetBaseURL,"https","ssl","reservedOutboundParams and headers)
         If pRequest.ServiceClass="" {
             Set pRequest.ServiceClass = "apiPub.core.service"
 			Set tRequestParams = {
@@ -33,6 +35,7 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
 				,"https":(..HTTPS)
 				,"ssl":(..SSL)
 				,"reservedOutboundParams":(..ReservedOutboundParams)
+				,"headers":(..Headers)
 			}
             Set tSC = $ClassMethod(pRequest.ServiceClass,"ToHttpCall",pRequest,tRequestParams,.pResponse)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }

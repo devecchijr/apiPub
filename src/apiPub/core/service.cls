@@ -7,36 +7,36 @@ Parameter HandleCorsRequest = 1;
 
 Parameter Cors = 1;
 
-Parameter ReservedInboundParams As %String = "CachePassWord,CacheUserName,IRISUsername,IRISPassword,";
+Parameter ReservedInboundParams = "CachePassWord,CacheUserName,IRISUsername,IRISPassword,";
 
-Parameter ReservedOutboundParams As %String = "CachePassWord,CacheUserName,IRISUsername,IRISPassword,TargetBaseURL";
+Parameter ReservedOutboundParams = "CachePassWord,CacheUserName,IRISUsername,IRISPassword,TargetBaseURL";
 
-Parameter DefaultForEmptyContentType As %String;
+Parameter DefaultForEmptyContentType;
 
-Parameter BeautifyJsonBodyResponse As %Boolean = 1;
+Parameter BeautifyJsonBodyResponse = 1;
 
-Parameter BeautifyJsonBodyRequest As %Boolean = 1;
+Parameter BeautifyJsonBodyRequest = 1;
 
-Parameter DispatchClass As %String;
+Parameter DispatchClass;
 
-Parameter DispatchBaseURL As %String;
+Parameter DispatchBaseURL;
 
-Parameter OASPath As %String = "Get:/oas";
+Parameter OASPath = "Get:/oas";
 
 /// Allow API Calling
-Parameter OnlyOAS As %Boolean = 0;
+Parameter OnlyOAS = 0;
 
 /// Use TracerBSName for monitoring
-Parameter Traceable As %Boolean = 1;
+Parameter Traceable = 1;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
 /// When the class is also a Business Service 
-Parameter DispatchBSName As %String;
+Parameter DispatchBSName;
 
-Parameter SSL As %String = "DEFAULT";
+Parameter SSL = "DEFAULT";
 
-Parameter HTTPS As %Boolean = 0;
+Parameter HTTPS = 0;
 
 Parameter CallerInfo = "Rest Client";
 
@@ -619,6 +619,7 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         Set pHTTPS = $Select(pParams.https'="":pParams.https,1:0)
         Set pSSL = $Select(pParams.ssl'="":pParams.ssl,1:"")
         Set pReservedOutboundParams = $Select(pParams.reservedOutboundParams'="":pParams.reservedOutboundParams,1:"")
+        Set pHeaders = $Select(pParams.headers'="":pParams.headers,1:"")
         Set tURL = ""
         Set pHttpRequest = ##class(%Net.HttpRequest).%New()
         Set pHttpRequest.Https = pHTTPS
@@ -629,6 +630,11 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         While (tProp.%GetNext(.key,.value)) {
             Do pHttpRequest.SetHeader(key,$Select($IsObject(value):value.%ToJSON(),1:value))
         }
+		For i=1:1:$Length(pHeaders,",") {
+			Set hKey = $Piece($Piece(pHeaders,",",i),":",1)
+			Set hValue = $Piece($Piece(pHeaders,",",i),":",2)
+			If hKey'="",hValue'="" Do pHttpRequest.SetHeader(hKey,hValue)
+		}
 		If $Find("get:put:post:patch:delete:",$Piece($ZCONVERT(pMessageRequest.APIPath,"L"),":",1))>0 {
 			Set pMessageRequest.APIPath = $Piece(pMessageRequest.APIPath,":",2,*)
 		}

@@ -127,7 +127,7 @@ Method GetParams(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicOb
 	{
         If $Length(..Params)=0 Return tRef
         Set tJson = {}.%FromJSON(..Params)
-        Set tRef = ##class(APITracer.utils.json).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
+        Set tRef = ##class(apiPub.core.jsonBuilder).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
     }
 	Catch(e)
 	{
@@ -142,7 +142,7 @@ Method GetHeaders(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicO
 	{
         If $Length(..Headers)=0 Return tRef
         Set tJson = {}.%FromJSON(..Headers)
-        Set tRef = ##class(APITracer.utils.json).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
+        Set tRef = ##class(apiPub.core.jsonBuilder).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
     }
 	Catch(e)
 	{
@@ -159,7 +159,7 @@ Method GetBody(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicObje
         If $Length(..Body.Read())=0 Return tRef
         Do ..Body.Rewind()
         Set tJson = {}.%FromJSON(..Body)
-        Set tRef = ##class(APITracer.utils.json).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
+        Set tRef = ##class(apiPub.core.jsonBuilder).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
     }
 	Catch(e)
 	{
