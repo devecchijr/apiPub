@@ -370,6 +370,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             //Request
             If (value.%Get("hasComplexParams")) {
                 Set tSingleInputObj = (tInBodyObjCount=1)
+
                 If '(tSingleInputObj) {
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^$ref","#/components/requestBodies/"_key_"Request",,"^")
                     Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/json^schema^type","object",,"^")
@@ -431,7 +432,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             }
                             If tCustomFlatParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^description",tCustomFlatParams.%Get("description"),,"^")
                             If tCustomFlatParams.%Get("required")'="" Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^required",tCustomFlatParams.%Get("required"),"boolean","^")
-                            If (tSingleOutputObj) {
+                            If (tSingleInputObj) {
                                 Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/json^schema^type","object",,"^")
                                 If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/xml^schema^type","object",,"^")
                             } Else {
@@ -454,7 +455,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                     {"type":"number"},
                                     {"type":"boolean"}
                                 ]}
-                            If (tSingleOutputObj) {
+                            If (tSingleInputObj) {
                                 Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/json^schema^type","array",,"^")
                                 Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/json^schema^items",tArrayObj,,"^")
                                 If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^requestBodies^"_key_"Request^content^application/xml^schema^type","array",,"^")
