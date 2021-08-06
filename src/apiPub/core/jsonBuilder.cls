@@ -6,7 +6,7 @@ ClassMethod JSet(ByRef pJSON As %Library.DynamicObject, pKey As %String, pValue 
     Quit ..SetByLineKey(pJSON, pKey, pValue, pType, pDelim, pInferBoolean)
 }
 
-ClassMethod JGet(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject
+ClassMethod JGet(pJSON As %Library.DynamicObject, pKey As %String, pDelim As %String = ".") As %Library.DynamicObject [ SqlProc ]
 {
     Quit ..GetByLineKey(pJSON, pKey, pDelim)
 }
@@ -239,7 +239,11 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 				Set tKey = tKey_$Select(i=1:"",1:"^")_tPc
 			}
 			If $IsObject(value) {
-				Do ..SetByLineKey(pIndexedMap,tKey,value,,"^")
+                Do ..JSONToFlatJSON(value,.fobj,{"printResults":0})
+                Set fprop = fobj.%GetIterator()
+                While (fprop.%GetNext(.fkey,.fvalue)) {
+				    Do ..SetByLineKey(pIndexedMap,tKey_"^"_fkey,fvalue,,"^")
+                }
 			} Else {
 				Do ..SetByLineKey(pIndexedMap,tKey,{"@operationId":(value)},,"^")
 			}
