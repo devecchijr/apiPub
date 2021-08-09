@@ -171,6 +171,28 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
     Quit tSC
 }
 
+/// upload multiple files
+/// - param1 and param2 are examples that is possible to work with other types all togheter
+/// @apiPub[params.param2.inputType="multipart/form-data"]
+/// @apiPub[params.pImage1.inputType="multipart/form-data"]
+/// @apiPub[params.pImage2.inputType="multipart/form-data"]
+/// @apiPub[charset="iso-8859-1"]
+/// @apiPub[response.outputType="text/html"] 
+Method uploadMultipleFiles(param1 As %String, param2 As %String, pImage1 As %Stream.GlobalBinary, pImage2 As %Stream.GlobalBinary) As %String [ WebMethod ]
+{
+    Set tFileContent1=##class(%Stream.FileBinary).%New()
+    Set tSC=tFileContent1.LinkToFile("/Users/claudiodevecchi/Downloads/image1.png")
+    Do tFileContent1.CopyFrom(pImage1)
+    Do tFileContent1.%Save()
+
+    Set tFileContent2=##class(%Stream.FileBinary).%New()
+    Set tSC=tFileContent2.LinkToFile("/Users/claudiodevecchi/Downloads/image2.jpeg")
+    Do tFileContent2.CopyFrom(pImage2)
+    Do tFileContent2.%Save()
+
+    Quit "images uploaded"
+}
+
 /// Updates a pet in the store with form data
 /// @apiPub[path="/pet/{petId}"]
 /// @apiPub[operationId="updatePetWithForm"]
