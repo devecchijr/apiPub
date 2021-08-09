@@ -519,7 +519,9 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		Set tIdx = pRequest.NextMimeData("")
 		While tIdx'="" {
-			Do pRestRequest.InsertMimeData(tIdx, pRequest.GetMimeData(tIdx))
+			Set tStream = $Classmethod("%Stream.GlobalBinary","%New")
+			Do tStream.CopyFrom(pRequest.GetMimeData(tIdx))
+			Do pRestRequest.SetMimeData(tIdx, tStream)
 			Set tIdx = pRequest.NextMimeData(tIdx)
 		}
 		Set pRestRequest.ServiceClass = $This

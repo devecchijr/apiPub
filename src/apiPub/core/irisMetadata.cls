@@ -289,7 +289,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         "pmJDFormat":($Piece(tPMType,"|",3)),
                         "iConvFunction":($Piece(tPMType,"|",4)),
                         "oConvFunction":($Piece(tPMType,"|",5)),
-                        "complexType":(tXmlAdaptor=1),
+                        "complexType":((tXmlAdaptor=1)&&(tParamType'="apiPub.service.message")),
                         "outputOnly":(tParamInOut="*"),
                         "byRef":(tParamInOut="&"),
                         "params":(tParamAtts),

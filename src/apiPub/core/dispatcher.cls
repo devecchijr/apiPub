@@ -75,7 +75,13 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 If value.%Get("inputType")="header" {
                     Set tValue = tInputHeaders.%Get(tPName)
                     If tValue="" Set tValue = tInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
-                } ElseIf value.%Get("inputType")'="",$Find("application/x-www-form-urlencoded",value.%Get("inputType"))=0 {
+                } ElseIf $Find("multipart/form-data application/x-www-form-urlencoded",value.%Get("inputType"))>0 {
+                    If value.%Get("iConvFunction")="stream" {
+                        Set tValue = pRequest.GetMimeData(tPName)
+                    } Else {
+                        Set tValue = tInputParams.%Get(tPName)
+                    }
+                } ElseIf value.%Get("inputType")'="" {
                     Set tValue = pRequest.Body
                 } Else {
                     Set tValue = tInputParams.%Get(tPName)
@@ -83,7 +89,9 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 If value.%Get("pmJType")'="",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
                 If (tPType'="") //Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
-                    ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) { //Output Values
+                    ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) //Output Values
+                    ||(value.%Get("paramType")="apiPub.service.message") //Special type
+                    { 
                     Set tClStr = tClStr_","_$Select((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1):".",1:"")_"tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")
                     Set tIsList=$Piece(value.%Get("paramType"),"|",2)
                     Set tSchema = value.%Get("customSchema")
@@ -97,7 +105,12 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     }
                     If tSchema="" Set tSchema = tSchemas
                     Set tSchemaName = value.%Get("customSchemaName")
-                    If '(value.%Get("outputOnly")),value.%Get("complexType")=1,pInputBody.%Get(tPName)'="" {
+                    //complex input types
+                    If '(value.%Get("outputOnly")) //must be an input parameter
+                    &&(
+                        ((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //complex body object
+                        ||(value.%Get("paramType")="apiPub.service.message") //special type to get the whole http request content
+                    ) {
                         Set tParamType = $Piece(value.%Get("paramType"),"|",1)
                         Set reqObj=""
                         Set jsonReqObj = pInputBody.%Get(tPName)
@@ -123,14 +136,18 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 }
                                 Set reqObj=tList
                             } Else {
-                                Set tSC = ##Class(apiPub.core.converter).JSONToObj(jsonReqObj,$Piece(value.%Get("paramType"),"|",1),.reqObj)
-                                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                                If tParamType="apiPub.service.message" { //special type
+                                    Set reqObj=pRequest
+                                } Else { //body object
+                                    Set tSC = ##Class(apiPub.core.converter).JSONToObj(jsonReqObj,$Piece(value.%Get("paramType"),"|",1),.reqObj)
+                                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                                }
                                 Kill jsonReqObj
                             }
                         }
                         Set tCmd = "(req) Set tmpZ"_$Tr(tPName,"!@#$%^&*()_- ","")_"=req"
                         Xecute (tCmd,reqObj)
-                    } Else {
+                    } Else { //simple or native types
                         If '(value.%Get("outputOnly")),tValue'="" {
                             If tIsList'="" {
                                 Set tList = $ClassMethod(tIsList,"%New")

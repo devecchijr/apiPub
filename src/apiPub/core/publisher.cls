@@ -152,9 +152,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
+                //Special type to get the whole http request
+                If pvalue.%Get("paramType")="apiPub.service.message",..GetByLineKey(value,"param")'="response" Continue
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
-                If pvalue.%Get("inputType")'="",$Find("application/x-www-form-urlencoded",pvalue.%Get("inputType"))>0 {
-                    //for x-www-form-urlencoded inputType
+                If pvalue.%Get("inputType")'="",$Find("application/x-www-form-urlencoded multipart/form-data",pvalue.%Get("inputType"))>0 {
+                    //for x-www-form-urlencoded and multipart/form-data inputType
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^type","object",,"^")
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^type",pvalue.%Get("pmJDType"),,"^")
                     If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^format",pvalue.%Get("pmJDFormat"),,"^")
