@@ -76,13 +76,17 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     Set tValue = tInputHeaders.%Get(tPName)
                     If tValue="" Set tValue = tInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
                 } ElseIf $Find("multipart/form-data application/x-www-form-urlencoded",value.%Get("inputType"))>0 {
-                    If value.%Get("iConvFunction")="stream" {
-                        Set tValue = pRequest.GetMimeData(tPName)
+                    If value.%Get("iConvFunction")="stream",value.%Get("pmJDFormat")="binary" {
+                        Set tStreamobj = $ClassMethod(value.%Get("paramType"),"%New")
+                        Do tStreamobj.CopyFrom(pRequest.GetMimeData(tPName))
+                        Set tValue = tStreamobj
                     } Else {
                         Set tValue = tInputParams.%Get(tPName)
                     }
                 } ElseIf value.%Get("inputType")'="" {
-                    Set tValue = pRequest.Body
+                    Set tStreamobj = $ClassMethod(value.%Get("paramType"),"%New")
+                    Do tStreamobj.CopyFrom(pRequest.Body)
+                    Set tValue = tStreamobj
                 } Else {
                     Set tValue = tInputParams.%Get(tPName)
                 }

@@ -6,7 +6,10 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
     Set tSC = $System.Status.OK()
     Try {
         If '$Data(pParams) Set pParams={}
-        If '$Data(pInternal) Set pInternal={"level":0,"origClass":(pClassName)}
+        If '$Data(pInternal) {
+            k pJSON,methodInfo
+            Set pInternal={"level":0,"origClass":(pClassName)}
+        }
         If '$Data(pJSON) Set pJSON={"methods":{},"customSchemas":{}}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
@@ -65,9 +68,9 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                         Continue
                     }
                     If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..GetByLineKey(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
-                        Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.mInfo,{"printResults":0})
+                        Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.methodInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(mInfo.%ToJSON()),,pDelim)
+                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(methodInfo.%ToJSON()),,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -202,8 +205,10 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
     Set tSC = $System.Status.OK()
     Try {
         If '$Data(pParams) Set pParams={}
-        If '$Data(pJSON) Set pJSON={}
-        If '$Data(pLevel) Set pLevel=0
+        If '$Data(pLevel) {
+            Set pLevel=0
+            Set pJSON={}
+        }
         If pLevel'=+pLevel Set pLevel=0
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
@@ -256,6 +261,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     If ..GetByLineKey(tApiPubParams,"successfulCode",".")'="" Set pSuccessfulCode = ..GetByLineKey(tApiPubParams,"successfulCode",".")
                 }
                 Do ..SetByLineKey(pJSON,"successfulCode",pSuccessfulCode,,pDelim)
+                Set (tBinaryStreamParams,tCharStreamParams)=""
                 For i=1:1:$ListLength(tMD.FormalSpecParsed) {
                     Set (tParamName,tParamDesc,tParamType,tParamInOut,tParamDefault,tParamAtts)=""
                     Set tSerParam=$ListGet(tMD.FormalSpecParsed,i)
@@ -279,6 +285,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         If ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")'="" Set tParamName = ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")
                         If ..GetByLineKey(tApiPubParams,"params."_tParam_".outputType",".")'="" Set tParamOutput = ..GetByLineKey(tApiPubParams,"params."_tParam_".outputType",".")
                         If ..GetByLineKey(tApiPubParams,"params."_tParam_".inputType",".")'="" Set tParamInput = ..GetByLineKey(tApiPubParams,"params."_tParam_".inputType",".")
+                    }
+                    // if type=stream and inputType not defined, then set a defaut
+                    If tParamInput="",$Piece(tPMType,"|",4)="stream",tParamName'="response" {
+                        If "%Stream.GlobalBinary %Stream.FileBinary"[tParamType Set tBinaryStreamParams=tBinaryStreamParams_$Select(tBinaryStreamParams'="":",",1:"")_..GetByLineKey(pJSON,"formalSpec").%Size()                     
+                        If "%Stream.GlobalCharacter %Stream.FileCharacter"[tParamType Set tCharStreamParams=tCharStreamParams_$Select(tCharStreamParams'="":",",1:"")_..GetByLineKey(pJSON,"formalSpec").%Size()                     
                     }
                     Set tParamObj = {
                         "param":(tParam),
@@ -340,6 +351,23 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     If (tParamObj.%Get("complexType")),(tParamInOut="&") Do ..SetByLineKey(pJSON,"byRefBodyParams[+]",i-1,,pDelim)
                     If (tParamObj.%Get("complexType")),(tParamInOut="") Do ..SetByLineKey(pJSON,"inputBodyParams[+]",i-1,,pDelim)
                     Do ..SetByLineKey(pJSON,"formalSpec[+]",tParamObj,,pDelim)
+                }
+                //set defaulf values for not defined inputtypes
+                If tCharStreamParams'="" {
+                    For i=1:1:$L(tCharStreamParams,",") {
+                        Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
+                        Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".param")_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
+                        Do pJSON.%Set("requestContentType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
+                    }
+                }
+                If tBinaryStreamParams'="" {
+                    // different types in the same method
+                    If tCharStreamParams'="" Set tBinaryStreamParams=tBinaryStreamParams_","_tCharStreamParams
+                    For i=1:1:$L(tBinaryStreamParams,",") {
+                        Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".inputType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
+                        Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".param")_".inputType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
+                        Do pJSON.%Set("requestContentType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
+                    }
                 }
                 If tMD.ReturnType'="" {
                     Set tType = tMD.ReturnType
