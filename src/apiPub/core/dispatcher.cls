@@ -109,6 +109,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     }
                     If tSchema="" Set tSchema = tSchemas
                     Set tSchemaName = value.%Get("customSchemaName")
+                    Set tParse = value.%Get("parse")
                     //complex input types
                     If '(value.%Get("outputOnly")) //must be an input parameter
                     &&(
@@ -120,7 +121,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                         Set jsonReqObj = pInputBody.%Get(tPName)
                         If (tParamType = "%Library.DynamicObject")||(tParamType = "%Library.DynamicArray") {
                             Set reqObj={}.%FromJSON(jsonReqObj.%ToJSON())
-                            If tSchemaName'="" {
+                            If tSchemaName'="",tParse'=0 {
                                 Set tSC = ##class(apiPub.core.parser).Parse(tSchemaName,reqObj,tSchema,.tParseResult,.tParseText,{"printResults":0})
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                 If tParseText'="1" {

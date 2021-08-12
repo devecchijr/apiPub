@@ -313,18 +313,22 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     Set tElType = $Tr($Piece($Piece(tParamAtts,"ELEMENTTYPE=",2),",",1),"""","")
                     If tApiPubParams.%Get("params")'="" {
                         Set tSchema = ..GetByLineKey(tApiPubParams,"params."_tParam_".schema",".")
+                        Set tParse = ..GetByLineKey(tApiPubParams,"params."_tParam_".parse",".")
+                        If $ZConvert(tParse,"L")="false" Set tParse = 0
                         If tSchema'="" Set tComplexSchema=1
                         If $IsObject(tSchema),tSchema.%Get("items")'="" Set tComplexSchema=0
                         If (tParamObj.%Get("complexType")) {
                             If $IsObject(tXDataJSON),'$IsObject(tSchema),tXDataJSON.%Get("schemas")'="" {
                                 If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
                                     Do tParamObj.%Set("customSchemaName",tSchema)
+                                    Do tParamObj.%Set("parse",tParse)
                                 }
                             } ElseIf $IsObject(tSchema),tSchema.%Size()=1 {
                                 Do tParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                 Set prop = tSchema.%GetIterator()
                                 Do prop.%GetNext(.tKey,.tValue)
                                 Do tParamObj.%Set("customSchemaName",tKey)
+                                Do tParamObj.%Set("parse",tParse)
                             }
                             If tParamObj.%Get("customSchemaName")="",tParamType="%Library.DynamicArray",("*&"'[tParamInOut)||(tParamInOut="") {
                                 Do tParamObj.%Set("complexType",0)
@@ -364,9 +368,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     // different types in the same method
                     If tCharStreamParams'="" Set tBinaryStreamParams=tBinaryStreamParams_","_tCharStreamParams
                     For i=1:1:$L(tBinaryStreamParams,",") {
-                        Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".inputType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
-                        Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".param")_".inputType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
-                        Do pJSON.%Set("requestContentType",$Select($L(tBinaryStreamParams,",")=1:"application/octet-stream",1:"multipart/form-data"))
+                        Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".inputType","multipart/form-data")
+                        Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".param")_".inputType","multipart/form-data")
+                        Do pJSON.%Set("requestContentType","multipart/form-data")
                     }
                 }
                 If tMD.ReturnType'="" {

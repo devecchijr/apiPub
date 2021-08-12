@@ -38,7 +38,7 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
             If pSchema.%Get("required").%Get(pKey)'="" {
                 Set tReq = pSchema.%Get("required").%Get(pKey).%GetIterator()
                 While (tReq.%GetNext(.rkey,.rvalue)) {
-                    If pJSON.%Get(rkey)="" {
+                    If 'pJSON.%IsDefined(rkey) {
                         Do pResult.%Set("valid",0)
                         Do pResult.%Get("invalidItems").%Push("Path "_$Replace($Replace(pOPKey,"^","."),".[","[")_"."_rkey_" is required")
                     }
