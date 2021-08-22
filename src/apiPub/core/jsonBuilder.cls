@@ -226,10 +226,11 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 		Set pIndexedMap = {}
 		Set prop = pAPIMap.%Get("paths").%GetIterator()
 		While (prop.%GetNext(.key,.value)) {
-			Set tKey = ""
-			For i=1:1:$Length(key,"/") {
+            Set attKey=$Select($E(key,*)="/":$E(key,1,*-1),1:key)
+            Set tKey = ""
+			For i=1:1:$Length(attKey,"/") {
 				Set tParName = ""
-				Set tPc = $Replace($Piece(key,"/",i),":","")
+				Set tPc = $Replace($Piece(attKey,"/",i),":","")
 				If i=1 Set tPc = $ZConvert(tPc,"S")
 				If $Find(tPc,"{")>0,$Find(tPc,"}")>0 {
 					Set tParName = $Replace($Replace(tPc,"{",""),"}","")
@@ -247,7 +248,7 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 			} Else {
 				Do ..SetByLineKey(pIndexedMap,tKey,{"@operationId":(value)},,"^")
 			}
-			Do ..SetByLineKey(pIndexedMap,tKey_"^@path",key,,"^")
+			Do ..SetByLineKey(pIndexedMap,tKey_"^@path",attKey,,"^")
 			If tParName'="" Do ..SetByLineKey(pIndexedMap,tKey_"^@parName",tParName,,"^")
 		}
 	}
@@ -255,7 +256,7 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 	{
 		Set tSC = e.AsStatus()
 	}
-	Quit tSC
+ 	Quit tSC
 }
 
 // Separate Behaviour params (starts with _) from Method/Request params

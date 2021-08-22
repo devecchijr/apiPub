@@ -240,7 +240,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^xml^name","response",,"^")
                 }
             }
-            Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^basicAuth",[],,"^")
+            If value.%Get("authorizationMethod")="" {
+                Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^basicAuth",[],,"^")
+            } Else {
+                Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^bearerAuth",[],,"^")
+            }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
@@ -522,6 +526,9 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         } Else {
             Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^type","http",,"^")
             Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^basicAuth^scheme","basic",,"^")
+            Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^bearerAuth^type","http",,"^")
+            Do ..SetByLineKey(tSchemaDef,"components^securitySchemes^bearerAuth^scheme","bearer",,"^")
+
         }
         Do ..SetByLineKey(tSchemaDef,"components^responses^UnauthorizedError^description","Authentication information is missing or invalid",,"^")
         Set pJSON = tSchemaDef       

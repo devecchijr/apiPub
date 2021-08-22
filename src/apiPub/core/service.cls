@@ -330,6 +330,44 @@ ClassMethod MsgResponseToHttpResponse(pResponse As apiPub.service.message) As %S
 	Quit tSC
 }
 
+ClassMethod getJWT(payload As %Library.DynamicObject, sharedKey As %String, header As %Library.DynamicObject) As %String
+{
+    If '$Data(header) {
+        Set header={
+            "alg": "HS256",
+            "typ": "JWT"
+        }
+    }
+    If '$Data(sharedKey) Set sharedKey=""
+    Set tHeader=header.%ToJSON()
+    Set tHeader=$zcvt(tHeader,"O","UTF8")
+    Set b64header=$$$BASE64URLENCODE(tHeader)
+    Set sharedKey=$$$BASE64URLDECODE(sharedKey)
+	Set tBody=payload.%ToJSON()
+	Set tBody=$zcvt(tBody,"O","UTF8")
+	Set b64body=$$$BASE64URLENCODE(tBody)
+    Set sig=$SYSTEM.Encryption.HMACSHA(256,b64header_"."_b64body,sharedKey)
+    Set b64sig=$$$BASE64URLENCODE(sig)
+    Quit b64header_"."_b64body_"."_b64sig
+}
+
+ClassMethod validJWT(token As %String, sharedKey As %String, Output payload As %Library.DynamicObject, Output header As %Library.DynamicObject) As %Boolean
+{
+	Set tValid = 0
+	Try
+	{
+		If $LENGTH(token,".")'=3 Return 0
+		Set header = {}.%FromJSON($$$BASE64URLDECODE($Piece(token,".",1)))
+		Set payload = {}.%FromJSON($$$BASE64URLDECODE($Piece(token,".",2)))
+    	If '$Data(sharedKey) Set sharedKey=""
+		Return ($Piece(..getJWT(payload,sharedKey,header),".",3)=$Piece(token,".",3))
+	}
+	Catch(e)
+	{
+	}
+	Quit tValid
+}
+
 ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output pSC As %Status)
 {
 	Set %response.ContentType = ..#CONTENTTYPEJSON
@@ -427,6 +465,7 @@ ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pIdxMap As %
 		Set tPath = pHttpVerb_":"_pOrigPath
 		Set tPoint = pIdxMap
 		Set tParams = {}
+		Set tFSlash=0
 		For i=1:1:$Length(tPath,"/") {
 			Set tParValue = ""
 			Set tPc = $Replace($Piece(tPath,"/",i),":","")
@@ -690,50 +729,91 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Routes>
 <Route Url="/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path" Method="GET" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path/" Method="GET" Call="FromHttpCall"/>
 <Route Url="/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 </Routes>
 }
 

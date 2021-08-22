@@ -110,7 +110,9 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
                     Set tSC = $$$ERROR($$$GeneralError, "invalid "_pTag_" param ["_tAttBlock_"]")
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 }
-                Do ..SetByLineKey(pOutputParams,$Tr($Piece(tAttBlock,"=",1),"""",""),tVal,,".")
+                Set tKey=$Tr($Piece(tAttBlock,"=",1),"""","")
+                If tKey="path",$E(tVal,1)'="/" Set tVal="/"_tVal
+                Do ..SetByLineKey(pOutputParams,tKey,tVal,,".")
             }
         }
         Set pOutputCom = $Replace($Replace(pOutputCom,$Char(10),""),$Char(13),"")
@@ -215,6 +217,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
         Set pResponseObjName = $Select(pParams.responseObjName'="":pParams.responseObjName,1:"response")
         Set pShowClassSchemas = $Select(pParams.showClassSchemas'="":pParams.showClassSchemas,1:0)
         Set pSuccessfulCode = $Select(pParams.successfulCode'="":pParams.successfulCode,1:"200")
+        Set tAuthorizationMethod=""
+        Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(pMethodKey,"||",1)_"||AUTHORIZATIONMETHOD")
+        If $IsObject(tMParam) {
+            Set tAuthorizationMethod = tMParam.Default
+        }
         Set tCD=##class(%Dictionary.ClassDefinition).%OpenId($Piece(pMethodKey,"||",1))
         If $IsObject(tCD) {
             Set tMD = ##class(%Dictionary.CompiledMethod).%OpenId(pMethodKey)
@@ -237,9 +244,15 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 }
                 Do ..SetByLineKey(pJSON,"description",tMD.Description,,pDelim)
                 Do ..SetByLineKey(pJSON,"classMethod",tMD.ClassMethod,,pDelim)
-                Do ..SetByLineKey(pJSON,"SoapMessageName",tMD.SoapMessageName,,pDelim)
-                Do ..SetByLineKey(pJSON,"SoapNameSpace",tMD.SoapNameSpace,,pDelim)
-                Do ..SetByLineKey(pJSON,"SoapRequestMessage",tMD.SoapRequestMessage,,pDelim)
+                Do ..SetByLineKey(pJSON,"soapMessageName",tMD.SoapMessageName,,pDelim)
+                Do ..SetByLineKey(pJSON,"soapNameSpace",tMD.SoapNameSpace,,pDelim)
+                Do ..SetByLineKey(pJSON,"soapRequestMessage",tMD.SoapRequestMessage,,pDelim)
+                If tAuthorizationMethod'="" {
+                    Set tProtected = 1
+                    If (..GetByLineKey(tApiPubParams,"protected")=0) Set tProtected = 0
+                    If (..GetByLineKey(tApiPubParams,"public")=1) Set tProtected = 0
+                    If tProtected=1 Do ..SetByLineKey(pJSON,"authorizationMethod",tAuthorizationMethod,,pDelim)
+                }
                 Do ..SetByLineKey(pJSON,"formalSpec",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"inputBodyParams",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"byRefBodyParams",[],,pDelim)
