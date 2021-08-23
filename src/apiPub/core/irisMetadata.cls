@@ -173,12 +173,14 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.mInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Set tVerb=mInfo.%Get("verb")
+                        Set tProtected=mInfo.%Get("protected")
                         Set tPath = tVerb_":/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
                         Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
                         If pJSON.%Get("paths").%Get(tPath)'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class"_pClassName))
                         Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
                         If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
+                        If tProtected'="" Do pJSON.%Get("paths").%Get(tPath).%Set("protected",tProtected)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -217,11 +219,6 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
         Set pResponseObjName = $Select(pParams.responseObjName'="":pParams.responseObjName,1:"response")
         Set pShowClassSchemas = $Select(pParams.showClassSchemas'="":pParams.showClassSchemas,1:0)
         Set pSuccessfulCode = $Select(pParams.successfulCode'="":pParams.successfulCode,1:"200")
-        Set tAuthorizationMethod=""
-        Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId($Piece(pMethodKey,"||",1)_"||AUTHORIZATIONMETHOD")
-        If $IsObject(tMParam) {
-            Set tAuthorizationMethod = tMParam.Default
-        }
         Set tCD=##class(%Dictionary.ClassDefinition).%OpenId($Piece(pMethodKey,"||",1))
         If $IsObject(tCD) {
             Set tMD = ##class(%Dictionary.CompiledMethod).%OpenId(pMethodKey)
@@ -247,12 +244,10 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 Do ..SetByLineKey(pJSON,"soapMessageName",tMD.SoapMessageName,,pDelim)
                 Do ..SetByLineKey(pJSON,"soapNameSpace",tMD.SoapNameSpace,,pDelim)
                 Do ..SetByLineKey(pJSON,"soapRequestMessage",tMD.SoapRequestMessage,,pDelim)
-                If tAuthorizationMethod'="" {
-                    Set tProtected = 1
-                    If (..GetByLineKey(tApiPubParams,"protected")=0) Set tProtected = 0
-                    If (..GetByLineKey(tApiPubParams,"public")=1) Set tProtected = 0
-                    If tProtected=1 Do ..SetByLineKey(pJSON,"authorizationMethod",tAuthorizationMethod,,pDelim)
-                }
+                Set tProtected = 1
+                If (..GetByLineKey(tApiPubParams,"protected")=0) Set tProtected = 0
+                If (..GetByLineKey(tApiPubParams,"public")=1) Set tProtected = 0
+                Do ..SetByLineKey(pJSON,"protected",tProtected,,pDelim)
                 Do ..SetByLineKey(pJSON,"formalSpec",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"inputBodyParams",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"byRefBodyParams",[],,pDelim)

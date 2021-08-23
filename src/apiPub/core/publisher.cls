@@ -14,6 +14,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         Set pClassMethodOnly = $Select(pParams.classMethodOnly'="":pParams.classMethodOnly,1:0)
         Set pMethodName = $Select(pParams.methodName'="":pParams.methodName,1:"")
         Set pBasePath = $Select(pParams.basePath'="":pParams.basePath,1:"")
+        Set pAuthMethod = $Select(pParams.authMethod'="":pParams.authMethod,1:"basic")
         Set pJSON = {}
         Set tMParam=##class(%Dictionary.ParameterDefinition).%OpenId(pClassName_"||SERVICENAME")
         Set tTitle=pClassName_" API"
@@ -240,10 +241,10 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^xml^name","response",,"^")
                 }
             }
-            If value.%Get("authorizationMethod")="" {
-                Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^basicAuth",[],,"^")
-            } Else {
+            If pAuthMethod="bearer",value.%Get("protected")=1 {
                 Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^bearerAuth",[],,"^")
+            } Else {
+                Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^security[0]^basicAuth",[],,"^")
             }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {

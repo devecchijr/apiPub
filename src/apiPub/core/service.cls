@@ -44,12 +44,34 @@ Parameter TargetBaseURL;
 
 Parameter APIDomain = "apiPub";
 
+/// 1 for basic or 2 for bearer token
+Parameter AuthMethod = 1;
+
+/// Secret key for Bearer JWT Authorization 
+Parameter AuthSecretKey = "secret_this_should_be_longer";
+
+/// Issuer for JWT Authorization payload
+Parameter AuthTokenIssuer = "issuer";
+
+/// Audience for JWT Authorization payload
+Parameter AuthTokenAudience = "audience";
+
+/// Seconds for JWT expiration (1 hour = 3600 sec)
+Parameter AuthTokenExpirationTime = 3600;
+
 ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
     Try {
         If pRequest.APIOperationId="getOAS",pRequest.DispatchClass'="" Return ..GetOAS(pRequest,.pResponse)
-		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" Return ..Dispatch(pRequest,.pResponse)
+		If pRequest.DispatchClass'="",pRequest.DispatchMethod'="" {
+			//bearer token validation
+			If ..#AuthMethod=2,pRequest.ProtectedRoute=1 {
+				Set tSC = ..validateAuthorization(pRequest)
+				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+			}
+			Return ..Dispatch(pRequest,.pResponse)
+		}
 		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not mapped"))
     }
     Catch(e) {
@@ -85,6 +107,7 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
         Set tBasePath = tBusParams.%Get("basePath")
         Set tParams.basePath = tBasePath
         Set tParams.printResults = 0
+		If ..#AuthMethod=2 Set tParams.authMethod = "bearer"
 		If ..#DispatchBaseURL'="" {
 			Set tRequestURL = ..#DispatchBaseURL
 			If $Find(tRequestURL,"http")=0 Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,3)_$Replace("/"_..#DispatchBaseURL,"//","/")
@@ -330,20 +353,46 @@ ClassMethod MsgResponseToHttpResponse(pResponse As apiPub.service.message) As %S
 	Quit tSC
 }
 
-ClassMethod getJWT(payload As %Library.DynamicObject, sharedKey As %String, header As %Library.DynamicObject) As %String
+/// validade all apis with a bearer token (ApiPub) but protected="false" or "public"="true"
+ClassMethod validateAuthorization(pRequest As apiPub.service.message, Output payload, Output header) As apiPub.service.message
 {
+    Set tBearer = $Piece(pRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
+    If '(..verifyJWTSig(tBearer,,.payload,.header)) {
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
+    }
+    If payload.%Get("exp")-$ZDATETIME($NOW(),-2)<0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
+    Quit pRequest
+}
+
+/// Issue a Web Token. CustomPayload is not required
+ClassMethod getJWT(customPayload As %Library.DynamicObject, sharedKey As %String, header As %Library.DynamicObject) As %String
+{
+    If '$Data(customPayload) Set customPayload={}
     If '$Data(header) {
         Set header={
             "alg": "HS256",
             "typ": "JWT"
         }
     }
+	If ('$Data(sharedKey))||(sharedKey="") {
+		Set sharedKey=..#AuthSecretKey
+	}
+	//standard properties
+    Set stdPayload = {
+        "iss":(..#AuthTokenIssuer),
+        "aud":(..#AuthTokenAudience),
+        "iat": ($ZDATETIME($NOW(),-2)),
+        "exp": ($ZDATETIME($NOW(),-2)+..#AuthTokenExpirationTime)
+    }
+	//merge custom and standard payload properties
+	Set tSC = ..JSONAppend(customPayload,stdPayload)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
     If '$Data(sharedKey) Set sharedKey=""
     Set tHeader=header.%ToJSON()
     Set tHeader=$zcvt(tHeader,"O","UTF8")
     Set b64header=$$$BASE64URLENCODE(tHeader)
     Set sharedKey=$$$BASE64URLDECODE(sharedKey)
-	Set tBody=payload.%ToJSON()
+	Set tBody=stdPayload.%ToJSON()
 	Set tBody=$zcvt(tBody,"O","UTF8")
 	Set b64body=$$$BASE64URLENCODE(tBody)
     Set sig=$SYSTEM.Encryption.HMACSHA(256,b64header_"."_b64body,sharedKey)
@@ -351,16 +400,24 @@ ClassMethod getJWT(payload As %Library.DynamicObject, sharedKey As %String, head
     Quit b64header_"."_b64body_"."_b64sig
 }
 
-ClassMethod validJWT(token As %String, sharedKey As %String, Output payload As %Library.DynamicObject, Output header As %Library.DynamicObject) As %Boolean
+/// check if it's a valid token signature
+ClassMethod verifyJWTSig(token As %String, sharedKey As %String, Output payload As %Library.DynamicObject, Output header As %Library.DynamicObject) As %Boolean
 {
 	Set tValid = 0
 	Try
 	{
+		If ('$Data(sharedKey))||(sharedKey="") {
+			Set sharedKey=$$$BASE64URLDECODE(..#AuthSecretKey)
+		} Else {
+			Set sharedKey=$$$BASE64URLDECODE(sharedKey)
+		}
 		If $LENGTH(token,".")'=3 Return 0
-		Set header = {}.%FromJSON($$$BASE64URLDECODE($Piece(token,".",1)))
-		Set payload = {}.%FromJSON($$$BASE64URLDECODE($Piece(token,".",2)))
-    	If '$Data(sharedKey) Set sharedKey=""
-		Return ($Piece(..getJWT(payload,sharedKey,header),".",3)=$Piece(token,".",3))
+		Set b64header = $Piece(token,".",1)
+		Set header = {}.%FromJSON($$$BASE64URLDECODE(b64header))
+		Set b64body = $Piece(token,".",2)
+		Set payload = {}.%FromJSON($$$BASE64URLDECODE(b64body))
+		Set sig=$SYSTEM.Encryption.HMACSHA(256,b64header_"."_b64body,sharedKey)
+		Return ($$$BASE64URLENCODE(sig)=$Piece(token,".",3))
 	}
 	Catch(e)
 	{
@@ -537,6 +594,27 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 				Set tStrHeaders = tHeaders.%ToJSON()
 			}
 			Set pRestRequest.Headers = tStrHeaders
+			If ..#AuthMethod=2,$zConvert($Piece(pRestRequest.GetHeaders("HTTP_AUTHORIZATION")," ",1),"L")="bearer" {
+    			Set token = $Piece(pRestRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
+				Try {
+					Set b64header = $Piece(token,".",1)
+					Set tAuthHeader = {}.%FromJSON($$$BASE64URLDECODE(b64header))
+					Set b64body = $Piece(token,".",2)
+					Set tAuthPayload = {}.%FromJSON($$$BASE64URLDECODE(b64body))
+					If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+						Set tFormatter = ##class(%JSON.Formatter).%New()
+						Do tFormatter.FormatToString(tAuthHeader.%ToJSON(),.tStrAuthHeader) 
+						Do tFormatter.FormatToString(tAuthPayload.%ToJSON(),.tStrAuthPayload) 
+					} Else {
+						Set tStrAuthHeader = tAuthHeader.%ToJSON()
+						Set tStrAuthPayload = tAuthPayload.%ToJSON()
+					}
+					Set pRestRequest.AuthHeader=tStrAuthHeader
+					Set pRestRequest.AuthBody=tStrAuthPayload
+				}
+				Catch nex {
+				}
+			}
 		}
 		Set tCookies = {}
 		Set tIdx = pRequest.NextCookie("")
@@ -619,6 +697,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If tAPIInfo.%Get("urlParams").%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("urlParams").%Get("className")
 			If tAPIInfo.%Get("urlParams").%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("urlParams").%Get("methodName")
 			Set pRestRequest.APIOperationId = tAPIInfo.%Get("operationId")
+			Set pRestRequest.ProtectedRoute = tAPIInfo.%Get("protected")
 			If pRestRequest.APIOperationId="" Set pRestRequest.APIOperationId = pRestRequest.DispatchMethod
 			If pRestRequest.DispatchClass="" Set pRestRequest.DispatchClass = ..#DispatchClass
 			Set pRestRequest.APIPath = tAPIInfo.%Get("path")

@@ -23,8 +23,6 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         If minfo.%Size()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"invalid method call ("_tMethodKey_")"))
         Set tVerb=$ZConvert(minfo.%Get("customParams").%Get("verb"),"L")
-        Set tPreValidationMethod=minfo.%Get("customParams").%Get("preValidationMethod")
-        If tPreValidationMethod="",minfo.%Get("authorizationMethod")'="" Set tPreValidationMethod = minfo.%Get("authorizationMethod")
         Set tSchemas=minfo.%Get("schemas")
         If tSchemas = "" Set tSchemas = {}
         If tVerb="" Set tVerb=$Select((minfo.%Get("hasComplexParams")):"post",1:"get")
@@ -47,21 +45,6 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             } Else {
                 Set tServiceObj=$ClassMethod($Piece(tMethodKey,"||",1),"%New")
-            }
-        }
-        //Verify if there is a pre validation method for calling
-        If tPreValidationMethod'="" {
-            Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(pRequest.DispatchClass_"||"_tPreValidationMethod,.mPVinfo,{"printResults":0,"showClassSchemas":1})
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            If mPVinfo.%Get("classMethod")="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,tPreValidationMethod_" is not a valid method"))
-            If ..GetByLineKey(mPVinfo,"formalSpec[0].paramType")'="apiPub.service.message" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"input parameter of "_tPreValidationMethod_" method must be apiPub.service.message"))
-            If (..GetByLineKey(mPVinfo,"outputBodyParams").SizeGet()'=1)||(..GetByLineKey(mPVinfo,"formalSpec["_..GetByLineKey(mPVinfo,"outputBodyParams.0")_"].paramType")'="apiPub.service.message") Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"output parameter of "_tPreValidationMethod_" method must be apiPub.service.message"))
-            If mPVinfo.%Get("classMethod")=0 {
-                Set tPVCmd = "(pHttpReq,tObj) Quit $Method(tObj,"""_tPreValidationMethod_""",pHttpReq)"
-                Set pRequest = $xecute(tPVCmd,pRequest,tServiceObj)
-            } Else {
-                Set tPVCmd = "(pHttpReq) Quit $ClassMethod("""_$Piece(tMethodKey,"||",1)_""","""_tPreValidationMethod_""",pHttpReq)"
-                Set pRequest = $xecute(tPVCmd,pRequest)
             }
         }
         If $Find("post put",$ZConvert(pRequest.HttpVerb,"L"))>0,$ZConvert(pRequest.ContentType,"L")["json" {

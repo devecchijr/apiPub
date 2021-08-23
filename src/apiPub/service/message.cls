@@ -51,6 +51,27 @@ Property DispatchMethod As %String(MAXLEN = 100);
 
 Property ServiceClass As %String(MAXLEN = 200);
 
+Property ProtectedRoute As %Boolean;
+
+Property AuthHeader As %String(MAXLEN = "");
+
+Property AuthBody As %String(MAXLEN = "");
+
+Method GetAuthBody(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicObject
+{
+    Set tRef=""
+    Try
+	{
+        If $Length(..AuthBody)=0 Return tRef
+        Set tJson = {}.%FromJSON(..AuthBody)
+        Set tRef = ##class(apiPub.core.jsonBuilder).GetByLineKey(tJson,pLineKey,pKeyDelimiter)
+    }
+	Catch(e)
+	{
+	}
+    Quit tRef
+}
+
 Method GetParams(pLineKey, pKeyDelimiter As %String = ".") As %Library.DynamicObject
 {
     Set tRef=""
@@ -172,6 +193,11 @@ ClassMethod GetParamsProp(pID, pLineKey, pKeyDelimiter As %String = ".") As %Lib
 
 Storage Default
 {
+<Data name="MimeDataIdx">
+<Attribute>MimeDataIdx</Attribute>
+<Structure>subnode</Structure>
+<Subscript>"apiPub.service.message.MimeDataIdx"</Subscript>
+</Data>
 <Data name="messageDefaultData">
 <Subscript>"message"</Subscript>
 <Value name="1">
@@ -247,7 +273,13 @@ Storage Default
 <Value>ServiceClass</Value>
 </Value>
 <Value name="25">
-<Value>MimeDataIdx</Value>
+<Value>ProtectedRoute</Value>
+</Value>
+<Value name="26">
+<Value>AuthHeader</Value>
+</Value>
+<Value name="27">
+<Value>AuthBody</Value>
 </Value>
 </Data>
 <DefaultData>messageDefaultData</DefaultData>
