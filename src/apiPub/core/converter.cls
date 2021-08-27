@@ -68,6 +68,7 @@ ClassMethod ObjToJSON(pObj As %RegisteredObject, Output pJSON As %Library.Dynami
         If '$Data(pParams) Set pParams={}
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pUseCacheDefinition = $Select(pParams.useCacheDefinition'="":pParams.useCacheDefinition,1:1)
+        Set pCharset = $Select(pParams.charset'="":pParams.charset,1:"UTF-8")
         Set pUnwappObject = $Select(pParams.unwappObject'="":pParams.unwappObject,1:1)
         If '$Data(pObj)||'($IsObject(pObj)) {
             Set tSC = $$$ERROR($$$GeneralError, "Invalid Object")
@@ -78,6 +79,7 @@ ClassMethod ObjToJSON(pObj As %RegisteredObject, Output pJSON As %Library.Dynami
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         Set tWt=##class(%XML.Writer).%New()
         Set tWt.Indent=1
+        Set tWt.Charset=pCharset
         Do tWt.OutputToStream(.tXML)
         Do tWt.RootObject(pObj)
         Set pParams.noNamedRoot = "@null"
@@ -113,6 +115,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
         Set pRootName = $Select(pParams.noNamedRoot'="":pParams.noNamedRoot,1:"Root")
         Set pNoNamedArray = $Select(pParams.noNamedElement'="":pParams.noNamedElement,1:"Element")
         Set pAttPrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
+        Set pCharset = $Select(pParams.charset'="":pParams.charset,1:"UTF-8")
         Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pGhostDelim = $Select(pParams.ghostDelim'="":pParams.ghostDelim,1:"__")
@@ -128,6 +131,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
             Set pRootDefined=0
 			Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(pJSON.%ToJSON())
             Set pWriter=##class(%XML.Writer).%New()
+            Set pWriter.Charset=pCharset
             Set pWriter.Indent=1
             Set tSC = pWriter.OutputToStream(.pXmlStream)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}

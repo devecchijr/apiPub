@@ -59,6 +59,18 @@ Parameter AuthTokenAudience = "audience";
 /// Seconds for JWT expiration (1 hour = 3600 sec)
 Parameter AuthTokenExpirationTime = 3600;
 
+/// Encription Salt for Custom Pwd validation
+Parameter EncryptSalt = "salt";
+
+/// Encription BitLen for Custom Pwd validation
+Parameter EncryptBitLen = 256;
+
+/// Encription KeyLen for Custom Pwd validation
+Parameter EncryptKeyLen = 32;
+
+/// Encription Iterations for Custom Pwd validation
+Parameter EncryptIterations = 1000;
+
 ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
@@ -305,7 +317,7 @@ ClassMethod HttpResponseToMsgResponse(pURL As %String, pHttpRequest As %Net.Http
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 				Set pMessageResponse.Params = tParamsStr
 			} Else {
-				Set tParamsStr = tParams.%ToJSON()			
+				Set pMessageResponse.Params = tParams.%ToJSON()			
 			}
         }
         Set pMessageResponse.RequestURL = pURL
@@ -362,6 +374,21 @@ ClassMethod validateAuthorization(pRequest As apiPub.service.message, Output pay
     }
     If payload.%Get("exp")-$ZDATETIME($NOW(),-2)<0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
     Quit pRequest
+}
+
+/// Validate Encripted client Password with server password
+/// This method uses PBKDF2 algoritm
+/// 
+/// example client Javascript implementation:   
+/// 
+/// import  * as CryptoJS from "crypto-js";
+/// 
+/// const criptoPBKDF2 = CryptoJS.PBKDF2(password, 'salt', { keySize: 256 / 32, iterations: 1001, hasher: CryptoJS.algo.SHA256 });
+/// const criptoPwdB64 = criptoPBKDF2.toString(CryptoJS.enc.Base64)
+ClassMethod validatePassword(encriptedClientPwd As %String, serverPwd) As %Boolean
+{
+   Set tEncriptedPwd = $SYSTEM.Encryption.Base64Encode(##class(%SYSTEM.Encryption).PBKDF2(serverPwd,..#EncryptIterations,..#EncryptSalt,..#EncryptKeyLen,..#EncryptBitLen))
+   Quit tEncriptedPwd=encriptedClientPwd
 }
 
 /// Issue a Web Token. CustomPayload is not required
@@ -574,7 +601,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		Set tIdx = pRequest.Next("")
 		While tIdx'="" {
             Set tValue = $Get(pRequest.Data(tIdx,1))
-            If tValue'="" Do tParams.%Set(tIdx,tValue)
+            If tValue'="" Do tParams.%Set(tIdx,$Select((..#CHARSET'="")&&($ZCVT(..#CHARSET,"U")'="UTF-8"):tValue, 1:$ZCVT(tValue,"O","UTF8")))
 			Set tIdx = pRequest.Next(tIdx)
 		}
 		Set tHeaders = {}
@@ -645,6 +672,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		Set pRestRequest.HttpVerb = $ZConvert(tHeaders."REQUEST_METHOD","S")
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
 		Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"
+		Set pRestRequest.CharSet = ..#CHARSET
 		If $IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
 			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyRequest),$Find($ZConvert(pRestRequest.ContentType,"L"),"json") {
 				Set tSC = tFormatter.FormatToStream(pRequest.Content,pRestRequest.Body) 
@@ -704,7 +732,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		Set tURLParams = tAPIInfo.%Get("urlParams").%GetIterator()
 		While tURLParams.%GetNext(.ukey,.uvalue) {
-			Do tParams.%Set(ukey,uvalue)
+			Do tParams.%Set(ukey,$ZCONVERT(uvalue,"O","UTF8"))
 		}
 		If pTargetBaseURL'="" Set pRestRequest.TargetBaseURL = pTargetBaseURL 
 		For i=1:1:$Length(pReservedInboundParams,",") {
