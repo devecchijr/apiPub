@@ -4,34 +4,84 @@ Class apiPub.samples.api Extends %RegisteredObject [ ProcedureBlock ]
 /// Add a new pet to the store
 /// @apiPub[path="/pet"]
 /// @apiPub[params.description="Pet object that needs to be added to the store"]
-Method addPet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
+Method addPet(pPet As apiPub.samples.Pet) As apiPub.samples.Pet [ WebMethod ]
 {
-    Set tSC = $System.Status.OK()
-    Try {
-        If $IsObject(##class(apiPub.samples.Pet).idIDXOpen(pPet.id)) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) Already Exists"))
-        }
-        Set tSC = ..savePet(pPet)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()      
-    }
-    Quit tSC
+    Do ..validatePet(pPet,0)
+    Do pPet.%Save()
+    Quit pPet
 }
 
 /// Update an existing pet
 /// @apiPub[path="/pet"]
 /// @apiPub[params.description="Pet object that needs to be added/updated to the store"]
 /// @apiPub[verb="put"]
-Method updatePet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
+Method updatePet(pPet As apiPub.samples.Pet) As apiPub.samples.Pet [ WebMethod ]
+{
+    Do ..validatePet(pPet,1)
+    Do pPet.%Save()
+    Quit pPet
+}
+
+Method validatePet(pPet As apiPub.samples.Pet, update As %Boolean = 0)
+{
+    If (update) {
+        If pPet.%Id()="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet (id) doesn't Exist"))
+        //Removes not updated tags (IsModified()=0)
+        For i=1:1:pPet.tags.Count() {
+            Set tTag=pPet.tags.GetAt(i)
+            If tTag.%Id()'="",tTag.%IsModified()=0 Do pPet.tags.RemoveAt(i)
+        }
+    } Else {
+        If pPet.%Id()'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet (id) already exists"))
+    }
+}
+
+/// Deletes a Pet
+/// @apiPub[path="/pet/{petId}"]
+/// @apiPub[verb="delete"]
+/// @apiPub[params.id.description="Pet id to delete"]
+/// @apiPub[params.id.name="petId"]
+/// @apiPub[params.apikey.inputType="header"]
+/// @apiPub[params.apikey.name="api_key"]
+Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
-        If '$IsObject(##class(apiPub.samples.Pet).idIDXOpen(pPet.id)) {
+        Set pPet = ##class(apiPub.samples.Pet).%OpenId(id)
+        If '$IsObject(pPet) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
+        Set sql = "Delete FROM apiPub_samples.Tag WHERE pet = ?"
+        Set stat = ##class(%SQL.Statement).%New()
+        Set tSC = stat.%Prepare(sql)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set rset = stat.%Execute(pPet.%Id())
+        Set tSC = ##class(apiPub.samples.Pet).%DeleteId(pPet.%Id())
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    }
+    Catch(e) {
+        Set tSC = e.AsStatus()      
+    }
+    Quit tSC
+}
+
+/// Updates a pet in the store with form data
+/// @apiPub[path="/pet/{petId}"]
+/// @apiPub[operationId="updatePetWithForm"]
+/// @apiPub[params.petId.description="ID of pet that needs to be updated"]
+/// @apiPub[params.name.description="Updated name of the pet"]
+/// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
+/// @apiPub[params.status.description="Updated status of the pet"]
+/// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
+Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
+{
+    Set tSC = $System.Status.OK()
+    Try {
+        Set pet = ##class(apiPub.samples.Pet).%OpenId(petId)
+        If '$IsObject(pet) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
-        Set tSC = ..savePet(pPet)
+        Set pet.name = name
+        Set pet.status = status
+        Set tSC = pet.%Save()
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
     }
     Catch(e) {
@@ -40,57 +90,29 @@ Method updatePet(pPet As apiPub.samples.Pet) As %Status [ WebMethod ]
     Quit tSC
 }
 
-Method savePet(pPet As apiPub.samples.Pet) As %Status
-{
-    Set tSC = $System.Status.OK()
-    Try {
-        If '$IsObject(pPet) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid Object"))
-        }
-        Set tCat = ##class(apiPub.samples.Category).idIDXOpen(pPet.category.id)
-        If $IsObject(pPet.category) {
-            Set tCat = ##class(apiPub.samples.Category).idIDXOpen(pPet.category.id)
-            If '$IsObject(tCat) {
-                Set tCat = ##class(apiPub.samples.Category).%New()
-                Set tCat.id = pPet.category.id
-                Set tCat.name = pPet.category.name
-                Set tSC = tCat.%Save()
-                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            }
-            Set pPet.category=tCat
-        }
-        Set tExPet = ##class(apiPub.samples.Pet).idIDXOpen(pPet.id)
-        If $IsObject(tExPet) {
-            Set tExPet.name=pPet.name
-            Set tExPet.category=pPet.category
-            Set tExPet.status=pPet.status
-            Set tSC = tExPet.%Save()
-        } Else {
-            Set tSC = pPet.%Save()
-        }
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()      
-    }
-    Quit tSC
-}
-
-/// Finds Pets by status
+/// Finds Pets by status using pagination
 /// @apiPub[path="/pet/findByStatus"]
 /// @apiPub[params.description="Multiple status values can be provided with comma separated strings"]
 /// @apiPub[params.pStatus.description="Status values that need to be considered for filter"]
 /// @apiPub[params.pStatus.schema.items.enum=["available","pending","sold"]]
 /// @apiPub[params.pStatus.schema.default="available"]
-Method findByStatus(pStatus As %String) As %ListOfObjects(ELEMENTTYPE="apiPub.samples.Pet") [ WebMethod ]
+/// @apiPub[response.name="results"]
+Method findByStatus(pStatus As %String, page As %String, pagesize As %String, Output maxResults As %Numeric = 0) As %ListOfObjects(ELEMENTTYPE="apiPub.samples.Pet") [ WebMethod ]
 {
-	Set sql = "SELECT ID1 FROM apiPub_samples.Pet WHERE status in ('"_$Replace(pStatus,",","','")_"')"
+	Set sql = "SELECT ID FROM apiPub_samples.Pet WHERE status in ('"_$Replace(pStatus,",","','")_"')"
 	Set stat = ##class(%SQL.Statement).%New()
 	Set Status = stat.%Prepare(sql)
 	Set rset = stat.%Execute()
+    Set tPage=1
     Set ret = ##class(%ListOfObjects).%New()
 	While rset.%Next() {
-        Do ret.Insert(##class(apiPub.samples.Pet).%OpenId(rset.ID1))
+        set tPush=1
+        Set maxResults=maxResults+1
+        If +page'=0,+pagesize'=0 {
+            Set tPush=(page=tPage)
+            If maxResults#pagesize=0 Set tPage=tPage+1
+        }
+        If (tPush) Do ret.Insert(##class(apiPub.samples.Pet).%OpenId(rset.ID))
 	}
     Return ret
 }
@@ -107,13 +129,13 @@ Method findByTags(pTags As %Library.DynamicArray) As %ListOfObjects(ELEMENTTYPE=
     While tIter.%GetNext(.key,.value) {
         Set tags = tags_$Select(key=0:"",1:",")_"'"_value_"'"
     }
-	Set sql = "SELECT ID1 FROM apiPub_samples.Pet WHERE ID1 in (SELECT pet FROM apiPub_samples.Tag WHERE name in ("_tags_"))"
+	Set sql = "SELECT ID FROM apiPub_samples.Pet WHERE ID1 in (SELECT pet FROM apiPub_samples.Tag WHERE name in ("_tags_"))"
     Set stat = ##class(%SQL.Statement).%New()
 	Set Status = stat.%Prepare(sql)
 	Set rset = stat.%Execute()
     Set ret = ##class(%ListOfObjects).%New()
 	While rset.%Next() {
-        Do ret.Insert(##class(apiPub.samples.Pet).%OpenId(rset.ID1))
+        Do ret.Insert(##class(apiPub.samples.Pet).%OpenId(rset.ID))
 	}
     Return ret
 }
@@ -130,10 +152,8 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 {
     //If not numeric
     If pId'=+pId {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid ID supplied"))}
-    Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
-    If '$IsObject(tPet) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet not found"))
-    }
+    Set tPet = ##class(apiPub.samples.Pet).%OpenId(pId)
+    If '$IsObject(tPet) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet not found"))
     Return tPet
 }
 
@@ -145,7 +165,7 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
-        Set tPet = ##class(apiPub.samples.Pet).idIDXOpen(pId)
+        Set tPet = ##class(apiPub.samples.Pet).%OpenId(pId)
         If '$IsObject(tPet) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
@@ -160,7 +180,6 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
             Set photoUrl = ##class(%ListOfDataTypes).%New()
             Do photoUrl.Insert(tUrl)
             Set tPet.photoUrls=photoUrl
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set tSC = tPet.%Save()
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         }
@@ -176,7 +195,6 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
 /// @apiPub[params.param2.inputType="multipart/form-data"]
 /// @apiPub[params.pImage1.inputType="multipart/form-data"]
 /// @apiPub[params.pImage2.inputType="multipart/form-data"]
-/// @apiPub[charset="iso-8859-1"]
 /// @apiPub[response.outputType="text/html"] 
 Method uploadMultipleFiles(param1 As %String, param2 As %String, pImage1 As %Stream.GlobalBinary, pImage2 As %Stream.GlobalBinary) As %String [ WebMethod ]
 {
@@ -191,62 +209,6 @@ Method uploadMultipleFiles(param1 As %String, param2 As %String, pImage1 As %Str
     Do tFileContent2.%Save()
 
     Quit "images uploaded"
-}
-
-/// Updates a pet in the store with form data
-/// @apiPub[path="/pet/{petId}"]
-/// @apiPub[operationId="updatePetWithForm"]
-/// @apiPub[params.petId.description="ID of pet that needs to be updated"]
-/// @apiPub[params.name.description="Updated name of the pet"]
-/// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
-/// @apiPub[params.status.description="Updated status of the pet"]
-/// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
-Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
-{
-    Set tSC = $System.Status.OK()
-    Try {
-        Set pet = ##class(apiPub.samples.Pet).idIDXOpen(petId)
-        If '$IsObject(pet) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
-        }
-        Set pet.name = name
-        Set pet.status = status
-        Set tSC = ..savePet(pet)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()      
-    }
-    Quit tSC
-}
-
-/// Deletes a Pet
-/// @apiPub[path="/pet/{petId}"]
-/// @apiPub[verb="delete"]
-/// @apiPub[params.id.description="Pet id to delete"]
-/// @apiPub[params.id.name="petId"]
-/// @apiPub[params.apikey.inputType="header"]
-/// @apiPub[params.apikey.name="api_key"]
-Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
-{
-    Set tSC = $System.Status.OK()
-    Try {
-        Set pPet = ##class(apiPub.samples.Pet).idIDXOpen(id)
-        If '$IsObject(pPet) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
-        }
-        Set sql = "Delete FROM apiPub_samples.Tag WHERE pet = ?"
-        Set stat = ##class(%SQL.Statement).%New()
-        Set tSC = stat.%Prepare(sql)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set rset = stat.%Execute(pPet.%Id())
-        Set tSC = ##class(apiPub.samples.Pet).%DeleteId(pPet.%Id())
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()      
-    }
-    Quit tSC
 }
 
 /// Returns pet inventories by status
@@ -273,10 +235,8 @@ Method getInventory() As %Library.DynamicObject [ WebMethod ]
 /// @apiPub[params.description="order placed for purchasing the pet"]
 Method placeOrder(pOrder As apiPub.samples.Order) As %Status [ WebMethod ]
 {
-    If $IsObject(##class(apiPub.samples.Order).idIDXOpen(pOrder.id)) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Order (id) Already Exists"))
-    }
-    If '$IsObject(pOrder.pet) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Invalid Pet (id)"))
+    If pOrder.%Id()'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Order (id) Already Exists"))
+    If '$IsObject(pOrder.petId) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Invalid petId"))
     Quit pOrder.%Save()
 }
 
@@ -287,10 +247,8 @@ Method placeOrder(pOrder As apiPub.samples.Order) As %Status [ WebMethod ]
 /// @apiPub[params.orderId.description="ID of the order that needs to be fetched"]
 Method getOrderById(orderId As %Integer(MINVAL=1,MAXVAL=10)) As apiPub.samples.Order [ WebMethod ]
 {
-    Set order = ##class(apiPub.samples.Order).idIDXOpen(orderId)
-    If '$IsObject(order) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Order (id) doesn't Exist"))
-    }
+    Set order = ##class(apiPub.samples.Order).%OpenId(orderId)
+    If '$IsObject(order) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Order (id) doesn't Exist"))
     Quit order
 }
 
@@ -304,10 +262,8 @@ Method deleteOrder(orderId As %Integer(MINVAL=1)) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
-        Set order = ##class(apiPub.samples.Order).idIDXOpen(orderId)
-        If '$IsObject(order) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Order (id) doesn't Exist"))
-        }
+        Set order = ##class(apiPub.samples.Order).%OpenId(orderId)
+        If '$IsObject(order) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Order (id) doesn't Exist"))
         Set tSC = ##class(apiPub.samples.Order).%DeleteId(order.%Id())
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
     }
@@ -322,20 +278,12 @@ Method deleteOrder(orderId As %Integer(MINVAL=1)) As %Status [ WebMethod ]
 /// @apiPub[tag="user"]
 /// @apiPub[params.description="This can only be done by the logged in user."]
 /// @apiPub[successfulCode="201"]
-Method createUser(pUser As apiPub.samples.User) As %Status [ WebMethod ]
+Method createUser(pUser As apiPub.samples.User) As apiPub.samples.User [ WebMethod ]
 {
-    Set tSC = $System.Status.OK()
-    Try {
-        If $IsObject(##class(apiPub.samples.User).idIDXOpen(pUser.id)) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (id) Already Exists"))
-        }
-        Set tSC = ..saveUser(pUser)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()      
-    }
-    Quit tSC
+    If pUser.%Id()'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (id) Already Exists"))
+    Set tSC = pUser.%Save()
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    Quit pUser
 }
 
 /// Creates list of users with given input array
@@ -349,14 +297,13 @@ Method createUsersWithArrayInput(pArrayOfUsers As %ArrayOfObjects(ELEMENTTYPE="a
         //Validate Array
         For i=1: 1: pArrayOfUsers.Count() {
             Set tUser=pArrayOfUsers.GetAt(i)
-            If $IsObject(##class(apiPub.samples.User).idIDXOpen(tUser.id)) {
-                Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (id) Already Exists"))
-            }
+            Set tExUser = ##class(apiPub.samples.User).usernameIDXOpen(tUser.username)
+            If $IsObject(tExUser) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User ("_tExUser.username_") Already Exists"))
         }
         //Save
         For i=1: 1: pArrayOfUsers.Count() {
             Set tUser=pArrayOfUsers.GetAt(i)
-            Set tSC = ..saveUser(tUser)
+            Set tSC = tUser.%Save()
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         }
     }
@@ -377,14 +324,13 @@ Method createUsersWithListInput(pListOfUsers As %ListOfObjects(ELEMENTTYPE="apiP
         //Validate List
         For i=1: 1: pListOfUsers.Count() {
             Set tUser=pListOfUsers.GetAt(i)
-            If $IsObject(##class(apiPub.samples.User).idIDXOpen(tUser.id)) {
-                Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (id) Already Exists"))
-            }
+            Set tExUser = ##class(apiPub.samples.User).usernameIDXOpen(tUser.username)
+            If $IsObject(tExUser) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User ("_tExUser.username_") Already Exists"))
         }
         //Save
         For i=1: 1: pListOfUsers.Count() {
             Set tUser=pListOfUsers.GetAt(i)
-            Set tSC = ..saveUser(tUser)
+            Set tSC = tUser.%Save()
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         }
     }
@@ -404,10 +350,10 @@ Method updateUser(pUserName As %String, pUser As apiPub.samples.User) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
-        If '$IsObject(##class(apiPub.samples.User).usernameIDXOpen(pUserName)) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
-        }
-        Set tSC = ..saveUser(pUser)
+        If pUser.%Id()'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User Id can't be informed"))
+        Set tUser = ##class(apiPub.samples.User).usernameIDXOpen(pUserName)
+        If '$IsObject(tUser) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
+        Set tSC = ..saveUser(tUser.%Id(),pUser)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
     }
     Catch(e) {
@@ -426,12 +372,9 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
 {
     Set tSC = $System.Status.OK()
     Try {
-        If '$IsObject(##class(apiPub.samples.User).usernameIDXOpen(username)) {
-            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "User (username) doesn't Exist"))
-        }
         Set tSC = ##class(apiPub.core.converter).JSONToObj(user, "apiPub.samples.User", .pUser)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tSC = ..saveUser(pUser)
+        Set tSC = ..updateUser(username,pUser)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
     }
     Catch(e) {
@@ -440,14 +383,14 @@ Method updateUserUsingOASSchema(username As %String, user As %Library.DynamicObj
     Quit tSC
 }
 
-Method saveUser(pUser As apiPub.samples.User) As %Status
+Method saveUser(id As %String, pUser As apiPub.samples.User) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
         If '$IsObject(pUser) {
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid Object"))
         }
-        Set tExUser = ##class(apiPub.samples.User).idIDXOpen(pUser.id)
+        Set tExUser = ##class(apiPub.samples.User).%OpenId(id)
         If $IsObject(tExUser) {
             Set tExUser.username=pUser.username
             Set tExUser.firstName=pUser.firstName
@@ -577,7 +520,7 @@ XData apiPub [ MimeType = application/json ]
             "User": {
                 "type": "object",
                 "required": [
-                    "id"
+                    "username"
                 ],
                 "properties": {
                     "id": {

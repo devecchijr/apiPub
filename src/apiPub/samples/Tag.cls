@@ -1,7 +1,5 @@
-Class apiPub.samples.Tag Extends (%Persistent, %XML.Adaptor)
+Class apiPub.samples.Tag Extends (%Persistent, apiPub.samples.persistent)
 {
-
-Property id As %Integer;
 
 Property name As %String(MAXLEN = "");
 
@@ -18,12 +16,9 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 <Value name="2">
-<Value>id</Value>
-</Value>
-<Value name="3">
 <Value>name</Value>
 </Value>
-<Value name="4">
+<Value name="3">
 <Value>pet</Value>
 </Value>
 </Data>

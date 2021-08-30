@@ -193,11 +193,6 @@ ClassMethod GetParamsProp(pID, pLineKey, pKeyDelimiter As %String = ".") As %Lib
 
 Storage Default
 {
-<Data name="MimeDataIdx">
-<Attribute>MimeDataIdx</Attribute>
-<Structure>subnode</Structure>
-<Subscript>"apiPub.service.message.MimeDataIdx"</Subscript>
-</Data>
 <Data name="messageDefaultData">
 <Subscript>"message"</Subscript>
 <Value name="1">
@@ -273,12 +268,21 @@ Storage Default
 <Value>ServiceClass</Value>
 </Value>
 <Value name="25">
-<Value>ProtectedRoute</Value>
+<Value>MimeDataIdx</Value>
 </Value>
 <Value name="26">
-<Value>AuthHeader</Value>
+<Value>AuthProtected</Value>
 </Value>
 <Value name="27">
+<Value>AuthHeader</Value>
+</Value>
+<Value name="28">
+<Value>AuthPayload</Value>
+</Value>
+<Value name="29">
+<Value>ProtectedRoute</Value>
+</Value>
+<Value name="30">
 <Value>AuthBody</Value>
 </Value>
 </Data>

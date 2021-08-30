@@ -1,11 +1,7 @@
-Class apiPub.samples.Category Extends (%Persistent, %XML.Adaptor)
+Class apiPub.samples.Category Extends (%Persistent, apiPub.samples.persistent)
 {
 
-Property id As %Integer;
-
 Property name As %String(MAXLEN = "");
-
-Index idIDX On id [ Unique ];
 
 Index nameIDX On name;
 
@@ -16,9 +12,6 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 <Value name="2">
-<Value>id</Value>
-</Value>
-<Value name="3">
 <Value>name</Value>
 </Value>
 </Data>

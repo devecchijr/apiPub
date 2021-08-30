@@ -456,6 +456,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 {
 	Set %response.ContentType = ..#CONTENTTYPEJSON
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
+	If $Find(tMessage,"<THROW>zXMLNew")>0,$Find(tMessage,"<404")>0 Set tMessage="<404> Invalid Object Reference For "_$Piece($Piece(tMessage,"^",2)," ",1)  
 	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
 	If $Find($zConvert(tMessage,"L"),"<204>")>0 {
 		Set tMessage = $Replace(tMessage,"<204>","")

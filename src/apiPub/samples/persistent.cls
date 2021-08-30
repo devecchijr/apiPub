@@ -1,12 +1,12 @@
 /// Project or open the persistent using json _id or xml id attribute
-Class apiPub.model.persistent Extends %XML.Adaptor
+Class apiPub.samples.persistent Extends %XML.Adaptor
 {
 
 Parameter ROWIDNAME As %String = "id";
 
 Parameter VALIDATEREFID As %Boolean = 1;
 
-Property RowID As %XML.Id(XMLNAME = "id", XMLPROJECTION = "Attribute") [ Private, Transient ];
+Property RowID As %XML.Id(XMLNAME = "id", XMLPROJECTION = "Element") [ Private, Transient ];
 
 /// Overload this method to clear children or list process before json or xml ingestion
 /// In some cases (update) it causes duplicities
@@ -17,7 +17,7 @@ ClassMethod beforeUpdateHandler(obj) As %Persistent
 
 ClassMethod XMLNew(document As %XML.Document, node As %Integer, containerOref As %RegisteredObject = "") As %RegisteredObject [ CodeMode = objectgenerator, GenerateAfter = %XMLGenerate, ServerOnly = 1 ]
 {
- If %compiledclass.Name'="apiPub.model.persistent" {
+ If %compiledclass.Name'="apiPub.samples.persistent" {
   Do %code.WriteLine(" Set tmpnode=document.GetNode(node)")
   Do %code.WriteLine(" Set id=tmpnode.GetAttributeValue(..#ROWIDNAME)")
   Do %code.WriteLine(" If id="""" {")
