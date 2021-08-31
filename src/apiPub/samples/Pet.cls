@@ -6,7 +6,7 @@ Property category As apiPub.samples.Category;
 /// @apiPub[example="doggie"]
 Property name As %String(MAXLEN = "") [ Required ];
 
-Property photoUrls As list Of %String(MAXLEN = "", XMLPROJECTION = "element");
+Property photoUrls As list Of %String(MAXLEN = "", XMLIO = "CALC", XMLPROJECTION = "element");
 
 Relationship tags As apiPub.samples.Tag(XMLPROJECTION = "element") [ Cardinality = many, Inverse = pet ];
 
