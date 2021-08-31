@@ -43,7 +43,7 @@ Method validatePet(pPet As apiPub.samples.Pet, update As %Boolean = 0)
 /// @apiPub[params.id.name="petId"]
 /// @apiPub[params.apikey.inputType="header"]
 /// @apiPub[params.apikey.name="api_key"]
-Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
+Method deletePet(apikey As %String, id As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -71,7 +71,7 @@ Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
 /// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
 /// @apiPub[params.status.description="Updated status of the pet"]
 /// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
-Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
+Method updatePetForm(petId As %String, name As %String, status As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -148,7 +148,7 @@ Method findByTags(pTags As %Library.DynamicArray) As %ListOfObjects(ELEMENTTYPE=
 ///     {"code":"400","description":"Invalid ID supplied"}
 ///     ,{"code":"404","description":"Pet not found"}]
 /// ]
-Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
+Method getPetById(pId As %String) As apiPub.samples.Pet [ WebMethod ]
 {
     //If not numeric
     If pId'=+pId {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid ID supplied"))}
@@ -161,7 +161,7 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 /// @apiPub[path="/pet/{petId}/uploadImage"]
 /// @apiPub[params.pId.name="petId"]
 /// @apiPub[params.pContent.inputType="application/octet-stream"]
-Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status [ WebMethod ]
+Method uploadImage(pId As %String, pContent As %Stream.GlobalBinary) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -172,11 +172,11 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
         If pContent.SizeGet()>0 {
             Set tExtension = "png"
             Set tFile = ##class(%Stream.FileBinary).%New()
-            Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
+            Set tSC = tFile.FilenameSet("/tmp/petImage"_pId_"."_tExtension)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set tSC = tFile.CopyFromAndSave(pContent)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_"."_tExtension
+            Set tUrl = "file:///tmp/petImage"_pId_"."_tExtension
             Set photoUrl = ##class(%ListOfDataTypes).%New()
             Do photoUrl.Insert(tUrl)
             Set tPet.photoUrls=photoUrl
@@ -199,12 +199,12 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
 Method uploadMultipleFiles(param1 As %String, param2 As %String, pImage1 As %Stream.GlobalBinary, pImage2 As %Stream.GlobalBinary) As %String [ WebMethod ]
 {
     Set tFileContent1=##class(%Stream.FileBinary).%New()
-    Set tSC=tFileContent1.LinkToFile("/Users/claudiodevecchi/Downloads/image1.png")
+    Set tSC=tFileContent1.LinkToFile("/tmp/image1.png")
     Do tFileContent1.CopyFrom(pImage1)
     Do tFileContent1.%Save()
 
     Set tFileContent2=##class(%Stream.FileBinary).%New()
-    Set tSC=tFileContent2.LinkToFile("/Users/claudiodevecchi/Downloads/image2.jpeg")
+    Set tSC=tFileContent2.LinkToFile("/tmp/image2.jpeg")
     Do tFileContent2.CopyFrom(pImage2)
     Do tFileContent2.%Save()
 
