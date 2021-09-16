@@ -1,6 +1,8 @@
 Class apiPub.samples.api Extends %RegisteredObject [ ProcedureBlock ]
 {
 
+Parameter ImagePath = "/tmp";
+
 /// Add a new pet to the store
 /// @apiPub[path="/pet"]
 /// @apiPub[params.description="Pet object that needs to be added to the store"]
@@ -43,7 +45,7 @@ Method validatePet(pPet As apiPub.samples.Pet, update As %Boolean = 0)
 /// @apiPub[params.id.name="petId"]
 /// @apiPub[params.apikey.inputType="header"]
 /// @apiPub[params.apikey.name="api_key"]
-Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
+Method deletePet(apikey As %String, id As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -71,7 +73,7 @@ Method deletePet(apikey As %String, id As %Integer) As %Status [ WebMethod ]
 /// @apiPub[params.name.inputType="application/x-www-form-urlencoded"]
 /// @apiPub[params.status.description="Updated status of the pet"]
 /// @apiPub[params.status.inputType="application/x-www-form-urlencoded"]
-Method updatePetForm(petId As %Integer, name As %String, status As %String) As %Status [ WebMethod ]
+Method updatePetForm(petId As %String, name As %String, status As %String) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -148,7 +150,7 @@ Method findByTags(pTags As %Library.DynamicArray) As %ListOfObjects(ELEMENTTYPE=
 ///     {"code":"400","description":"Invalid ID supplied"}
 ///     ,{"code":"404","description":"Pet not found"}]
 /// ]
-Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
+Method getPetById(pId As %String) As apiPub.samples.Pet [ WebMethod ]
 {
     //If not numeric
     If pId'=+pId {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> Invalid ID supplied"))}
@@ -161,7 +163,7 @@ Method getPetById(pId As %Integer) As apiPub.samples.Pet [ WebMethod ]
 /// @apiPub[path="/pet/{petId}/uploadImage"]
 /// @apiPub[params.pId.name="petId"]
 /// @apiPub[params.pContent.inputType="application/octet-stream"]
-Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status [ WebMethod ]
+Method uploadImage(pId As %String, pContent As %Stream.GlobalBinary, httpReq As apiPub.service.message) As %Status [ WebMethod ]
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -170,16 +172,14 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
             Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Pet (id) doesn't Exist"))
         }
         If pContent.SizeGet()>0 {
-            Set tExtension = "png"
-            Set tFile = ##class(%Stream.FileBinary).%New()
-            Set tSC = tFile.FilenameSet("/users/claudiodevecchi/downloads/petImage"_pId_"."_tExtension)
+            Set tFilename="petImage"_pId_"s"_$P($NOW(),".",*)_"."_..getMimeType(pContent)
+            Set tSC = ..saveFile(pContent,..#ImagePath_"/"_tFilename)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set tSC = tFile.CopyFromAndSave(pContent)
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set tUrl = "file:///Users/claudiodevecchi/Downloads/petImage"_pId_"."_tExtension
-            Set photoUrl = ##class(%ListOfDataTypes).%New()
-            Do photoUrl.Insert(tUrl)
-            Set tPet.photoUrls=photoUrl
+            Set tUrl = "http://"_httpReq.GetHeaders("HTTP_HOST")_$Piece(httpReq.GetHeaders("REQUEST_URI"),"/",1,2)_"/file/"_tFilename
+            If tPet.photoUrls.Count()=0 {
+                Set tPet.photoUrls=##class(%ListOfDataTypes).%New()
+            }
+            If tPet.photoUrls.Find(tUrl,1)="" Do tPet.photoUrls.Insert(tUrl)
             Set tSC = tPet.%Save()
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         }
@@ -188,6 +188,22 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
         Set tSC = e.AsStatus()      
     }
     Quit tSC
+}
+
+/// show pet images
+/// @apiPub[path="/pet/images/{petId}"]
+/// @apiPub[response.outputType="text/html"]
+Method showPetImages(petId As %String, httpReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    Set tPet = ##class(apiPub.samples.Pet).%OpenId(petId)
+    If '$IsObject(tPet) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> Pet not found"))
+    Set tOutput = ##class(%Stream.GlobalCharacter).%New()
+    For i=1:1:tPet.photoUrls.Count() {
+        Set tFileName=$Piece(tPet.photoUrls.GetAt(i),"/",*)
+        Set tImageStream=..showImage(tFileName,httpReq).Read()
+        Do tOutput.Write(tImageStream)
+    }
+    Quit tOutput
 }
 
 /// upload multiple files
@@ -199,12 +215,12 @@ Method uploadImage(pId As %Integer, pContent As %Stream.GlobalBinary) As %Status
 Method uploadMultipleFiles(param1 As %String, param2 As %String, pImage1 As %Stream.GlobalBinary, pImage2 As %Stream.GlobalBinary) As %String [ WebMethod ]
 {
     Set tFileContent1=##class(%Stream.FileBinary).%New()
-    Set tSC=tFileContent1.LinkToFile("/Users/claudiodevecchi/Downloads/image1.png")
+    Set tSC=tFileContent1.LinkToFile(..#ImagePath_"/image1.png")
     Do tFileContent1.CopyFrom(pImage1)
     Do tFileContent1.%Save()
 
     Set tFileContent2=##class(%Stream.FileBinary).%New()
-    Set tSC=tFileContent2.LinkToFile("/Users/claudiodevecchi/Downloads/image2.jpeg")
+    Set tSC=tFileContent2.LinkToFile(..#ImagePath_"/image2.jpeg")
     Do tFileContent2.CopyFrom(pImage2)
     Do tFileContent2.%Save()
 
@@ -466,6 +482,56 @@ Method loginUser(username As %String, password As %String, Output expiresAfter A
     Set expiresAfter=$ZDT($H,3)
     Set rateLimit=5
     Quit $Horolog
+}
+
+/// show an image
+/// @apiPub[path="/image/{fileName}"]
+/// @apiPub[response.outputType="text/html"]
+Method showImage(fileName As %String, httpReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    //only validate a file
+    Set tFileStream=..getFile(fileName)
+    Set type=..getMimeType(tFileStream)
+    Set tOutput=##class(%Stream.GlobalCharacter).%New()
+    Do tOutput.Write("<img alt="""" src=""http://"_httpReq.GetHeaders("HTTP_HOST")_$Piece(httpReq.GetHeaders("REQUEST_URI"),"/",1,2)_"/file/"_fileName_"""/>")
+    Quit tOutput
+}
+
+/// get a file or image
+/// @apiPub[path="/file/{fileName}"]
+/// @apiPub[response.outputType="application/octet-stream"]
+Method getFile(fileName As %String) As %Stream.FileBinary [ WebMethod ]
+{
+    Set tFileName = ..#ImagePath_"/"_fileName
+    Set tFileStream=##class(%Stream.FileBinary).%New()
+    Set tSC=tFileStream.LinkToFile(tFileName)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    If tFileStream.SizeGet()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<404> file doesn't exist"))
+    Quit tFileStream
+}
+
+ClassMethod getMimeType(image As %Stream.GlobalBinary) As %String
+{
+    Do image.Rewind()
+    //first characters
+    Set tstr = $E(image.ReadLine(),1,16)
+    Do image.Rewind()
+    Set fc = $SYSTEM.Encryption.Base64Encode(tstr)
+    If fc["iVBOR" Quit "png"
+    If fc["/9j/4AAQ" Quit "jpeg"
+    If fc["R0lGODlh" Quit "gif"
+    If fc["SUkq" Quit "tiff"
+    If (fc["UklGR")||($E(fc,1,3)["Qk2") Quit "bmp"
+    Quit ""
+}
+
+ClassMethod saveFile(image As %Stream.GlobalBinary, fileName As %String) As %Status
+{
+    Set timg=##class(%Stream.FileBinary).%New()
+    Set tSC=timg.LinkToFile(fileName)
+    Do timg.CopyFrom(image)
+    Do timg.%Save()
+    Quit $$$OK
 }
 
 /// Logs out current logged in user session
