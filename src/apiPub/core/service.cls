@@ -71,6 +71,18 @@ Parameter EncryptKeyLen = 32;
 /// Encription Iterations for Custom Pwd validation
 Parameter EncryptIterations = 1000;
 
+/// Middleware Request Handler
+ClassMethod RequestHandler(pRequest As apiPub.service.message, pStatus As %Status) As %Status
+{
+	Quit pStatus
+}
+
+/// Middleware Response Handler
+ClassMethod ResponseHandler(pRequest As apiPub.service.message, pResponse As apiPub.service.message, pStatus As %Status, pError As %DynamicObject) As %Status
+{
+	Quit pStatus
+}
+
 ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
@@ -80,9 +92,13 @@ ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse A
 			//bearer token validation
 			If ..#AuthMethod=2,pRequest.ProtectedRoute=1 {
 				Set tSC = ..validateAuthorization(pRequest)
-				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
 			}
-			Return ..Dispatch(pRequest,.pResponse)
+			Set tSC = ..RequestHandler(pRequest, tSC)
+			If 'tSC Return tSC
+			Set tSC =..Dispatch(pRequest,.pResponse)
+			If 'tSC Return tSC
+			Set tSC = ..ResponseHandler(pRequest, pResponse, tSC)
+			Return tSC
 		}
 		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not mapped"))
     }
@@ -166,6 +182,7 @@ ClassMethod Call(pRequest As apiPub.service.message, Output pResponse As apiPub.
 
 ClassMethod FromHttpCall(pURLPaths...) As %Status
 {
+	Set (tRequest,tResponse)=""
 	Try 
 	{
 		Set tRequestParams = {
@@ -195,7 +212,8 @@ ClassMethod FromHttpCall(pURLPaths...) As %Status
 		If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 	}
 	Catch(e) {
-		Do ..ErrorHandler(e, .tSC)
+		Do ..ErrorHandler(tRequest, tResponse, e, .tSC, .tError)
+		If $IsObject(tRequest),$IsObject(tResponse) Set tSC = ..ResponseHandler(tRequest, tResponse, tSC, tError)
 	}
 	Quit tSC
 }
@@ -452,7 +470,7 @@ ClassMethod verifyJWTSig(token As %String, sharedKey As %String, Output payload 
 	Quit tValid
 }
 
-ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output pSC As %Status)
+ClassMethod ErrorHandler(pRequest As apiPub.service.message, pResponse As apiPub.service.message, pStatusException As %Exception.StatusException, Output pSC As %Status, Output pError As %DynamicObject)
 {
 	Set %response.ContentType = ..#CONTENTTYPEJSON
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
@@ -500,7 +518,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 	}
 	If $Extract(tMessage,1,1)=" " Set tMessage = $Extract(tMessage,2,*)
 	Set tMessage = $Replace(tMessage,"XML input","JSON input")
-	Set tErrorTrap={
+	Set pError={
 			"statusCode":($$$ISOK(pStatusException.AsStatus())),
 			"message":(tMessage),
 			"errorCode":(tErrorCode)
@@ -508,7 +526,7 @@ ClassMethod ErrorHandler(pStatusException As %Exception.StatusException, Output 
 	Do %response.SetHeader("iris-statuscode",$$$ISOK(pStatusException.AsStatus()))
 	Do %response.SetHeader("iris-statusmessage",tMessage)
 	Do %response.SetHeader("iris-errorCode",tErrorCode)
-	Write tErrorTrap.%ToJSON()
+	Write pError.%ToJSON()
 	Set pSC = $$$OK
 }
 
