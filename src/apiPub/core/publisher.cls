@@ -153,6 +153,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             }
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
+                If pvalue.%Get("param")'="response",(pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1) Set tOutParObjCount=tOutParObjCount+1
                 //Special type to get the whole http request
                 If pvalue.%Get("paramType")="apiPub.service.message",..GetByLineKey(value,"param")'="response" Continue
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
@@ -199,6 +200,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If tAttName="MINLEN" Do tParObj.%Get("schema").%Set("minLength",tAttValue,"number")
                         If tAttName="MAXLEN" Do tParObj.%Get("schema").%Set("maxLength",tAttValue,"number")
                     }
+                    //set object param
                     If pvalue.%Get("pmJDFormat")'="" Do tParObj.%Get("schema").%Set("format",pvalue.%Get("pmJDFormat"))
                     If (tIsArray) {
                         Do ..SetByLineKey(tParObj,"schema^type","array",,"^")
@@ -228,7 +230,6 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         }
                     }
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^parameters[+]",tParObj,,"^")
-                    If (pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1) Set tOutParObjCount=tOutParObjCount+1
                 }
             }
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^description","successful operation",,"^")
