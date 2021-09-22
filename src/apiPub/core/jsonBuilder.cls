@@ -324,4 +324,10 @@ ClassMethod SaveStreamToFile(pStream As %AbstractStream, pFileName As %String) A
 	Quit tSC
 }
 
+ClassMethod findElement(arr As %Library.DynamicArray, value As %String) As %Numeric
+{
+    Set l = $listfromstring($e(arr.%ToJSON(),2,*-1),",")
+    Quit $listfind(l,value)
+}
+
 }
