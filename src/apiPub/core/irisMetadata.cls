@@ -174,10 +174,26 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Set tVerb=mInfo.%Get("verb")
                         Set tProtected=mInfo.%Get("protected")
+                        Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
                         Set tPath = tVerb_":/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
-                        Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
                         If pJSON.%Get("paths").%Get(tPath)'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class"_pClassName))
+                        //build non required paths
+                        If mInfo.%Get("customParams").%Get("params")'="" {
+                            Set tAuxPath = tPath
+                            Set prop = mInfo.%Get("customParams").%Get("params").%GetIterator()
+		                    While (prop.%GetNext(.cpkey,.cpvalue)) { 
+                                If cpvalue.%Get("required")=0 {
+                                    Set tAuxPath=$Replace(tAuxPath,"/{"_cpkey_"}","")
+                                    Set tAuxPath=$Length(tAuxPath,"/")_"##"_$Piece(tAuxPath,":",1)_":"_$Piece(tAuxPath,":",2,*)
+                                    Do pJSON.%Get("paths").%Set(tAuxPath,{"methodName":(tMD.Name)})
+                                    If tOperationId'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("operationId",tOperationId)
+                                    If tProtected'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("protected",tProtected)
+                                }
+                            }                           
+                        }
+                        //**************************
+                        Set tPath = $Length(tPath,"/")_"##"_$Piece(tPath,":",1)_":"_$Piece(tPath,":",2,*)
                         Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
                         If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
                         If tProtected'="" Do pJSON.%Get("paths").%Get(tPath).%Set("protected",tProtected)
@@ -187,6 +203,11 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
             }
         }
         If pInternal.level=0 {
+            If (pPrintResults) {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(pJSON.%ToJSON(),.jsonString)
+                Write jsonString
+            }
 			Set tSC = ..GetIdxPath(pJSON,.tIdxJSON)
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
             Set pJSON = tIdxJSON
@@ -489,7 +510,7 @@ ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
             If '$Data(timeChanged) Set timeChanged = classDefinition.TimeChanged
-            If $System.SQL.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
+            If $System.SQL.Functions.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1

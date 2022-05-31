@@ -226,7 +226,7 @@ ClassMethod GetIdxPath(pAPIMap As %Library.DynamicObject, Output pIndexedMap As 
 		Set pIndexedMap = {}
 		Set prop = pAPIMap.%Get("paths").%GetIterator()
 		While (prop.%GetNext(.key,.value)) {
-            Set attKey=$Select($E(key,*)="/":$E(key,1,*-1),1:key)
+            Set attKey=$Select($E($Piece(key,"##",*),*)="/":$E($Piece(key,"##",*),1,*-1),1:$Piece(key,"##",*))
             Set tKey = ""
 			For i=1:1:$Length(attKey,"/") {
 				Set tParName = ""
