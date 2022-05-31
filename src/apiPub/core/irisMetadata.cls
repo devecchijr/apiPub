@@ -183,7 +183,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                             Set tAuxPath = tPath
                             Set prop = mInfo.%Get("customParams").%Get("params").%GetIterator()
 		                    While (prop.%GetNext(.cpkey,.cpvalue)) { 
-                                If cpvalue.%Get("required")=0 {
+                                If ..JGet(cpvalue,"required")=0 {
                                     Set tAuxPath=$Replace(tAuxPath,"/{"_cpkey_"}","")
                                     Set tAuxPath=$Length(tAuxPath,"/")_"##"_$Piece(tAuxPath,":",1)_":"_$Piece(tAuxPath,":",2,*)
                                     Do pJSON.%Get("paths").%Set(tAuxPath,{"methodName":(tMD.Name)})
