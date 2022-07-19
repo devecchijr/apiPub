@@ -126,6 +126,72 @@ ClassMethod JSONToFlatJSON(pJSON As %Library.DynamicObject, Output pFlatJSON As 
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pQueryConfig = $Select(pParams.queryConfig'="":pParams.queryConfig,1:{})
+
+        //Internal Params
+        If '$Data(pInternal) Set pInternal={"parentKey":"","parentSchem":"", "parentType":""}
+        Set pParentKey = pInternal.parentKey
+        Set pParentSchem = pInternal.parentSchem
+        Set pParentType = pInternal.parentType
+		If pParentType="" {
+			Set pFlatJSON = {}
+			Do ..JSONToFlatJSON(pJSON,.pFlatJSON,pParams,{"parentKey":"", "parentSchem":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
+            If pPrintResults {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(pFlatJSON.%ToJSON(),.jsonString)
+                Write jsonString,!
+            }
+		} Else {
+			Set prop = pJSON.%GetIterator()
+			While (prop.%GetNext(.key,.value)) {
+				Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
+				Set tSchem = $Select(pParentSchem'="":pParentSchem_pDelim, 1:"")_$Select(key'="":$Select(pInternal.parentType = "array":"[n]",1:key), 1:"")
+                Set tType = ""
+                If ..JGet(pQueryConfig,"groupType")'="" Set tType = ..JGet(pFlatJSON,..JGet(pQueryConfig,"groupType"))
+                If $IsObject(value) {
+                    Set tLabelKey = ""
+                    If pQueryConfig.%Size()'=0 {
+                        Set tLabelKey = ..JGet(pQueryConfig,"*|"_$Piece(pInternal.parentKey,pDelim,*))
+                        If tLabelKey="",tType'="" Set tLabelKey = ..JGet(pQueryConfig,tType_"|"_$Piece(pInternal.parentKey,pDelim,*))
+                    }
+                    If pInternal.parentType = "array",tLabelKey'="" {
+                        If $Piece(tLabelKey,"|",1) = 1 {
+                            Do ..JSONToFlatJSON(value,.pFlatAux,pParams)
+                            Do ..JSet(pFlatJSON,$Piece(tKey,pDelim,1,*-1)_"[+]",pFlatAux,,"~")
+                        }
+                        Set tLabel = key
+                        If $Piece(tLabelKey,"|",2) '= "" {
+                            If $Piece(tLabelKey,"|",2) '= "1" Set tLabel = $Piece(..JGet(value,$Piece(tLabelKey,"|",2),pDelim),"/",*)
+                            If tLabel = "" Set tLabel = key
+                        } 
+                        If $Piece(tLabelKey,"|",2) '= "0" {
+                            Do ..JSONToFlatJSON(value,.pFlatJSON,pParams,{"parentKey":($Piece(tKey,pDelim,1,*-1)_"Idx"_pDelim_tLabel), "parentSchem":($Piece(tSchem,pDelim,1,*-1)_"Idx"_pDelim_tLabel), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+                        }
+                    } Else {
+                        Do ..JSONToFlatJSON(value,.pFlatJSON,pParams,{"parentKey":(tKey), "parentSchem":(tSchem), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+                    }
+				} Else {
+                    Do ..JSet(pFlatJSON,tKey,value,pJSON.%GetTypeOf(key),"~")
+	 			}
+			}
+		}
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod JSONToFlatJSONOld(pJSON As %Library.DynamicObject, Output pFlatJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try
+	{
+        //If not Defined The Params Set the Default Values
+        If '$Data(pParams) Set pParams={}
+        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
 
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":""}
@@ -134,7 +200,7 @@ ClassMethod JSONToFlatJSON(pJSON As %Library.DynamicObject, Output pFlatJSON As 
 
 		If pParentType="" {
 			Set pFlatJSON = {}
-			Do ..JSONToFlatJSON(pJSON,.pFlatJSON,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
+			Do ..JSONToFlatJSONOld(pJSON,.pFlatJSON,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
                 Do tFormatter.FormatToString(pFlatJSON.%ToJSON(),.jsonString)
@@ -145,7 +211,7 @@ ClassMethod JSONToFlatJSON(pJSON As %Library.DynamicObject, Output pFlatJSON As 
 			While (prop.%GetNext(.key,.value)) {
 				Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
 				If $IsObject(value) {
-                    Do ..JSONToFlatJSON(value,.pFlatJSON,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+                    Do ..JSONToFlatJSONOld(value,.pFlatJSON,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
 				} Else {
 					Do pFlatJSON.%Set(tKey,value,pJSON.%GetTypeOf(key))
 	 			}
@@ -208,7 +274,7 @@ ClassMethod JSONAppend(pJSON As %Library.DynamicObject, ByRef pExistingJSON As %
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         Set tM = tFJSON.%GetIterator()
         While tM.%GetNext(.mkey,.mvalue) {
-            Do ..SetByLineKey(pExistingJSON,mkey,mvalue,,"^")
+            Do ..SetByLineKey(pExistingJSON,mkey,mvalue,tFJSON.%GetTypeOf(mkey),"^")
         }
 	}
 	Catch(e)
