@@ -53,6 +53,8 @@ Property ServiceClass As %String(MAXLEN = 200);
 
 Property ProtectedRoute As %Boolean;
 
+Property Trace As %Boolean;
+
 Property AuthHeader As %String(MAXLEN = "");
 
 Property AuthBody As %String(MAXLEN = "");
@@ -284,6 +286,9 @@ Storage Default
 </Value>
 <Value name="30">
 <Value>AuthBody</Value>
+</Value>
+<Value name="31">
+<Value>Trace</Value>
 </Value>
 </Data>
 <DefaultData>messageDefaultData</DefaultData>

@@ -1,6 +1,30 @@
 Class apiPub.core.irisMetadata Extends apiPub.core.jsonBuilder
 {
 
+ClassMethod GetDeprecatedMethods(pClassName As %String) As %Status
+{
+        set tCD=##class(%Dictionary.ClassDefinition).%OpenId(pClassName)
+        If $IsObject(tCD) {
+            If tCD.Super'="" {
+                For sup=1:1:$l(tCD.Super,",") { 
+                    Continue:$p(tCD.Super,",",sup)=""
+                    Set tSC = ..GetDeprecatedMethods($Piece(tCD.Super,",",sup))
+                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                }
+            }
+            Set key=""
+            // description of methods
+            If (tCD.Methods.Count()>0) {
+                Set tMD=tCD.Methods.GetNext(.key)
+                While(key'="") {
+                    W tCD.Name," Dep=",tCD.Deprecated," Method:",tMD.Name," Dep=",tMD.Deprecated,!
+                    Set tMD=tCD.Methods.GetNext(.key)
+                } 
+            }
+        }
+        Quit $$$OK
+}
+
 ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -174,6 +198,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Set tVerb=mInfo.%Get("verb")
                         Set tProtected=mInfo.%Get("protected")
+                        Set tTrace=mInfo.%Get("trace")
                         Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
                         Set tPath = tVerb_":/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
@@ -189,6 +214,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                                     Do pJSON.%Get("paths").%Set(tAuxPath,{"methodName":(tMD.Name)})
                                     If tOperationId'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("operationId",tOperationId)
                                     If tProtected'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("protected",tProtected)
+                                    If tTrace'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("trace",tTrace)
                                 }
                             }                           
                         }
@@ -197,6 +223,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
                         If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
                         If tProtected'="" Do pJSON.%Get("paths").%Get(tPath).%Set("protected",tProtected)
+                        If tTrace'="" Do pJSON.%Get("paths").%Get(tPath).%Set("trace",tTrace)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -269,6 +296,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 If (..GetByLineKey(tApiPubParams,"protected")=0) Set tProtected = 0
                 If (..GetByLineKey(tApiPubParams,"public")=1) Set tProtected = 0
                 Do ..SetByLineKey(pJSON,"protected",tProtected,,pDelim)
+                Do ..SetByLineKey(pJSON,"trace",(..GetByLineKey(tApiPubParams,"trace")=1),,pDelim)
                 Do ..SetByLineKey(pJSON,"formalSpec",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"inputBodyParams",[],,pDelim)
                 Do ..SetByLineKey(pJSON,"byRefBodyParams",[],,pDelim)

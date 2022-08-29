@@ -27,7 +27,7 @@ Parameter OASPath = "Get:/oas";
 Parameter OnlyOAS = 0;
 
 /// Use TracerBSName for monitoring
-Parameter Traceable = 1;
+Parameter Traceable = 0;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 
@@ -160,7 +160,7 @@ ClassMethod Call(pRequest As apiPub.service.message, Output pResponse As apiPub.
 {
 	Try 
 	{
-		If (..#Traceable) {
+		If ((..#Traceable)||(pRequest.Trace=1)) {
 			Set tSC = ..CallBS(..#TracerBSName,pRequest,.pResponse,pMethodName)
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         } Else {
@@ -194,7 +194,7 @@ ClassMethod FromHttpCall(pURLPaths...) As %Status
 		}
 		Set tSC = ..HttpRequestToMsgRequest(%request,tRequestParams,.tRequest, pURLPaths...)
 		If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-		If (..#Traceable) {
+		If ((..#Traceable)||(tRequest.Trace=1)) {
 			Set tSC = ..CallBS(..#TracerBSName,tRequest,.tResponse)
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		} Else {
@@ -745,6 +745,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If tAPIInfo.%Get("urlParams").%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("urlParams").%Get("methodName")
 			Set pRestRequest.APIOperationId = tAPIInfo.%Get("operationId")
 			Set pRestRequest.ProtectedRoute = tAPIInfo.%Get("protected")
+			Set pRestRequest.Trace = tAPIInfo.%Get("trace")
 			If pRestRequest.APIOperationId="" Set pRestRequest.APIOperationId = pRestRequest.DispatchMethod
 			If pRestRequest.DispatchClass="" Set pRestRequest.DispatchClass = ..#DispatchClass
 			Set pRestRequest.APIPath = tAPIInfo.%Get("path")
