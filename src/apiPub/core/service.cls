@@ -27,7 +27,7 @@ Parameter OASPath = "Get:/oas";
 Parameter OnlyOAS = 0;
 
 /// Use TracerBSName for monitoring
-Parameter Traceable = 0;
+Parameter Traceable = 1;
 
 Parameter TracerBSName = "apiPub.tracer.bs";
 

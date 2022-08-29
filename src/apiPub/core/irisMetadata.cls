@@ -1,30 +1,6 @@
 Class apiPub.core.irisMetadata Extends apiPub.core.jsonBuilder
 {
 
-ClassMethod GetDeprecatedMethods(pClassName As %String) As %Status
-{
-        set tCD=##class(%Dictionary.ClassDefinition).%OpenId(pClassName)
-        If $IsObject(tCD) {
-            If tCD.Super'="" {
-                For sup=1:1:$l(tCD.Super,",") { 
-                    Continue:$p(tCD.Super,",",sup)=""
-                    Set tSC = ..GetDeprecatedMethods($Piece(tCD.Super,",",sup))
-                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                }
-            }
-            Set key=""
-            // description of methods
-            If (tCD.Methods.Count()>0) {
-                Set tMD=tCD.Methods.GetNext(.key)
-                While(key'="") {
-                    W tCD.Name," Dep=",tCD.Deprecated," Method:",tMD.Name," Dep=",tMD.Deprecated,!
-                    Set tMD=tCD.Methods.GetNext(.key)
-                } 
-            }
-        }
-        Quit $$$OK
-}
-
 ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
