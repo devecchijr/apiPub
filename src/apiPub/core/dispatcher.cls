@@ -323,7 +323,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             Set pResponse.Headers=tHeadersResponse.%ToJSON()
         }
         If $Data(tResult),$IsObject(tResult),tResult.%IsA("%Library.DynamicAbstractObject") {
-			If tResult.%Size()>0||(($ClassName(tResult)="%Library.DynamicArray")&&$IsObject(tResult)) Do pResponse.Body.Write(tResult.%ToJSON())
+			If tResult.%Size()>0||(($ClassName(tResult)="%Library.DynamicArray")&&$IsObject(tResult)) Do tResult.%ToJSON(pResponse.Body)
 			Set pResponse.ContentType = "application/json"
 		} ElseIf $Data(tResult),$IsObject(tResult),tResult.%IsA("%Stream.Object") {
             Do pResponse.Body.CopyFrom(tResult)

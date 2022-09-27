@@ -502,21 +502,42 @@ ClassMethod select(arr As %Library.DynamicArray, props As %Library.DynamicArray,
 
 ClassMethod find(arr As %Library.DynamicArray, whereClause As %String, elementName As %String = "value", keyName As %String = "key") As %String
 {
-    Set tResult = ""
+    Set tResult = -1
     Try
 	{
         Set arrIt = arr.%GetIterator()
         While (arrIt.%GetNext(.arrKey,.arrValue)) {
             Set tFilterCmd = "("_elementName_","_keyName_") If ("_whereClause_") {Quit 1} Else {Quit 0}"
             Set tFilter=$XECUTE(tFilterCmd,arrValue,arrKey)
-            If tFilter=1 Set tResult=arrKey
+            If tFilter=1 Return arrKey
         }
     }
 	Catch(e)
 	{
         Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Invalid where clause [ "_whereClause_" ]"))
 	}
-     Quit arrKey
+     Quit tResult
+}
+
+ClassMethod join(arr As %Library.DynamicArray, arr2 As %Library.DynamicArray) As %Library.DynamicArray
+{
+    Set tResult = []
+    Try
+	{
+        Set arrIt = arr.%GetIterator()
+        While (arrIt.%GetNext(.arrKey,.arrValue)) {
+            Do tResult.%Push(arrValue)
+        }
+        Set arrIt = arr2.%GetIterator()
+        While (arrIt.%GetNext(.arrKey,.arrValue)) {
+            Do tResult.%Push(arrValue)
+        }
+    }
+	Catch(e)
+	{
+        Throw ##Class(%Exception.StatusException).CreateFromStatus(e.Status)
+	}
+     Quit tResult
 }
 
 ClassMethod filter(arr As %Library.DynamicArray, whereClause As %String, elementName As %String = "value", keyName As %String = "key") As %Library.DynamicArray
