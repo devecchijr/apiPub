@@ -15,7 +15,9 @@ Property ReservedOutboundParams As %String(MAXLEN = 250);
 
 Property Headers As %String(MAXLEN = 500);
 
-Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig";
+Property BasicAuthCredentials As %String [ InitialExpression = "None" ];
+
+Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig,BasicAuthCredentials:APIConfig:credentialsSelector";
 
 Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
@@ -37,8 +39,25 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
 				,"reservedOutboundParams":(..ReservedOutboundParams)
 				,"headers":(..Headers)
 			}
+            If ..BasicAuthCredentials'="" {
+                Set tCred = ##class(Ens.Config.Credentials).%OpenId(..BasicAuthCredentials)
+                If $IsObject(tCred) {
+                    Set tReq = {}.%FromJSON(pRequest.Headers)
+                    Do ##class(apiPub.core.jsonBuilder).s(tReq,"Authorization","Basic "_$SYSTEM.Encryption.Base64Encode(tCred.GetValue(..BasicAuthCredentials,"Username")_":"_tCred.PasswordGet()))
+                    Set pRequest.Headers=tReq.%ToJSON()
+                }
+            }
             Set tSC = $ClassMethod(pRequest.ServiceClass,"ToHttpCall",pRequest,tRequestParams,.pResponse)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+            If tSC=1,+pResponse.ResponseStatusCode>399,..AlertOnError=1 {
+                Set tAlert = ##class(Ens.AlertRequest).%New()
+                Set tAlert.SourceConfigName = ..%ConfigName
+                Set tAlert.AlertText = "ERROR #"_pResponse.ResponseStatusCode_": "_pResponse.ResponseStatusLine
+                Set tAlert.AlertTime = $ZDT($NOW(),3)
+                Set tAlert.SessionId = ..%SessionId 
+                Set tSC = ..SendAlert(tAlert)
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+            }
         } Else {
             Set tSC = $ClassMethod(pRequest.ServiceClass,"ServiceRouter",pRequest,.pResponse)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
