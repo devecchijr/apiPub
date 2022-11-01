@@ -64,6 +64,9 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/deepsee" ]
     <control name="" action="LinkToEnsembleTrace" target="" targetProperty="" location="widget" type="button" controlClass="" label="Tracing" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="listingSelected1">
       <valueRequired>false</valueRequired>
     </control>
+    <control name="" action="LinkToProduction" target="" targetProperty="" location="widget" type="auto" controlClass="" label="Prod" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
     <property name="excel">1</property>
   </widget>
   <widget name="Last Week" type="pivot" subtype="barChart" subtypeClass="barChart" title="Last Week" dataSource="apiPub_Monitor_Pivot/Last Week By Response Status.pivot" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="0" homeColL="6" colSpanL="4" rowSpanL="5" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
