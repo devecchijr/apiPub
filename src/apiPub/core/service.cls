@@ -737,7 +737,19 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		}
 		Set tSC = ..GetPathInfo(pRestRequest.HttpVerb,tOriginalPath,tIdxMap,.tAPIInfo)
-       	If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+       	If 'tSC { 
+			//Try again if structure of api changed
+			If $Data(^TmpApipubClassInfo) {
+				Set tSb=$Order(^TmpApipubClassInfo(""))
+				While tSb'="" {
+					If ##class(apiPub.core.irisMetadata).IsSubClassOf(tSb,"apiPub.core.routedApi")=0 {
+						Kill ^TmpApipubClassInfo(tSb)
+					}
+					Set tSb=$Order(^TmpApipubClassInfo(tSb))
+				}
+			}
+			Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) 
+		}
 		If $IsObject(tAPIInfo) {
 			If tAPIInfo.%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("className")
 			If tAPIInfo.%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("methodName")
@@ -793,6 +805,9 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         Set pHttpRequest.SSLConfiguration = pSSL
 		Set tJSONHeaders = {}
         If $Length(pMessageRequest.Headers)>0 Set tJSONHeaders = {}.%FromJSON(pMessageRequest.Headers)
+		If pMessageRequest.ContentType'="" {
+            Do ..s(tJSONHeaders,"Content-Type",pMessageRequest.ContentType)
+		}
         Set tProp = tJSONHeaders.%GetIterator()
         While (tProp.%GetNext(.key,.value)) {
             Do pHttpRequest.SetHeader(key,$Select($IsObject(value):value.%ToJSON(),1:value))

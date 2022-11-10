@@ -228,6 +228,35 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
     Quit tSC
 }
 
+ClassMethod GetSubclassesOf(superclassName As %String, subClasses As %DynamicArray) As %Status
+{
+    If '$Data(subClasses) Set subClasses = []
+	Set tSC = $System.Status.OK()
+	Try {
+        Set level=[]
+        Set tSql = "SELECT distinct ID "_
+            "FROM %Dictionary.ClassDefinition where Super = '"_superclassName_"' or Super like '%,"_superclassName_"' or Super like '"_superclassName_",%'"
+        Set tStatement = ##class(%SQL.Statement).%New()
+        Set tSC = tStatement.%Prepare(tSql)
+        If tSC'=1 {write "%Prepare failed:" Do $System.Status.DisplayError(tSC) quit}
+        Set tRS = tStatement.%Execute()
+        If tRS.%SQLCODE=0 {
+            While tRS.%Next() {
+                Do level.%Push(tRS.%GetData(1))
+            }
+        }
+        Set levelIt = level.%GetIterator()
+        While levelIt.%GetNext(.key,.classname) {
+            Do subClasses.%Push(classname)
+            Do ..GetSubclassesOf(classname,subClasses)
+        }
+    }
+	Catch(e) {
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
 ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pLevel) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -505,16 +534,47 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
     Quit tSC
 }
 
+ClassMethod IsSubClassOf(aClassName As %String = "", superClass As %String = "") As %Boolean
+{
+    Set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
+    If ($isobject(classDefinition)) {
+        If classDefinition.Super'="" {
+            If classDefinition.Super[superClass Return 1
+            for sup=1:1:$l(classDefinition.Super,",") {  continue:$p(classDefinition.Super,",",sup)=""
+                Set tSuper = $p(classDefinition.Super,",",sup)
+                If $Find(tSuper,"%")=0,$Length(tSuper,".")=1,$Length(aClassName,".")>1 {
+                    Set tSuper = $Piece(aClassName,".",1,*-1)_"."_tSuper
+                }
+                If ..IsSubClassOf(tSuper, superClass) Return 1
+            }
+        }
+    }
+    Quit 0
+}
+
 ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, level = 0) As %Status
 {
 	Set tSC = $System.Status.OK()
     Try
 	{
-        If level=0 Set (isXMLAdaptor,isBusinessService)=0
+        If level=0 {
+            Set (isXMLAdaptor,isBusinessService,isRoutedApi)=0
+            //If class is a subclass of apiPub.core.routedApi take cache metadata
+            If $Data(^TmpApipubClassInfo(aClassName)) {
+                Set timeChanged = $Piece(^TmpApipubClassInfo(aClassName),"^",1)
+                Set isXMLAdaptor = $Piece(^TmpApipubClassInfo(aClassName),"^",2)
+                Set isBusinessService = $Piece(^TmpApipubClassInfo(aClassName),"^",3)
+                Return tSC
+            }
+        }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
             If '$Data(timeChanged) Set timeChanged = classDefinition.TimeChanged
-            If $System.SQL.Functions.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
+            If ##class(%Dictionary.ClassDefinition).%ExistsId("%SYSTEM.SQL.Functions")=1 {
+                If $System.SQL.Functions.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
+            } Else {
+                If $System.SQL.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
+            }
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
