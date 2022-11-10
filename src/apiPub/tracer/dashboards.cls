@@ -27,6 +27,9 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/deepsee" ]
     <control name="" action="LinkToEnsembleTrace" target="" targetProperty="" location="widget" type="auto" controlClass="" label="Tracing" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="listingSelected1">
       <valueRequired>false</valueRequired>
     </control>
+    <control name="" action="LinkToProduction" target="" targetProperty="" location="widget" type="auto" controlClass="" label="Prod" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
     <control name="" action="refresh" target="*" targetProperty="" location="widget" type="timer" controlClass="" timeout="60" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
       <valueRequired>false</valueRequired>
     </control>
