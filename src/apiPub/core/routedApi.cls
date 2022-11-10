@@ -1,12 +1,16 @@
-Class apiPub.core.routedApi Extends %Projection.AbstractProjection [ Abstract ]
+Class apiPub.core.routedApi Extends %Projection.AbstractProjection
 {
 
 /// Latency improvement. This method will create the cached route api object for all classes (apis) that inherit from this one. 
-ClassMethod CreateProjection() As %Status [ CodeMode = objectgenerator ]
+ClassMethod CreateProjection(classname As %String) As %Status [ CodeMode = generator ]
 {
 	Set tSC = $System.Status.OK()
 	Try {
-        Set tSC = ##class(apiPub.core.irisMetadata).GetSubclassesOf(..GetClassName(),.arr)
+        Set tClassName="apiPub.core.routedApi"
+        Try {
+            Set tClassName = ..GetClassName()
+        } Catch(tEx) {}
+        Set tSC = ##class(apiPub.core.irisMetadata).GetSubclassesOf(tClassName,.arr)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         Set arrIt = arr.%GetIterator()
         While arrIt.%GetNext(.key,.classname) {
@@ -26,9 +30,9 @@ ClassMethod CreateProjection() As %Status [ CodeMode = objectgenerator ]
 	Quit tSC
 }
 
-ClassMethod GetClassName() As %String
+ClassMethod GetClassName()
 {
-    Quit $CLASSNAME()
+    Quit $ClassName()
 }
 
 }
