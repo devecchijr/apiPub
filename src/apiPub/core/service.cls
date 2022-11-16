@@ -829,7 +829,11 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
                 If $Find(tAPIPath,"{"_key_"}")>0 {
                     Set tAPIPath = $Replace(tAPIPath,"{"_key_"}",$ZCONVERT($ZCONVERT(value,"O","UTF8"),"O","URL"))
                 } Else {
-                    Do pHttpRequest.SetParam(key,$Select($IsObject(value):value.%ToJSON(),1:value))
+					If $Find($ZCONVERT(pMessageRequest.ContentType,"L"),"form-urlencoded")=0 {
+                    	Do pHttpRequest.SetParam(key,$Select($IsObject(value):value.%ToJSON(),1:value))
+					} Else {
+						Do pHttpRequest.InsertFormData(key,$Select($IsObject(value):value.%ToJSON(),1:value))
+					}
                 }
             }
         }
