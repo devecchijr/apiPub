@@ -50,7 +50,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
         If $ZConvert(pRequest.ContentType,"L")["json" {
             If pRequest.Body.SizeGet()>0 {
                 Try {
-                    Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
+                    Set pInputBody = {}.%FromJSON(pRequest.Body)
                 } Catch(e) {
                     If 'e.AsStatus() {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Invalid Body Content Type (JSON)"))}
                 }
