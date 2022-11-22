@@ -47,10 +47,16 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 Set tServiceObj=$ClassMethod($Piece(tMethodKey,"||",1),"%New")
             }
         }
-        If $Find("post put",$ZConvert(pRequest.HttpVerb,"L"))>0,$ZConvert(pRequest.ContentType,"L")["json" {
-			If pRequest.Body.SizeGet()=0 Set tSC = $$$ERROR($$$GeneralError, "Body Could Not be Empty")
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
+        If $ZConvert(pRequest.ContentType,"L")["json" {
+            If pRequest.Body.SizeGet()>0 {
+                Try {
+                    Set pInputBody = {}.%FromJSON(pRequest.Body.Read())
+                } Catch(e) {
+                    If 'e.AsStatus() {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Invalid Body Content Type (JSON)"))}
+                }
+            } Else {
+                If $Find("post put",$ZConvert(pRequest.HttpVerb,"L"))>0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "Body Could Not be Empty"))
+            }
         }
         Set tClStr = ""
         Set tSuccessfulCode = minfo.%Get("successfulCode")
