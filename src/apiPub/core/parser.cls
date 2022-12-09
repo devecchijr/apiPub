@@ -1,6 +1,8 @@
 Class apiPub.core.parser Extends apiPub.core.jsonBuilder
 {
 
+// Parse json payload object using openapi 3.0 schema
+
 ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema As %Library.DynamicObject, Output pResult As %Library.DynamicObject, Output pInLineResult As %String, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
 	Set tSC = $System.Status.OK()
