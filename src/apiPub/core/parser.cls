@@ -52,7 +52,7 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
 				If $IsObject(value) {
                     If $Piece(tSchemaVal,pDelim,1)="circRef" Set tKey=$Piece(tSchemaVal,pDelim,2,*)
                     If tSchemaVal'="" {
-                        If (pResult.%Get("valid")),$Find(tSchemaVal,"*object")=0 Do ..Parse(pObjName,value,pSchema,.pResult,.pInLineResult,pParams,{"oPKey":(tOKey),"pKey":(tKey), "pType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
+                        If (pResult.%Get("valid")),$Find(tSchemaVal,"*object")=0,$Find(tSchemaVal,"*array")=0 Do ..Parse(pObjName,value,pSchema,.pResult,.pInLineResult,pParams,{"oPKey":(tOKey),"pKey":(tKey), "pType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
                     }
 	 			} Else {
                     If tSchemaVal'="" {
@@ -88,14 +88,42 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid integer type ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
+                        } ElseIf (pSchema.%Get(tKey)="boolean") {
+                            If '(pJSON.%GetTypeOf(key)="boolean") {
+                                Do pResult.%Set("valid",0)
+                                Do pResult.%Get("invalidItems").%Push("Invalid boolean type ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                            }
                         } ElseIf pSchema.%Get(tKey)="number" {
-                            If '(##class(%Library.Numeric).IsValid(value)) {
+                            If '(pJSON.%GetTypeOf(key)="number") {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid numeric type ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
+                        } ElseIf pSchema.%Get(tKey)="string" {
+                            If '(pJSON.%GetTypeOf(key)="string") {
+                                Do pResult.%Set("valid",0)
+                                Do pResult.%Get("invalidItems").%Push("Invalid string type ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                            }
+                        } ElseIf ((pSchema.%Get(tKey)="object")||($Piece(pSchema.%Get(tKey),pDelim,1)="circRef")) {
+                            Do pResult.%Set("valid",0)
+                            Do pResult.%Get("invalidItems").%Push("Invalid object type ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                        } ElseIf (pSchema.%Get(tKey)["^") {
+                            If pJSON.%GetTypeOf(key)="boolean",'(pSchema.%Get(tKey)["boolean") {
+                                Do pResult.%Set("valid",0)
+                                Do pResult.%Get("invalidItems").%Push("Boolean type not allowed ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                            }
+                            If pJSON.%GetTypeOf(key)="string",'(pSchema.%Get(tKey)["string") {
+                                Do pResult.%Set("valid",0)
+                                Do pResult.%Get("invalidItems").%Push("String type not allowed ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                            }
+                            If pJSON.%GetTypeOf(key)="number",'(pSchema.%Get(tKey)["number") {
+                                If '((##class(%Library.Integer).IsValid(value))&&(pSchema.%Get(tKey)["integer")) {
+                                    Do pResult.%Set("valid",0)
+                                    Do pResult.%Get("invalidItems").%Push("Number type not allowed ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
+                                } 
+                            }
                         }
                     }
-                }
+                } 
                 If tSchemaVal="" {
                     Set tMessage = $Replace($Replace(tOKey,"^","."),".[","[")
                     Do pResult.%Set("valid",0)
@@ -148,7 +176,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
 				If $IsObject(value) {
                     Do ..GetFlatSchema(pObjName,value,.pSchema,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
     			} Else {
-                    If $Piece(tKey,pDelim,*)="$ref","allOf anyOf"[$Piece(tKey,pDelim,*-2) {
+                    If $Piece(tKey,pDelim,*)="$ref","allOf oneOf anyOf"[$Piece(tKey,pDelim,*-2) {
                         Set tJSON = ..GetByLineKey(pInternal.originalJSON,$Piece(value,"#/components/schemas/",2),"/")
                         If tJSON'="",$IsObject(tJSON) {
                             Set tKey = $Piece(tKey,pDelim,1,*-3)
@@ -156,8 +184,8 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                                 Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
                             } Else {
                                 Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
-                                Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^oneOf","anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
                                 Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
                             }
                         }
@@ -170,13 +198,13 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                                     Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
                                 } Else {
                                     Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                    Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
-                                    Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                    Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                    Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
                                     Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
                                 }
                             }
                         } ElseIf ("format type"[$Piece(tKey,pDelim,*))||($Piece(tKey,pDelim,*-1)="enum")||($Piece(tKey,pDelim,*-1)="required") {
-                            Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*",""),"^required","")
+                            Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*",""),"^required","")
                             If $Piece(tKey,pDelim,*-1)="required" { 
                                Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")  
                             } Else {
