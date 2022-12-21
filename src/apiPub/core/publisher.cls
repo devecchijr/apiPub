@@ -752,6 +752,90 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         //Internal Params
+        If '$Data(pInternal) Set pInternal={"parentKey":""}
+        Set pParentKey = pInternal.parentKey
+		If pParentKey="" {
+			Set pOpenApiJSON = {}
+            If pObjectName="",pJSON.%Size()=1 {
+                Set prop = pJSON.%GetIterator()
+                Do prop.%GetNext(.key,.value)
+                Set pObjectName=key
+                Set pJSON = value
+            } 
+            If pObjectName="" {
+                Set tSC = $$$ERROR($$$GeneralError, "pObjectName must be informed when there is no main node")
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            }
+			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName_"|"_$Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
+            If pPrintResults {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(pOpenApiJSON.%ToJSON(),.jsonString)
+                Write jsonString,!
+            }
+		} Else {
+            Do ..s(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".type",$Piece($Piece(pParentKey,pDelim,*),"|",2))
+            Set tType=..g(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*-1),"|",1)_".type")
+            If $Find(pParentKey,pDelim)>0{
+                Do ..s(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*-1),"|",1)_"."_$Select(tType="object":"properties."_$Piece($Piece(pParentKey,pDelim,*),"|",1),1:"items.anyOf.+")_".$ref","#/components/schemas/"_$Piece($Piece(pParentKey,pDelim,*),"|",1))
+            }
+            Set prop = pJSON.%GetIterator()
+			While (prop.%GetNext(.key,.value)) {
+                Set tk=key
+                If tk=+tk Set tk=$Piece($Piece(pParentKey,pDelim,*),"|",1)_key
+                Set tKey = $Select(pParentKey'="":pParentKey, 1:"")_pDelim_tk
+                If $IsObject(value),$Find($Piece(tKey,pDelim,*),"@")=0 {
+                    Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey_"|"_$Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+				} Else {
+                    If $Find($Piece(tKey,pDelim,*),"@")=0 {
+                        Set tCType = pJSON.%GetTypeOf(key)
+                        If key=+key {
+                            Set tInclude=1
+                            Set tExArr = ..g(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".items.anyOf")
+                            If $IsObject(tExArr) {
+                                If ..find(tExArr,"..g(value,""type"")="""_tCType_"""")'=-1 Set tInclude=0
+                            }
+                            If (tInclude=1) {
+                                Set tItem = {
+                                    "type":(tCType)
+                                }
+                                Do ..s(tItem,"example",value,tCType)
+                                Do ..s(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".items.anyOf.+",tItem)
+                            }
+                        } Else {
+                            Set tExType = ..GetByLineKey(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".properties."_key_".type")
+                            If tExType'="",tCType'=tExType Set tCType = "string"
+                            Do ..s(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".properties."_key_".type",tCType)
+                            If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
+                                Do ..SetByLineKey(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".properties."_key_".format","date")
+                            } ElseIf $Extract($TR(value,"0123456789","XXXXXXXXXX"),1,17)="XXXX-XX-XXTXX:XX:" {
+                                Do ..SetByLineKey(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".properties."_key_".format","date-time")
+                            }
+                            Do ..SetByLineKey(pOpenApiJSON,$Piece($Piece(pParentKey,pDelim,*),"|",1)_".properties."_key_".example",value,tCType)
+                        }
+                    } Else {
+
+                    }
+	 			}
+			}
+		}
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod TemplateToOpenApiSchemaOld(pJSON As %Library.DynamicObject, ByRef pObjectName As %String, Output pOpenApiJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try
+	{
+        //If not Defined The Params Set the Default Values
+        If '$Data(pParams) Set pParams={}
+        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":""}
         Set pParentKey = pInternal.parentKey
         Set pParentType = pInternal.parentType
@@ -788,7 +872,7 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                         Set tExType = ..GetByLineKey(pOpenApiJSON,tKey_pDelim_"type",pDelim)
                         If tExType'="",tCType'=tExType Set tCType = "string"
                         Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"type",tCType,,pDelim)
-                        If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
+                            If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
                             Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"format","date",,pDelim)
                         } ElseIf $Extract($TR(value,"0123456789","XXXXXXXXXX"),1,17)="XXXX-XX-XXTXX:XX:" {
                             Do ..SetByLineKey(pOpenApiJSON,tKey_pDelim_"format","date-time",,pDelim)

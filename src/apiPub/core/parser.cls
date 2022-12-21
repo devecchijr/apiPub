@@ -58,29 +58,29 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
                     }
 	 			} Else {
                     If tSchemaVal'="" {
-                        If pSchema.%Get(tKey_pDelim_"enum")'="" {
+                        If pSchema.%Get(tKey_pDelim_"enum")'="",$Length(pSchema.%Get(tKey),"^")=0 {
                             Set tList=$Listfromstring(pSchema.%Get(tKey_pDelim_"enum"),"^")
                             If $Listfind(tList,value)=0 {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid enumerator value ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
                         }
-                        If pSchema.%Get(tKey_pDelim_"format")="date-time" {
+                        If pSchema.%Get(tKey_pDelim_"format")="date-time",$Length(pSchema.%Get(tKey),"^")=0 {
                             If '(##class(%Library.TimeStamp).IsValid(##class(%Library.TimeStamp).XSDToLogical(value))) {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid date-time format ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
-                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="date" {
+                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="date",$Length(pSchema.%Get(tKey),"^")=0 {
                             If '(##class(%Library.Date).IsValid(##class(%Library.Date).XSDToLogical(value))) {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid date format ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
-                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="int32" {
+                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="int32",$Length(pSchema.%Get(tKey),"^")=0 {
                             If '(##class(%Library.SmallInt).IsValid(value)) {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid int32 format ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
                             }
-                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="int64" {
+                        } ElseIf pSchema.%Get(tKey_pDelim_"format")="int64",$Length(pSchema.%Get(tKey),"^")=0 {
                             If '(##class(%Library.BigInt).IsValid(value)) {
                                 Do pResult.%Set("valid",0)
                                 Do pResult.%Get("invalidItems").%Push("Invalid int64 format ("_value_") on: "_$Replace($Replace(tOKey,"^","."),".[","[")_" path")
