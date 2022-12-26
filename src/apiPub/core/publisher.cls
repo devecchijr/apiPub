@@ -202,6 +202,9 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     }
                     //set object param
                     If pvalue.%Get("pmJDFormat")'="" Do tParObj.%Get("schema").%Set("format",pvalue.%Get("pmJDFormat"))
+                    If pvalue.%Get("paramDefault")'="",tParObj.%Get("required")'=1,pvalue.%Get("pmJDType")'="" {
+                        Do tParObj.%Get("schema").%Set("default",pvalue.%Get("paramDefault"),pvalue.%Get("pmJDType"))
+                    }
                     If (tIsArray) {
                         Do ..SetByLineKey(tParObj,"schema^type","array",,"^")
                         Do ..SetByLineKey(tParObj,"schema^items^type",pvalue.%Get("pmJDType"),,"^")

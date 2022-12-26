@@ -369,6 +369,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         "outputType":(tParamOutput),
                         "inputType":(tParamInput)
                     }
+                    If tParamDefault'="","string boolean number"[$Piece(tPMType,"|",2) {
+                        Do tParamObj.%Set("paramDefault",$Replace(tParamDefault,"""",""),$Piece(tPMType,"|",2))
+                    }
                     If tParamInput'="",tParamInput'="header" Do pJSON.%Set("requestContentType",tParamInput)
                     If tParamOutput'="",tParamOutput'="header" Do pJSON.%Set("responseContentType",tParamOutput)
                     If (tParamType="%Library.DynamicObject")||(tParamType="%Library.DynamicArray") Do tParamObj.%Set("complexType",1)

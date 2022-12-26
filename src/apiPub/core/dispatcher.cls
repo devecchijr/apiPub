@@ -311,7 +311,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                         Set tVal=tStrContent
                                     }
                                 } ElseIf value.%Get("oConvFunction")'="",tVal'="" {
-                                    Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
+                                    If tPType'="boolean" Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
                                 }
                                 If value.%Get("outputType")="header" {
                                     Do tHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
