@@ -32,6 +32,8 @@ RUN \
   zn "IRISAPP" \
   set sc = ##class(%DeepSee.UserLibrary.Utils).%ProcessContainer("apiPub.tracer.dashboards",1) \
   w "successfully imported ",sc,! \
+  set sc = ##class(%DeepSee.Utils).%BuildCube("apiPub") \
+  w "cube apiPub built, ",sc,! \
   set sc = ##class(apiPub.tracer.production).Register() \
   w "apiPub.tracer.production registered ",sc,! \
   set ^Ens.AutoStart = "apiPub.tracer.production" \
