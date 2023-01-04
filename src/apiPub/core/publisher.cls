@@ -754,6 +754,7 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pSchemaPrefix = $Select(pParams.schemaPrefix'="":pParams.schemaPrefix,1:"Sch-")
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":""}
         Set pParentKey = pInternal.parentKey
@@ -778,8 +779,8 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
 		} Else {
             Set tParentObjName = $Piece($Piece(pParentKey,pDelim,*-1),"|",1)
             Set tObjName = $Piece($Piece(pParentKey,pDelim,*),"|",1)
-            Set tUCObjName="Sch-"_$ZConvert($E(tObjName,1,1),"U")_$E(tObjName,2,*)
-            Set tUCParentObjName="Sch-"_$ZConvert($E(tParentObjName,1,1),"U")_$E(tParentObjName,2,*)
+            Set tUCObjName=pSchemaPrefix_$ZConvert($E(tObjName,1,1),"U")_$E(tObjName,2,*)
+            Set tUCParentObjName=pSchemaPrefix_$ZConvert($E(tParentObjName,1,1),"U")_$E(tParentObjName,2,*)
             Set tObjType = $Piece($Piece(pParentKey,pDelim,*),"|",2)
             Do ..s(pOpenApiJSON,tUCObjName_pDelim_"type",tObjType,,pDelim)
             Set tType=..g(pOpenApiJSON,tUCParentObjName_pDelim_"type",pDelim)
@@ -789,7 +790,7 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
             Set prop = pJSON.%GetIterator()
 			While (prop.%GetNext(.key,.value)) {
                 Set tk=key
-                If tk=+tk Set tk=$Replace(tUCObjName,"Sch-","")_key_$E($NOW(),*-2,*)
+                If tk=+tk Set tk=$Replace(tUCObjName,pSchemaPrefix,"")_key_$E($NOW(),*-2,*)
                 Set tKey = $Select(pParentKey'="":pParentKey, 1:"")_pDelim_tk
                 If $IsObject(value) {
                     Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey_"|"_$Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
