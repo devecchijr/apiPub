@@ -198,6 +198,8 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                         Set tSC = $$$ERROR($$$GeneralError, "invalid parameter value ("_tPName_")")
                                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                                     }
+                                } ElseIf value.%Get("pmJType")="number"{
+                                    Set tValue=+tValue
                                 }
                             }
                         }
