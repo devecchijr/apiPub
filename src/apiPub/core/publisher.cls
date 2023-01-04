@@ -754,7 +754,7 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
-        Set pSchemaPrefix = $Select(pParams.schemaPrefix'="":pParams.schemaPrefix,1:"Sch-")
+        Set pSchemaPrefix = ..JGet(pParams,"schemaPrefix")
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":""}
         Set pParentKey = pInternal.parentKey
