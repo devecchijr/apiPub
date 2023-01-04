@@ -186,8 +186,8 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                                 Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
                             } Else {
                                 Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^oneOf","anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
-                                Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                Set tFValue = ..ReplaceSch($Extract(tKey,1,tFind-1))
+                                Set tFkey=..ReplaceSch(tKey)
                                 Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
                             }
                         }
@@ -200,13 +200,13 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                                     Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
                                 } Else {
                                     Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                    Set tFValue = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Extract(tKey,1,tFind-1),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
-                                    Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*","")
+                                    Set tFValue = ..ReplaceSch($Extract(tKey,1,tFind-1))
+                                    Set tFkey=..ReplaceSch(tKey)
                                     Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
                                 }
                             }
                         } ElseIf ("format type"[$Piece(tKey,pDelim,*))||($Piece(tKey,pDelim,*-1)="enum")||($Piece(tKey,pDelim,*-1)="required") {
-                            Set tFkey=$Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type",""),"^*^","^"),"^*",""),"^required","")
+                            Set tFkey=..ReplaceSch(tKey)
                             If $Piece(tKey,pDelim,*-1)="required" { 
                                Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")  
                             } Else {
@@ -230,6 +230,11 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
 		Set tSC = e.AsStatus()
 	}
 	Quit tSC
+}
+
+ClassMethod ReplaceSch(str)
+{
+    Quit $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(str,"^properties^properties","^properties^##properties"),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type^type","^type^##type"),"^type",""),"##",""),"^*^","^"),"^*","")
 }
 
 }
