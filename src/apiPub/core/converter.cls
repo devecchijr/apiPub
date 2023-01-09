@@ -362,6 +362,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                             }
                             Set tEPath=$Replace(tKey,pRootName_pDelim,"")
                             Set tEPath=$Replace(tEPath,pNoNamedArray_pDelim,"")
+                            If tType="boolean" Set tText=$Replace($Replace($ZConvert(tText,"L"),"true",1),"false",0)
                             If (pCharsKey'="")||(tAttCount>0)  {
                                 Do ..SetByLineKey(pXMLJSON,tEPath_pDelim_$Select(pCharsKey="":"value",1:pCharsKey),tText,tType,pDelim,pInferTypes)
                             } Else {
@@ -386,6 +387,10 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                                     If pXSDInfo.%Get("types").%Get(tSName)'="" {
                                         Set tType = pXSDInfo.%Get("types").%Get(tSName)
                                     }
+                                    If pXSDInfo.%Get("types").%Get(tEPath_pDelim_tVKey)'="",tType="string" {
+                                        Set tType = pXSDInfo.%Get("types").%Get(tEPath_pDelim_tVKey)
+                                    }
+                                    If tType="boolean" Set tValue=$Replace($Replace($ZConvert(tValue,"L"),"true",1),"false",0)
                                 }
                                 Do ..SetByLineKey(pXMLJSON,tEPath_pDelim_pAttributePrefix_tVKey,tValue,tType,pDelim,pInferTypes)
                                 Set tAtt=pNode.NextAttributeName(tAtt)
