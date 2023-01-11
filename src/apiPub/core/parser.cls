@@ -1,8 +1,7 @@
 Class apiPub.core.parser Extends apiPub.core.jsonBuilder
 {
 
-// Parse json payload object using openapi 3.0 schema
-
+/// Parse json payload object using openapi 3.0 schema
 ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema As %Library.DynamicObject, Output pResult As %Library.DynamicObject, Output pInLineResult As %String, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
 	Set tSC = $System.Status.OK()
@@ -23,7 +22,8 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
 			Set pResult = {"valid":1,"invalidItems":[]}
             Set tSC = ..GetFlatSchema(pObjName,pSchema,.tFlatSchema,{"printResults":0})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-            Do ..Parse(pObjName,pJSON,tFlatSchema,.pResult,.pInLineResult,pParams,{"oPKey":(pObjName),"pKey":(pObjName), "pType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+            Set tSchemaVal=tFlatSchema.%Get(pObjName)
+            If $Find(tSchemaVal,"*object")=0,$Find(tSchemaVal,"*array")=0 Do ..Parse(pObjName,pJSON,tFlatSchema,.pResult,.pInLineResult,pParams,{"oPKey":(pObjName),"pKey":(pObjName), "pType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
             Set tInLineText = ""
             Set tIP = pResult."invalidItems".%GetIterator()
             While (tIP.%GetNext(.pskey,.psvalue)) {
