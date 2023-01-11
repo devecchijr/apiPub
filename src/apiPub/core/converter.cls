@@ -260,7 +260,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
         Set pInferTypes = $Select(pParams.inferTypes'="":pParams.inferTypes,1:0)
         Set pWithNSPrefix = $Select(pParams.withNSPrefix'="":pParams.withNSPrefix,1:1)
         Set pShowAttQName = $Select(pParams.showAttQName'="":pParams.showAttQName,1:1)
-        Set pCharsKey = pParams.charskey
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
         Set pRootName = $Select(pParams.noNamedRoot'="":pParams.noNamedRoot,1:"Root")
         Set pNoNamedArray = $Select(pParams.noNamedElement'="":pParams.noNamedElement,1:"Element")
         Set pListOfArrays = $Select(pParams.listOfArrays'="":pParams.listOfArrays,1:[])
@@ -363,8 +363,12 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                             Set tEPath=$Replace(tKey,pRootName_pDelim,"")
                             Set tEPath=$Replace(tEPath,pNoNamedArray_pDelim,"")
                             If tType="boolean" Set tText=$Replace($Replace($ZConvert(tText,"L"),"true",1),"false",0)
-                            If (pCharsKey'="")||(tAttCount>0)  {
-                                Do ..SetByLineKey(pXMLJSON,tEPath_pDelim_$Select(pCharsKey="":"value",1:pCharsKey),tText,tType,pDelim,pInferTypes)
+                            If (tAttCount>0) {
+                                If pXSDInfo.%Get("types").%Get(tSName_pDelim_pCharsKey)'="",tType="string" {
+                                    Set tType = pXSDInfo.%Get("types").%Get(tSName_pDelim_pCharsKey)
+                                    If tType="boolean" Set tText=$Replace($Replace($ZConvert(tText,"L"),"true",1),"false",0)
+                                }
+                                Do ..SetByLineKey(pXMLJSON,tEPath_pDelim_pCharsKey,tText,tType,pDelim,pInferTypes)
                             } Else {
                                 Do ..SetByLineKey(pXMLJSON,tEPath,tText,tType,pDelim,pInferTypes)
                             }
@@ -387,8 +391,8 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                                     If pXSDInfo.%Get("types").%Get(tSName)'="" {
                                         Set tType = pXSDInfo.%Get("types").%Get(tSName)
                                     }
-                                    If pXSDInfo.%Get("types").%Get(tEPath_pDelim_tVKey)'="",tType="string" {
-                                        Set tType = pXSDInfo.%Get("types").%Get(tEPath_pDelim_tVKey)
+                                    If tVKey'="",pXSDInfo.%Get("types").%Get(tSName_pDelim_tVKey)'="",tType="string" {
+                                        Set tType = pXSDInfo.%Get("types").%Get(tSName_pDelim_tVKey)
                                     }
                                     If tType="boolean" Set tValue=$Replace($Replace($ZConvert(tValue,"L"),"true",1),"false",0)
                                 }
