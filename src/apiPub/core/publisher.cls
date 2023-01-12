@@ -563,7 +563,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
         Set pNestedMode = $Select(pParams.nestedMode'="":pParams.nestedMode,1:0)
         Set pAttributePrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
-        Set pCharsKey = $Select(pParams.charskey'="":pParams.charskey,1:"value")
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
 
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"","nestedParentKey":"", "parentType":"", "level":0, "circRefCtrl":{},"originalJSON":{},"mapTypes":{},"json":{},"requiredKeys":{}}

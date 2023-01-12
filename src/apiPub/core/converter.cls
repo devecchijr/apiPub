@@ -116,7 +116,7 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
         Set pNoNamedArray = $Select(pParams.noNamedElement'="":pParams.noNamedElement,1:"Element")
         Set pAttPrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
         Set pCharset = $Select(pParams.charset'="":pParams.charset,1:"UTF-8")
-        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pGhostDelim = $Select(pParams.ghostDelim'="":pParams.ghostDelim,1:"__")
 
@@ -260,7 +260,7 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
         Set pInferTypes = $Select(pParams.inferTypes'="":pParams.inferTypes,1:0)
         Set pWithNSPrefix = $Select(pParams.withNSPrefix'="":pParams.withNSPrefix,1:1)
         Set pShowAttQName = $Select(pParams.showAttQName'="":pParams.showAttQName,1:1)
-        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
         Set pRootName = $Select(pParams.noNamedRoot'="":pParams.noNamedRoot,1:"Root")
         Set pNoNamedArray = $Select(pParams.noNamedElement'="":pParams.noNamedElement,1:"Element")
         Set pListOfArrays = $Select(pParams.listOfArrays'="":pParams.listOfArrays,1:[])
@@ -364,8 +364,9 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                             Set tEPath=$Replace(tEPath,pNoNamedArray_pDelim,"")
                             If tType="boolean" Set tText=$Replace($Replace($ZConvert(tText,"L"),"true",1),"false",0)
                             If (tAttCount>0) {
-                                If pXSDInfo.%Get("types").%Get(tSName_pDelim_pCharsKey)'="",tType="string" {
-                                    Set tType = pXSDInfo.%Get("types").%Get(tSName_pDelim_pCharsKey)
+                                /// $TR(pCharsKey,"$#@","") to avoid conflict with classes that has value property
+                                If pXSDInfo.%Get("types").%Get(tSName_pDelim_$TR(pCharsKey,"$#@",""))'="",tType="string" {
+                                    Set tType = pXSDInfo.%Get("types").%Get(tSName_pDelim_$TR(pCharsKey,"$#@",""))
                                     If tType="boolean" Set tText=$Replace($Replace($ZConvert(tText,"L"),"true",1),"false",0)
                                 }
                                 Do ..SetByLineKey(pXMLJSON,tEPath_pDelim_pCharsKey,tText,tType,pDelim,pInferTypes)

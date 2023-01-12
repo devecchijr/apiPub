@@ -608,7 +608,7 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
-        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"value")
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":"", "level":0, "circRefCtrl":{},"originalJSON":{},"mapTypes":{},"json":{}}
         Set pLevel = pInternal.level
@@ -681,7 +681,8 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
                     }
                 } Else {
                     // treat baseOn types
-                    Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_pCharsKey
+                    // $TR(pCharsKey,"$#@","") to avoid conflict with classes that has value property
+                    Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$TR(pCharsKey,"$#@","")
                     Set tJSONType = $Piece(pMapTypes.%Get($ZConvert($Piece(value,":",2),"L")),"|",1)
                     If tJSONType="" Set tJSONType="string"
                     If "boolean number"[tJSONType {
