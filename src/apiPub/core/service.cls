@@ -21,6 +21,9 @@ Parameter DispatchClass;
 
 Parameter DispatchBaseURL;
 
+/// If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)
+Parameter OASNestedMode = 0;
+
 Parameter OASPath = "Get:/oas";
 
 /// Allow API Calling
@@ -135,6 +138,7 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
         Set tBasePath = tBusParams.%Get("basePath")
         Set tParams.basePath = tBasePath
         Set tParams.printResults = 0
+		If ..#OASNestedMode=1 Set tParams.nestedMode=1
 		If ..#AuthMethod=2 Set tParams.authMethod = "bearer"
 		If ..#DispatchBaseURL'="" {
 			Set tRequestURL = ..#DispatchBaseURL
