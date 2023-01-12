@@ -642,7 +642,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                     If (value.%Get("attribute")) Set key = pAttributePrefix_key
                     Set tIsArrayType = value.%Get("maxOccurs")="unbounded"
                     Set tType = value.%Get("type")
-                    Set tRequired = (value.%Get("minOccurs")="")
+                    Set tRequired = (+value.%Get("minOccurs")>0)
                     Set tObjType = pOriginalJSON.%Get(tType)
                     Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
                     Set tNestedKey = $Select(pNestedParentKey'="":pNestedParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
