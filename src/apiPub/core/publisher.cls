@@ -310,7 +310,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         } Else {
                             Set tSchem = jsonResp.%GetIterator()
                             While tSchem.%GetNext(.skey,.svalue) {
-                                If tParamType=skey {
+                                //nestedMode use complete className to avoid name conflict
+                                If (tParamType=skey)||($Piece(pvalue.%Get("paramType"),"|",1)=skey) {
                                     If (tSingleOutputObj) {
                                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
                                         If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
@@ -481,7 +482,8 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             Set tSchem = jsonResp.%GetIterator()
                             While tSchem.%GetNext(.skey,.svalue) {
                                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")      
-                                If tParamType=skey {
+                                //nestedMode use complete className to avoid name conflict
+                                If (tParamType=skey)||($Piece(pvalue.%Get("paramType"),"|",1)=skey) {
                                     If (tSingleInputObj) {
                                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^$ref","#/components/requestBodies/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
                                         If ..GetByLineKey(tSchemaDef,"components^requestBodies^"_$Select((tIsArray):"arrayOf",1:"")_skey)="" {
@@ -587,6 +589,13 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                 }
+            }
+            //nestedMode use complete className to avoid name conflict
+            If pNestedMode=1{
+                Set prop = pXSDInfo.%GetIterator()
+                Do prop.%GetNext(.key,.value)
+                Set pXSDInfo={}
+                Do ..SetByLineKey(pXSDInfo,pClassName,value,,pDelim)
             }
             If pPrintResults  {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
