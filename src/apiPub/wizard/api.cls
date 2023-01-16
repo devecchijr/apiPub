@@ -1,7 +1,15 @@
 Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 {
 
-/// @apiPub[tag="Create & Publish API From JSON"]
+/// @apiPub[tag="Create & Publish - New API"]
+/// @apiPub[response.outputType="text/html"]
+/// @apiPub[path="/new/publishApi"]
+ClassMethod publishNewAPI(apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    Quit ..publishApiFromJSON({},"object",apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, pReq)
+}
+
+/// @apiPub[tag="Create & Publish - API From JSON With Schema"]
 /// @apiPub[path="/fromjson/viewschema"]
 ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %String, schemaPrefix As %String = "Sch-") As %DynamicObject [ WebMethod ]
 {
@@ -12,10 +20,10 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
     Quit schema
 }
 
-/// @apiPub[tag="Create & Publish API From JSON"]
+/// @apiPub[tag="Create & Publish - API From JSON With Schema"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromjson/publishApi"]
-ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.fromjson.api", moduleClassName As %String = "package.fromjson.module", appPath As %String = "/{namespace}/fromjsonApi", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
@@ -24,6 +32,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Set $E(objName,1,1)=$ZConvert($E(objName,1,1),"U")
     If obj.%Size()=0 Set objName="object"
     Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
+    Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
 
     Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiDescription, apiTitle, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -55,9 +64,10 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     } ElseIf objName="object",..g(tAPIClass,"Method").%Size()=0 {
         // Add sample method
         Set tNewMethod = {
-                "_name":"api",
+                "_name":"apiMethod",
                 "Description":(
-                    "@apiPub[tag=""api group""]"
+                    "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[path=""apipath""]"
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param:%String",
@@ -65,7 +75,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "WebMethod":1,
                 "Implementation":"    Quit $$$OK"
         }
-        Do tResponseLog.WriteLine("Method ""api"" created")
+        Do tResponseLog.WriteLine("Method ""apiMethod"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
     Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, 0, 0, tResponseLog)
@@ -77,15 +87,15 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
+    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
-    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tResponseLog)
+    Do tResponseLog.Write(tInstruct.Read())
     Do tResponseLog.WriteLine("==================================================================================================================================")
-
     Quit tResponseLog
 }
 
-/// @apiPub[tag="Create & Publish API From IRIS Production"]
+/// @apiPub[tag="Create & Publish - API From IRIS Production"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromprod/publishApi"]
 /// @apiPub[params.componentName.description="production component name to publish. * to publish all components"]
@@ -93,13 +103,14 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
 /// @apiPub[params.apiClassName.required="true"]
 /// @apiPub[params.moduleClassName.required="true"]
 /// @apiPub[params.apiDomain.required="true"]
-ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.fromprod.api", moduleClassName As %String = "package.fromprod.module", appPath As %String = "/{namespace}/fromprodApi", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/interopApi", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If componentName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> componentName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
     If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
     Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
+    Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
 
     Set tSC = ..getProduction(.tInteropPackage,.tInteropClass,.tInteropComps,tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -155,9 +166,9 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
 
     Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-
+    Set tProdItem = ..find(..g(tInteropComps,"Production.Item"),"..g(value,""_ClassName"")="""_apiClassName_"""")
     //Automatic inclusion into production api 
-    If ..g(tInteropComps,"Production.Item")'="",..find(..g(tInteropComps,"Production.Item"),"..g(value,""_ClassName"")="""_apiClassName_"""")=-1 {
+    If "TEST DEVELOPMENT"[$SYSTEM.Version.SystemMode(),$SYSTEM.Version.SystemMode()'="",..g(tInteropComps,"Production.Item")'="",tProdItem=-1 {
         Set tNewBS = {
             "_Category":"",
             "_ClassName":(apiClassName),
@@ -174,10 +185,13 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
         Do tResponseLog.WriteLine(apiClassName_" added to production")         
         Set tSC = ..importProduction(tInteropPackage,tInteropClass,tInteropComps,tResponseLog)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    } ElseIf ..g(tInteropComps,"Production.Item")'="",tProdItem=-1 {
+        Do tInstruct.WriteLine("Please include "_apiClassName_" into current production")
     }
+    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
-    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tResponseLog)
+    Do tResponseLog.Write(tInstruct.Read())
     Do tResponseLog.WriteLine("==================================================================================================================================")
     Quit tResponseLog
 }
@@ -587,7 +601,18 @@ XData apiPub [ MimeType = application/json ]
                 "name" : "Apache 2.0",
                 "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
             }
-        }
+        },
+        "tags": [
+            {
+            "name": "Create & Publish - New API"
+            },
+            {
+            "name": "Create & Publish - API From JSON With Schema"
+            },
+            {
+            "name": "Create & Publish - API From IRIS Production"
+            },
+        ]
     }
 }
 
