@@ -6,10 +6,10 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 /// @apiPub[path="/new/publishApi"]
 /// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/html)","get output(application/octet-stream)", "get output(application/json)"]]
 /// @apiPub[params.template.schema.default="get output(status)"]
-ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If template="" Set template="object"
-    Quit ..publishApiFromJSON({},template,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, pReq)
+    Quit ..publishApiFromJSON({},template,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, traceable, pReq)
 }
 
 /// @apiPub[tag="Create & Publish - API From JSON With Schema"]
@@ -26,7 +26,7 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
 /// @apiPub[tag="Create & Publish - API From JSON With Schema"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromjson/publishApi"]
-ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
@@ -36,6 +36,13 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     If obj.%Size()=0,$find(objName," ")=0 Set objName="object"
     Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
     Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
+    Set tInteropPackage = {}
+    Set tInteropClass = {}
+    Set tInteropComps = {}
+    If (traceable) {
+        Set tSC = ..getProduction(.tInteropPackage,.tInteropClass,.tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
 
     Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiDescription, apiTitle, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -154,6 +161,17 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
+    Set tCompileProd = 0
+    If (traceable) {
+        Set tSC = ..enableProdTracing(tInteropComps, tInstruct, .tCompileProd)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    }
+
+    If (tCompileProd) {
+        Set tSC = ..importProduction(tInteropPackage,tInteropClass,tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
+
     Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
@@ -173,7 +191,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
 /// @apiPub[params.apiClassName.required="true"]
 /// @apiPub[params.moduleClassName.required="true"]
 /// @apiPub[params.apiDomain.required="true"]
-ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/interopApi", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/interopApi", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If componentName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> componentName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
@@ -236,28 +254,21 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
 
     Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-    Set tProdItem = ..find(..g(tInteropComps,"Production.Item"),"..g(value,""_ClassName"")="""_apiClassName_"""")
-    //Automatic inclusion into production api 
-    If "TEST DEVELOPMENT"[$SYSTEM.Version.SystemMode(),$SYSTEM.Version.SystemMode()'="",..g(tInteropComps,"Production.Item")'="",tProdItem=-1 {
-        Set tNewBS = {
-            "_Category":"",
-            "_ClassName":(apiClassName),
-            "_Comment":"",
-            "_Enabled":"true",
-            "_Foreground":"false",
-            "_LogTraceEvents":"false",
-            "_Name":(apiClassName),
-            "_PoolSize":"0",
-            "_Schedule":"",
-            "$value":""
-        } 
-        Do ..s(tInteropComps,"Production.Item.+",tNewBS)
-        Do tResponseLog.WriteLine(apiClassName_" added to production")         
+
+    Set tCompileProd = 0
+    If (traceable) {
+        Set tSC = ..enableProdTracing(tInteropComps, tInstruct, .tCompileProd)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    }
+
+    Set tSC = ..enableProdClass(tInteropComps, apiClassName, tInstruct, .tCompileProd)
+    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+
+    If (tCompileProd) {
         Set tSC = ..importProduction(tInteropPackage,tInteropClass,tInteropComps,tResponseLog)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
-    } ElseIf ..g(tInteropComps,"Production.Item")'="",tProdItem=-1 {
-        Do tInstruct.WriteLine("Please include "_apiClassName_" into current production")
     }
+ 
     Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
@@ -277,6 +288,116 @@ ClassMethod importProduction(interopPackage As %DynamicObject, interopClass As %
         Do ..s(interopClass,"XData.Data",tXMLXData.Read())
         Do ##class(apiPub.core.converter).JSONToXML(interopPackage,.xmlProdPackage,{"printResults":0})
         Do $system.OBJ.LoadStream(xmlProdPackage,"ck/displaylog=1")
+    }
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod enableProdClass(interopComponents As %DynamicObject, apiClassName As %String, instruct As %Stream.GlobalCharacter, ByRef compileProd As %Boolean) As %Status
+{
+	Set tSC = $System.Status.OK()
+    Try
+	{
+        Set tDevEnv = ("TEST DEVELOPMENT"[$SYSTEM.Version.SystemMode())&&($SYSTEM.Version.SystemMode()'="")
+        Set tProdItem = ..find(..g(interopComponents,"Production.Item"),"..g(value,""_ClassName"")="""_apiClassName_"""")
+        If (tDevEnv),..g(interopComponents,"Production.Item")'="",tProdItem=-1 {
+            Set tNewBS = {
+                "_Category":"",
+                "_ClassName":(apiClassName),
+                "_Comment":"",
+                "_Enabled":"true",
+                "_Foreground":"false",
+                "_LogTraceEvents":"false",
+                "_Name":(apiClassName),
+                "_PoolSize":"0",
+                "_Schedule":"",
+                "$value":""
+            } 
+            Do ..s(interopComponents,"Production.Item.+",tNewBS)
+            Do instruct.WriteLine(apiClassName_" added to production") 
+            Set compileProd = 1        
+        } ElseIf ..g(interopComponents,"Production.Item")'="",tProdItem=-1 {
+            Do instruct.WriteLine("Please include """_apiClassName_""" into current production for components calling")
+        }
+    }
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod enableProdTracing(interopComponents As %DynamicObject, instruct As %Stream.GlobalCharacter, ByRef compileProd As %Boolean) As %Status
+{
+	Set tSC = $System.Status.OK()
+    Try
+	{
+        Set tDevEnv = ("TEST DEVELOPMENT"[$SYSTEM.Version.SystemMode())&&($SYSTEM.Version.SystemMode()'="")
+        If ..g(interopComponents,"Production.Item")'="" {
+            If ..find(..g(interopComponents,"Production.Item"),"..g(value,""_ClassName"")=""apiPub.tracer.bs""")=-1 {
+                If '(tDevEnv) Do instruct.WriteLine("Please include ""apiPub.tracer.bs"" into current production for tracing")
+                If (tDevEnv) {
+                    Set tComp = {
+                        "_Category":"",
+                        "_ClassName":"apiPub.tracer.bs",
+                        "_Comment":"",
+                        "_Enabled":"true",
+                        "_Foreground":"false",
+                        "_LogTraceEvents":"false",
+                        "_Name":"apiPub.tracer.bs",
+                        "_PoolSize":"0",
+                        "_Schedule":"",
+                        "$value":""
+                    } 
+                    Do ..s(interopComponents,"Production.Item.+",tComp)
+                    Do instruct.WriteLine("apiPub.tracer.bs added to production") 
+                    Set compileProd = 1      
+                }  
+            }
+            If ..find(..g(interopComponents,"Production.Item"),"..g(value,""_ClassName"")=""apiPub.tracer.bm""")=-1 {
+                If '(tDevEnv) Do instruct.WriteLine("Please include ""apiPub.tracer.bm"" into current production for tracing")
+                If (tDevEnv) {
+                    Set tComp = {
+                        "_Category":"",
+                        "_ClassName":"apiPub.tracer.bm",
+                        "_Comment":"",
+                        "_Enabled":"true",
+                        "_Foreground":"false",
+                        "_LogTraceEvents":"false",
+                        "_Name":"apiPub.tracer.bm",
+                        "_PoolSize":"1",
+                        "_Schedule":"",
+                        "$value":""
+                    } 
+                    Do ..s(interopComponents,"Production.Item.+",tComp)
+                    Do instruct.WriteLine("apiPub.tracer.bm added to production") 
+                    Set compileProd = 1      
+                }  
+            }
+            If ..find(..g(interopComponents,"Production.Item"),"..g(value,""_ClassName"")=""apiPub.tracer.bo""")=-1 {
+                If '(tDevEnv) Do instruct.WriteLine("Please include ""apiPub.tracer.bo"" into current production for tracing")
+                If (tDevEnv) {
+                    Set tComp = {
+                        "_Category":"",
+                        "_ClassName":"apiPub.tracer.bo",
+                        "_Comment":"",
+                        "_Enabled":"true",
+                        "_Foreground":"false",
+                        "_LogTraceEvents":"false",
+                        "_Name":"apiPub.tracer.bo",
+                        "_PoolSize":"1",
+                        "_Schedule":"",
+                        "$value":""
+                    } 
+                    Do ..s(interopComponents,"Production.Item.+",tComp)
+                    Do instruct.WriteLine("apiPub.tracer.bo added to production") 
+                    Set compileProd = 1      
+                }  
+            }
+        }
     }
 	Catch(e)
 	{
@@ -398,6 +519,7 @@ ClassMethod getProduction(Output interopPackage As %DynamicObject, Output intero
         Do tXMLXData.Write(..g(interopClass,"XData.Data")) 
         Set tSC = ##class(apiPub.core.converter).XMLToJSON(tXMLXData,{"list":{"Production^Item":1},"types":{},"circularRef":{}},.interopComponents,{"printResults":0})  
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+        If ..g(interopComponents,"Production.Item")="" Do ..s(interopComponents,"Production.Item",[])
         // Here is the place to manipulate Production items (interopComponents)
         While ..i(interopComponents,"Production.Item",.idx,.val,.it) {
             //fix invalid values
