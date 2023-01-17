@@ -4,9 +4,12 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 /// @apiPub[tag="Create & Publish - New API"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/new/publishApi"]
-ClassMethod publishNewAPI(apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+/// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/html)","get output(application/octet-stream)", "get output(application/json)"]]
+/// @apiPub[params.template.schema.default="get output(status)"]
+ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
-    Quit ..publishApiFromJSON({},"object",apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, pReq)
+    If template="" Set template="object"
+    Quit ..publishApiFromJSON({},template,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, pReq)
 }
 
 /// @apiPub[tag="Create & Publish - API From JSON With Schema"]
@@ -29,8 +32,8 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
     If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
-    Set $E(objName,1,1)=$ZConvert($E(objName,1,1),"U")
-    If obj.%Size()=0 Set objName="object"
+    If $find(objName," ")=0 Set $E(objName,1,1)=$ZConvert($E(objName,1,1),"U")
+    If obj.%Size()=0,$find(objName," ")=0 Set objName="object"
     Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
     Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
 
@@ -38,7 +41,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     // Add validation methods
-    If objName'="object",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=$ZConvert(""Validate"_objName_""",""L"")")=-1) {
+    If objName'="object",$find(objName," ")=0,(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=$ZConvert(""validate"_objName_""",""L"")")=-1) {
         Set tSC = ##class(apiPub.core.publisher).TemplateToOpenApiSchema(obj,objName,.tSchema1,{"printResults":0, "schemaPrefix":(schemaPrefix)})
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
         While (..i(tSchema1,,.idx,.val,.it)) {
@@ -50,6 +53,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "_name":("validate"_objName),
                 "Description":(
                     "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[verb=""put""]"_$Char(13)_
                     "@apiPub[params.obj.schema="""_schemaPrefix_objName_"""]"_$Char(13)_
                     "@apiPub[response.schema="""_schemaPrefix_objName_"""]"
                 ),
@@ -57,12 +61,11 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "FormalSpec":"obj:%DynamicObject",
                 "ReturnType":"%DynamicObject",
                 "WebMethod":1,
-                "Implementation":"    Quit obj"
+                "Implementation":("    Quit obj")
         }
         Do tResponseLog.WriteLine("Method ""validate"_objName_""" created")
         Do ..s(tAPIClass,"Method.+",tValidateSchemaMethod)
     } ElseIf objName="object",..g(tAPIClass,"Method").%Size()=0 {
-        // Add sample method
         Set tNewMethod = {
                 "_name":"apiMethod",
                 "Description":(
@@ -73,9 +76,76 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "FormalSpec":"param:%String",
                 "ReturnType":"%Status",
                 "WebMethod":1,
-                "Implementation":"    Quit $$$OK"
+                "Implementation":("    Quit $$$OK")
         }
         Do tResponseLog.WriteLine("Method ""apiMethod"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="get output(status)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutstatus""")=-1) {
+        Set tNewMethod = {
+                "_name":"getOutStatus",
+                "Description":(
+                    "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[verb=""get""]"_$Char(13)_
+                    "@apiPub[path=""getStatusPath""]"
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
+                "ReturnType":"%Status",
+                "WebMethod":1,
+                "Implementation":("    Quit $$$OK")
+        }
+        Do tResponseLog.WriteLine("Method ""getOutStatus"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="get output(text/html)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutcharstream""")=-1) {
+        Set tNewMethod = {
+                "_name":"getOutCharStream",
+                "Description":(
+                    "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[verb=""get""]"_$Char(13)_
+                    "@apiPub[path=""getCharStreamPath""]"_$Char(13)_
+                    "@apiPub[response.outputType=""text/html""]"
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
+                "ReturnType":"%Stream.GlobalCharacter",
+                "WebMethod":1,
+                "Implementation":("    Set tResp = ##class(%Stream.GlobalCharacter).%New()"_$Char(13)_"    Quit tResp")
+        }
+        Do tResponseLog.WriteLine("Method ""getOutCharStream"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="get output(application/octet-stream)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutbinstream""")=-1) {
+        Set tNewMethod = {
+                "_name":"getOutBinStream",
+                "Description":(
+                    "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[verb=""get""]"_$Char(13)_
+                    "@apiPub[path=""getBinStreamPath""]"_$Char(13)_
+                    "@apiPub[charset=""ISO-8859-1""]"_$Char(13)_
+                    "@apiPub[response.outputType=""application/octet-stream""]"
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
+                "ReturnType":"%Stream.GlobalBinary",
+                "WebMethod":1,
+                "Implementation":("    Set tResp = ##class(%Stream.GlobalBinary).%New()"_$Char(13)_"    Quit tResp")
+        }
+        Do tResponseLog.WriteLine("Method ""getOutBinStream"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="get output(application/json)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutjson""")=-1) {
+        Set tNewMethod = {
+                "_name":"getOutJSON",
+                "Description":(
+                    "@apiPub[tag=""api group""]"_$Char(13)_
+                    "@apiPub[verb=""get""]"_$Char(13)_
+                    "@apiPub[path=""getJSONPath""]"
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
+                "ReturnType":"%Library.DynamicObject",
+                "WebMethod":1,
+                "Implementation":("    Set tResp = {""prop"":""content""}"_$Char(13)_"    Quit tResp")
+        }
+        Do tResponseLog.WriteLine("Method ""getOutJSON"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
     Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, 0, 0, tResponseLog)
