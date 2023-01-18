@@ -67,6 +67,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                     "@apiPub[tag=""api group""]"_$Char(13)_
                     "@apiPub[verb=""put""]"_$Char(13)_
                     "@apiPub[params.obj.schema="""_schemaPrefix_objName_"""]"_$Char(13)_
+                    "@apiPub[params.obj.parse=""true""]"_$Char(13)_
                     "@apiPub[response.schema="""_schemaPrefix_objName_"""]"
                 ),
                 "ClassMethod":1,
