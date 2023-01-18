@@ -1,6 +1,7 @@
 Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 {
 
+/// generates new APIs based on templates
 /// @apiPub[tag="Create & Publish - New API"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/new/publishApi"]
@@ -12,7 +13,8 @@ ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API 
     Quit ..publishApiFromJSON({},template,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, traceable, pReq)
 }
 
-/// @apiPub[tag="Create & Publish - API From JSON With Schema"]
+/// Inform a JSON sample (object body) to view its correspondent OAS schema
+/// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
 /// @apiPub[path="/fromjson/viewschema"]
 ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %String, schemaPrefix As %String = "Sch-") As %DynamicObject [ WebMethod ]
 {
@@ -23,9 +25,11 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
     Quit schema
 }
 
-/// @apiPub[tag="Create & Publish - API From JSON With Schema"]
+/// Inform a JSON sample (object body) to generate automatically an Api with OAS schema validation
+/// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromjson/publishApi"]
+/// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
 ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
@@ -155,7 +159,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Do tResponseLog.WriteLine("Method ""getOutJSON"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, 0, 0, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, traceable, 0, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -183,7 +187,8 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Quit tResponseLog
 }
 
-/// @apiPub[tag="Create & Publish - API From IRIS Production"]
+/// Publish Apis to call interoperability components (BP's and BO's) based on message mapping or SendMessage method
+/// @apiPub[tag="Create & Publish - From Interoperability Components (Production)"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromprod/publishApi"]
 /// @apiPub[params.componentName.description="production component name to publish. * to publish all components"]
@@ -246,7 +251,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
             }
         }
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, 0, 1, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, traceable, 1, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -607,56 +612,34 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
 {
 	Set tSC = $System.Status.OK()
 	Try {
-        If ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_moduleClassName_"""")=-1 {
+        Set tModuleIdx = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_moduleClassName_"""")
+        If tModuleIdx=-1 {
             Set tModuleClass =  {
                     "_name":(moduleClassName),
                     "Super":"apiPub.core.service",
                     "TimeChanged":($Now()),
                     "TimeCreated":($Now()),
                     "Parameter": [
-                        {
-                            "_name":"CHARSET",
-                            "Description":"Charset for Output",
-                            "Default":(charSet)
-                        },                    
-                        {
-                            "_name":"OASPath",
-                            "Description":"Target path for OAS Documentation",
-                            "Type":"%String",
-                            "Default":"Get:/_spec"
-                        },
-                        {
-                            "_name":"DispatchClass",
-                            "Description":"Target class that contains all API (Web Methods) for this module",
-                            "Type":"%String",
-                            "Default":(apiClassName)
-                        },
-                        {
-                            "_name":"DispatchBSName",
-                            "Description":"When the class is also a Business Service",
-                            "Type":($Select(interopApi=1:"%String",1:"")),
-                            "Default":($Select(interopApi=1:apiClassName,1:""))
-                        },
-                        {
-                            "_name":"Traceable",
-                            "Description":"Use IRIS Production to generate tracing and monitoring (dashboards)",
-                            "Type":"%Boolean",
-                            "Default":(traceable)
-                        },
-                        {
-                            "_name":"APIDomain",
-                            "Description":"Group for monitoring",
-                            "Default":(apiDomain)
-                        },
-                        {
-                            "_name":"OASNestedMode",
-                            "Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)",
-                            "Default":(interopApi)
-                        }
+                        {"_name":"CHARSET","Description":"Charset for Output","Default":(charSet)},                    
+                        {"_name":"OASPath","Description":"Target path for OAS Documentation","Type":"%String","Default":"Get:/_spec"},
+                        {"_name":"DispatchClass","Description":"Target class that contains all API (Web Methods) for this module","Type":"%String","Default":(apiClassName)},
+                        {"_name":"DispatchBSName","Description":"When the class is also a Business Service","Type":($Select(interopApi=1:"%String",1:"")),"Default":($Select(interopApi=1:apiClassName,1:""))},
+                        {"_name":"Traceable","Description":"Use IRIS Production to generate tracing and monitoring (dashboards)","Type":"%Boolean","Default":(traceable)},
+                        {"_name":"APIDomain","Description":"Group for monitoring","Default":(apiDomain)},
+                        {"_name":"OASNestedMode","Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)","Default":(interopApi)}
                     ]
             }
             Do logResponse.WriteLine("Module """_moduleClassName_""" created")
             Do ..s(apiPackage,"Export.Class.+",tModuleClass)
+        } Else {
+            Set tModuleClass = ..g(apiPackage,"Export.Class."_tModuleIdx)
+            Set tParTraceable = ..find(..g(tModuleClass,"Parameter"),"..g(value,""_name"")=""Traceable""")
+            If tParTraceable=-1 Do ..s(tModuleClass,"Parameter.+",{"_name":"Traceable","Description":"Use IRIS Production to generate tracing and monitoring (dashboards)","Type":"%Boolean","Default":(traceable)})
+            If tParTraceable'=-1,traceable'=+..g(tModuleClass,"Parameter."_tParTraceable_".Default") {
+                Do logResponse.WriteLine("Module """_moduleClassName_""" modified, parameter Traceable = "_traceable)            
+                Do ..s(tModuleClass,"Parameter."_tParTraceable_".Default",traceable)
+            }
+            Do ..s(apiPackage,"Export.Class."_tModuleIdx,tModuleClass)
         }
     }
 	Catch(e) {
@@ -799,10 +782,10 @@ XData apiPub [ MimeType = application/json ]
             "name": "Create & Publish - New API"
             },
             {
-            "name": "Create & Publish - API From JSON With Schema"
+            "name": "Create & Publish - From JSON sample for payload validation"
             },
             {
-            "name": "Create & Publish - API From IRIS Production"
+            "name": "Create & Publish - From Interoperability Components (Production)"
             },
         ]
     }
