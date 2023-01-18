@@ -32,6 +32,7 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
 /// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
 ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
+    If traceable="" Set traceable = 0
     If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
@@ -187,7 +188,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Quit tResponseLog
 }
 
-/// Publish Apis to call interoperability components (BP's and BO's) based on message mapping or SendMessage method
+/// Publish Apis to call interoperability components (BP's and BO's) based on current production message mapping or SendMessage method
 /// @apiPub[tag="Create & Publish - From Interoperability Components (Production)"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromprod/publishApi"]
@@ -198,6 +199,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
 /// @apiPub[params.apiDomain.required="true"]
 ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/interopApi", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
+    If traceable="" Set traceable = 0
     If componentName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> componentName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
