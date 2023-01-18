@@ -788,18 +788,19 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
 		} Else {
             Set tParentObjName = $Piece($Piece(pParentKey,pDelim,*-1),"|",1)
             Set tObjName = $Piece($Piece(pParentKey,pDelim,*),"|",1)
+            Set tObjType = $Piece($Piece(pParentKey,pDelim,*),"|",2)
             Set tUCObjName=pSchemaPrefix_$ZConvert($E(tObjName,1,1),"U")_$E(tObjName,2,*)
             Set tUCParentObjName=pSchemaPrefix_$ZConvert($E(tParentObjName,1,1),"U")_$E(tParentObjName,2,*)
-            Set tObjType = $Piece($Piece(pParentKey,pDelim,*),"|",2)
             Do ..s(pOpenApiJSON,tUCObjName_pDelim_"type",tObjType,,pDelim)
             Set tType=..g(pOpenApiJSON,tUCParentObjName_pDelim_"type",pDelim)
             If $Find(pParentKey,pDelim)>0{
-                Do ..s(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"_pDelim_"+")_pDelim_"$ref","#/components/schemas/"_tUCObjName,,pDelim)
+                Set tArr = ..g(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"),pDelim)
+                If (tArr="")||(..find(tArr,"..g(value,""$ref"")=""#/components/schemas/"_tUCObjName_"""")=-1) Do ..s(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"_pDelim_"+")_pDelim_"$ref","#/components/schemas/"_tUCObjName,,pDelim)
             }
             Set prop = pJSON.%GetIterator()
 			While (prop.%GetNext(.key,.value)) {
                 Set tk=key
-                If tk=+tk Set tk=$Replace(tUCObjName,pSchemaPrefix,"")_key_$E($NOW(),*-2,*)
+                If tk=+tk Set tk=$Replace(tUCObjName,pSchemaPrefix,"")_"-Item"_$Select(key=0:"",1:key+1)
                 Set tKey = $Select(pParentKey'="":pParentKey, 1:"")_pDelim_tk
                 If $IsObject(value) {
                     Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey_"|"_$Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
