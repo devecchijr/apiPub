@@ -836,9 +836,11 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                             Do ..s(pNestedJSON,pParentNode_pDelim_"items"_pDelim_"anyOf"_pDelim_"+",tItem,,pDelim)
                         }
                     } Else {
-                        Set tExType = ..GetByLineKey(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"type",pDelim)
+                        Set tExType = ..g(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"type",pDelim)
+                        If tExType="" Set tExType = ..g(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"type",pDelim)
                         If tExType'="",tCType'=tExType Set tCType = "string"
                         Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"type",tCType,,pDelim)
+                        Do ..s(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"type",tCType,,pDelim)
                         If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
                             Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"format","date",,pDelim)
                             Do ..s(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"format","date",,pDelim)
