@@ -28,7 +28,7 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
     Quit schema
 }
 
-/// If you have any class with Web Methods you can automate the publication.
+/// If you have any class with Web Methods you can automate the publication
 /// @apiPub[tag="Create & Publish - From SOAP or Existing Class"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromclass/publishApi"]
