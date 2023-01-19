@@ -763,10 +763,13 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pNestedMode = $Select(pParams.nestedMode'="":pParams.nestedMode,1:0)
         Set pSchemaPrefix = ..JGet(pParams,"schemaPrefix")
         //Internal Params
-        If '$Data(pInternal) Set pInternal={"parentKey":""}
+        If '$Data(pInternal) Set pInternal={"parentKey":"","parentNode":"","nestedJSON":{}}
         Set pParentKey = pInternal.parentKey
+        Set pParentNode = pInternal.parentNode
+		Set pNestedJSON = pInternal.nestedJSON
 		If pParentKey="" {
 			Set pOpenApiJSON = {}
             If pObjectName="",pJSON.%Size()=1 {
@@ -779,7 +782,8 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                 Set tSC = $$$ERROR($$$GeneralError, "pObjectName must be informed when there is no main node")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }
-			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName_"|"_$Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
+			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName_"|"_$Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"parentNode":(pObjectName),"nestedJSON":(pNestedJSON)})
+            If (pNestedMode) Set pOpenApiJSON=pNestedJSON
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
                 Do tFormatter.FormatToString(pOpenApiJSON.%ToJSON(),.jsonString)
@@ -792,18 +796,29 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
             Set tUCObjName=pSchemaPrefix_$ZConvert($E(tObjName,1,1),"U")_$E(tObjName,2,*)
             Set tUCParentObjName=pSchemaPrefix_$ZConvert($E(tParentObjName,1,1),"U")_$E(tParentObjName,2,*)
             Do ..s(pOpenApiJSON,tUCObjName_pDelim_"type",tObjType,,pDelim)
+            Do ..s(pNestedJSON,pParentNode_pDelim_"type",tObjType,,pDelim)
             Set tType=..g(pOpenApiJSON,tUCParentObjName_pDelim_"type",pDelim)
             If $Find(pParentKey,pDelim)>0{
                 Set tArr = ..g(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"),pDelim)
-                If (tArr="")||(..find(tArr,"..g(value,""$ref"")=""#/components/schemas/"_tUCObjName_"""")=-1) Do ..s(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"_pDelim_"+")_pDelim_"$ref","#/components/schemas/"_tUCObjName,,pDelim)
+                If (tArr="")||(..find(tArr,"..g(value,""$ref"")=""#/components/schemas/"_tUCObjName_"""")=-1) {
+                    Do ..s(pOpenApiJSON,tUCParentObjName_pDelim_$Select(tType="object":"properties"_pDelim_tObjName,1:"items"_pDelim_"anyOf"_pDelim_"+")_pDelim_"$ref","#/components/schemas/"_tUCObjName,,pDelim)
+                }
             }
             Set prop = pJSON.%GetIterator()
 			While (prop.%GetNext(.key,.value)) {
                 Set tk=key
                 If tk=+tk Set tk=$Replace(tUCObjName,pSchemaPrefix,"")_"-Item"_$Select(key=0:"",1:key+1)
                 Set tKey = $Select(pParentKey'="":pParentKey, 1:"")_pDelim_tk
+                // For nested mode
+                Set tNodeKey = $Select(pParentNode'="":pParentNode, 1:"")
+                If tObjType'="array" {
+                    Set tNodeKey=tNodeKey_pDelim_"properties"_pDelim_tk
+                } Else {
+                    Set tArr = ..g(pNestedJSON,$Select(pParentNode'="":pParentNode, 1:"")_pDelim_"items"_pDelim_"anyOf",pDelim)
+                    Set tNodeKey=tNodeKey_pDelim_"items"_pDelim_"anyOf"_pDelim_$Select($IsObject(tArr):tArr.%Size(),1:key)
+                }
                 If $IsObject(value) {
-                    Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey_"|"_$Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+                    Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey_"|"_$Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"parentNode":(tNodeKey),"nestedJSON":(pNestedJSON)})
 				} Else {
                     Set tCType = pJSON.%GetTypeOf(key)
                     If key=+key {
@@ -818,17 +833,21 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                             }
                             Do ..s(tItem,"example",value,tCType,pDelim)
                             Do ..s(pOpenApiJSON,tUCObjName_pDelim_"items"_pDelim_"anyOf"_pDelim_"+",tItem,,pDelim)
+                            Do ..s(pNestedJSON,pParentNode_pDelim_"items"_pDelim_"anyOf"_pDelim_"+",tItem,,pDelim)
                         }
                     } Else {
                         Set tExType = ..GetByLineKey(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"type",pDelim)
                         If tExType'="",tCType'=tExType Set tCType = "string"
                         Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"type",tCType,,pDelim)
                         If tCType = "string",$Length(value)=10,$Extract($Translate(value,"1920","XXXX"),1,2)="XX",$Extract(value,5)="-",$Extract(value,8)="-" {
-                            Do ..SetByLineKey(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"format","date",,pDelim)
+                            Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"format","date",,pDelim)
+                            Do ..s(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"format","date",,pDelim)
                         } ElseIf $Extract($TR(value,"0123456789","XXXXXXXXXX"),1,17)="XXXX-XX-XXTXX:XX:" {
-                            Do ..SetByLineKey(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"format","date-time",,pDelim)
+                            Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"format","date-time",,pDelim)
+                            Do ..s(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"format","date-time",,pDelim)
                         }
-                        Do ..SetByLineKey(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"example",value,tCType,pDelim)
+                        Do ..s(pOpenApiJSON,tUCObjName_pDelim_"properties"_pDelim_key_pDelim_"example",value,tCType,pDelim)
+                        Do ..s(pNestedJSON,pParentNode_pDelim_"properties"_pDelim_key_pDelim_"example",value,tCType,pDelim)
                     }
 	 			}
 			}
