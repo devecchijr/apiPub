@@ -782,7 +782,7 @@ ClassMethod TemplateToOpenApiSchema(pJSON As %Library.DynamicObject, ByRef pObje
                 Set tSC = $$$ERROR($$$GeneralError, "pObjectName must be informed when there is no main node")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }
-			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName_"|"_$Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"parentNode":(pObjectName),"nestedJSON":(pNestedJSON)})
+			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName_"|"_$Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"parentNode":(pSchemaPrefix_pObjectName),"nestedJSON":(pNestedJSON)})
             If (pNestedMode) Set pOpenApiJSON=pNestedJSON
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
