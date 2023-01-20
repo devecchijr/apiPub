@@ -141,10 +141,9 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
 		If ..#OASNestedMode=1 Set tParams.nestedMode=1
 		If ..#AuthMethod=2 Set tParams.authMethod = "bearer"
 		If ..#DispatchBaseURL'="" {
-			Set tRequestURL = ..#DispatchBaseURL
-			If $Find(tRequestURL,"http")=0 Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,3)_$Replace("/"_..#DispatchBaseURL,"//","/")
-		}
-		If ..#DispatchBaseURL="" {
+			Set tRequestURL =$Replace(..#DispatchBaseURL,"{namespace}",$namespace)
+			If $Find(tRequestURL,"http")=0 Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,3)_$Replace("/"_$Replace(..#DispatchBaseURL,"{namespace}",$namespace),"//","/")
+		} Else {
 			Set tRequestURL = $Piece(pRequest.RequestURL,$Piece(..#OASPath,":",2),1)
 			If tRequestURL="" Set tRequestURL = $Piece(pRequest.RequestURL,"/",1,*-1)
 		}
