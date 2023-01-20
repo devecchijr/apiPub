@@ -10,7 +10,7 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If template="" Set template="object"
-    Quit ..publishApiFromJSON({},template,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, traceable, pReq)
+    Quit ..publishApiFromJSON({},template,0,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, traceable, pReq)
 }
 
 /// Inform a JSON sample (object body) to view its correspondent OAS schema
