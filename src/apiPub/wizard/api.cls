@@ -1,19 +1,27 @@
 Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 {
 
-/// generates new APIs based on templates
+/// publish new APIs based on templates
 /// @apiPub[tag="Create & Publish - New API"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/new/publishApi"]
 /// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/html)","get output(application/octet-stream)", "get output(application/json)"]]
 /// @apiPub[params.template.schema.default="get output(status)"]
-ClassMethod publishNewAPI(template As %String, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.apiTitle.description="Api title for OAS"]
+/// @apiPub[params.apiDescription.description="Api description for OAS"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod publishNewAPI(template As %String, apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If template="" Set template="object"
-    Quit ..publishApiFromJSON({},template,0,apiDescription, apiTitle, apiDomain, apiClassName, moduleClassName, appPath, "", charSet, traceable, pReq)
+    Quit ..publishApiFromJSON({}, template, 0, apiTitle, apiDescription, apiDomain, apiClassName, moduleClassName, appPath, oasAppPath, "", charSet, traceable, pReq)
 }
 
-/// Inform a JSON sample (object body) to view its correspondent OAS schema
+/// view OAS schema based on a JSON sample (object body)
 /// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
 /// @apiPub[path="/fromjson/viewschema"]
 /// @apiPub[params.obj.description="Inform your sample object to view its correspondent Open Api Schema (OAS)"]
@@ -28,13 +36,22 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
     Quit schema
 }
 
-/// If you have any class with Web Methods you can automate the publication
+/// publish automatically an Api based on existing class (ex: SOAP) 
 /// @apiPub[tag="Create & Publish - From SOAP or Existing Class"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromclass/publishApi"]
 /// @apiPub[params.apiClassName.description="Existing Class"]
-ClassMethod publishApiFromExistClass(apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", apiDomain As %String = "Api Domain", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.apiTitle.description="Api title for OAS"]
+/// @apiPub[params.apiDescription.description="Api description for OAS"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassName", moduleClassName As %String = "package.name.module", apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
+    If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
+    If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
     If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
@@ -54,10 +71,10 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "package.name.api
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiClassName, apiClassName, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, traceable, isBusinessService, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, isBusinessService, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -80,27 +97,38 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "package.name.api
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..createApiWebApp(appPath, moduleClassName, "Api for "_apiClassName, tResponseLog)
+    Set tSC = ..createApiWebApp(appPath, oasAppPath, moduleClassName, $Replace(apiDescription,"{apiClassName}",apiClassName), tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
-    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
+    Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
-    Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
+    Do tResponseLog.WriteLine("Instructions ")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("==================================================================================================================================")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Quit tResponseLog
 }
 
-/// Inform a JSON sample (object body) to generate automatically an Api with OAS schema validation
+/// publish automatically an Api with OAS schema validation based on a JSON sample
 /// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromjson/publishApi"]
 /// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
 /// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
-ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", nestedMode As %Boolean = 0, apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/api", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.apiTitle.description="Api title for OAS"]
+/// @apiPub[params.apiDescription.description="Api description for OAS"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myObj", nestedMode As %Boolean = 0, apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If nestedMode = "" set nestedMode = 0
     If traceable="" Set traceable = 0
+    If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
+    If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
     If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
@@ -117,7 +145,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiDescription, apiTitle, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     // Add validation methods
@@ -167,7 +195,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "Description":(
                     "@apiPub[tag=""api group""]"_$Char(13)_
                     "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getStatusPath""]"
+                    "@apiPub[path=""getStatusPath/{param1}""]"
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
@@ -183,7 +211,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "Description":(
                     "@apiPub[tag=""api group""]"_$Char(13)_
                     "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getCharStreamPath""]"_$Char(13)_
+                    "@apiPub[path=""getCharStreamPath/{param1}""]"_$Char(13)_
                     "@apiPub[response.outputType=""text/html""]"
                 ),
                 "ClassMethod":1,
@@ -200,7 +228,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "Description":(
                     "@apiPub[tag=""api group""]"_$Char(13)_
                     "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getBinStreamPath""]"_$Char(13)_
+                    "@apiPub[path=""getBinStreamPath/{param1}""]"_$Char(13)_
                     "@apiPub[charset=""ISO-8859-1""]"_$Char(13)_
                     "@apiPub[response.outputType=""application/octet-stream""]"
                 ),
@@ -218,18 +246,18 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "Description":(
                     "@apiPub[tag=""api group""]"_$Char(13)_
                     "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getJSONPath""]"
+                    "@apiPub[path=""getJSONPath/{param1}""]"
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
                 "ReturnType":"%Library.DynamicObject",
                 "WebMethod":1,
-                "Implementation":("    Set tResp = {""prop"":""content""}"_$Char(13)_"    Quit tResp")
+                "Implementation":("    Set tResp = {""prop"":(param1)}"_$Char(13)_"    Quit tResp")
         }
         Do tResponseLog.WriteLine("Method ""getOutJSON"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, traceable, 0, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -247,29 +275,40 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
+    Set tSC = ..createApiWebApp(appPath, oasAppPath, moduleClassName, $Replace(apiDescription,"{apiClassName}",apiClassName), tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
-    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
+    Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
-    Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
+    Do tResponseLog.WriteLine("Instructions ")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("==================================================================================================================================")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Quit tResponseLog
 }
 
-/// Publish Apis to call interoperability components (BP's and BO's) based on current production message mapping or SendMessage method
+/// publish automatically an Api based on interoperability components (BP's and BO's from current production)
 /// @apiPub[tag="Create & Publish - From Interoperability Components (Production)"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromprod/publishApi"]
-/// @apiPub[params.componentName.description="production component name to publish. * to publish all components"]
+/// @apiPub[params.componentName.description="production component name to publish. * to publish all components. This generation is based on message mapping or SendMessage method"]
 /// @apiPub[params.componentName.required="true"]
 /// @apiPub[params.apiClassName.required="true"]
 /// @apiPub[params.moduleClassName.required="true"]
 /// @apiPub[params.apiDomain.required="true"]
-ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As %String = "API Description", apiTitle As %String = "API Title", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/interopApi", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.apiTitle.description="Api title for OAS"]
+/// @apiPub[params.apiDescription.description="Api description for OAS"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.interopApi", moduleClassName As %String = "package.name.interopModule", appPath As %String = "/{namespace}/myInteropApi", oasAppPath As %String = "/{namespace}/myInteropApi/oas", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If traceable="" Set traceable = 0
+    If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
+    If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
     If componentName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> componentName param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
@@ -286,7 +325,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
     Set tSC = ..getProductionMethods(tInteropComps,componentName,.tProductionMethods,tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 1, apiDescription, apiTitle, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 1, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     Set tEsc = $Char(13)
@@ -323,13 +362,13 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
             }
         }
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, apiDomain, charSet, traceable, 1, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, 1, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
-    Set tSC = ..createApiWebApp(appPath, moduleClassName, apiDescription, tResponseLog)
+    Set tSC = ..createApiWebApp(appPath, oasAppPath, moduleClassName, $Replace(apiDescription,"{apiClassName}",apiClassName), tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tCompileProd = 0
@@ -348,11 +387,12 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiDescription As
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
  
-    Do ..addAPIDocToIntrLog(pReq.RequestURL,appPath, tInstruct)
+    Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
-    Do tResponseLog.WriteLine("Instructions  ====================================================================================================================")
+    Do tResponseLog.WriteLine("Instructions ")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("==================================================================================================================================")
+    Do tResponseLog.WriteLine("===================================================================================================================")
     Quit tResponseLog
 }
 
@@ -485,9 +525,10 @@ ClassMethod enableProdTracing(interopComponents As %DynamicObject, instruct As %
 	Quit tSC
 }
 
-ClassMethod addAPIDocToIntrLog(requestURL As %String, appPath As %String, ByRef logResponse As %Stream.GlobalCharacter)
+ClassMethod addAPIDocToIntrLog(requestURL As %String, appPath As %String, oasAppPath As %String, ByRef logResponse As %Stream.GlobalCharacter)
 {
-    Do logResponse.WriteLine("API Documentation: "_$Piece(requestURL,"/",1,3)_"/swagger-ui/index.html?url="_$Piece(requestURL,"/",1,3)_$Replace(appPath,"{namespace}",$namespace)_"/_spec")
+    Do logResponse.WriteLine("Open Api Spec: "_$Piece(requestURL,"/",1,3)_$Replace(oasAppPath,"{namespace}",$namespace)_"/_spec")
+    Do logResponse.WriteLine("Swagger URL  : "_$Piece(requestURL,"/",1,3)_"/swagger-ui/index.html?url="_$Piece(requestURL,"/",1,3)_$Replace(oasAppPath,"{namespace}",$namespace)_"/_spec")
 }
 
 ClassMethod getProductionMethods(interopComponents As %DynamicObject, componentName As %String, Output interopMethods As %DynamicObject, responseLog As %Stream.GlobalCharacter) As %Status
@@ -612,14 +653,14 @@ ClassMethod getProduction(Output interopPackage As %DynamicObject, Output intero
 	Quit tSC
 }
 
-ClassMethod createApiWebApp(appPath As %String, moduleClassName As %String, appDescription As %String, ByRef logResponse As %Stream.GlobalCharacter) As %Status
+ClassMethod createApiWebApp(appPath As %String, oasAppPath As %String, moduleClassName As %String, appDescription As %String, ByRef logResponse As %Stream.GlobalCharacter) As %Status
 {
 	Set tSC = $System.Status.OK()
     Try
 	{
         Set tCurrentNS = $namespace
         Set appPath=$Replace(appPath,"{namespace}",tCurrentNS)
-        Set webName = appPath
+        Set oasAppPath=$Replace(oasAppPath,"{namespace}",tCurrentNS)
         zn "%SYS" 
         Set webName = appPath
         Set webProperties("DispatchClass") = moduleClassName 
@@ -630,7 +671,21 @@ ClassMethod createApiWebApp(appPath As %String, moduleClassName As %String, appD
         Set webProperties("DeepSeeEnabled")=1 
         If '(##class(Security.Applications).Exists(webName)) {
             Set tSC = ##class(Security.Applications).Create(webName, .webProperties)
-            Do logResponse.WriteLine("App """_appPath_""" "_appDescription_" created"_$Char(10,13))
+            Do logResponse.WriteLine("App """_appPath_""" ("_appDescription_") created"_$Char(10,13))
+        }
+        Set webName = oasAppPath
+        Set tOASModuleClassName = $Piece(moduleClassName,".",*)
+        Set tOASModuleClassName = "oas"_$ZConvert($Extract(tOASModuleClassName,1,1),"U")_$Extract(tOASModuleClassName,2,*)
+        If $Find(moduleClassName,".")>0 Set tOASModuleClassName=$Piece(moduleClassName,".",1,*-1)_"."_tOASModuleClassName
+        Set webProperties("DispatchClass") = tOASModuleClassName 
+        Set webProperties("NameSpace") = tCurrentNS
+        Set webProperties("Description") = "unauthenticated specification App for "_appDescription 
+        Set webProperties("Enabled") = 1 
+        Set webProperties("AutheEnabled") = 64 
+        Set webProperties("DeepSeeEnabled")=1 
+        If '(##class(Security.Applications).Exists(webName)) {
+            Set tSC = ##class(Security.Applications).Create(webName, .webProperties)
+            Do logResponse.WriteLine("OAS App """_oasAppPath_""" ("_appDescription_") created"_$Char(10,13))
         }
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         zn tCurrentNS
@@ -682,7 +737,7 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
 	Quit tSC
 }
 
-ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %String, moduleClassName As %String, apiDomain As %String, charSet As %String, traceable As %Boolean = 0, interopApi As %Boolean = 0, ByRef logResponse As %Stream.GlobalCharacter) As %Status
+ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %String, moduleClassName As %String, appPath As %String, apiDomain As %String, charSet As %String, traceable As %Boolean = 0, interopApi As %Boolean = 0, ByRef logResponse As %Stream.GlobalCharacter) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try {
@@ -700,7 +755,9 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
                         {"_name":"DispatchBSName","Description":"When the class is also a Business Service","Type":($Select(interopApi=1:"%String",1:"")),"Default":($Select(interopApi=1:apiClassName,1:""))},
                         {"_name":"Traceable","Description":"Use IRIS Production to generate tracing and monitoring (dashboards)","Type":"%Boolean","Default":(traceable)},
                         {"_name":"APIDomain","Description":"Group for monitoring","Default":(apiDomain)},
-                        {"_name":"OASNestedMode","Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)","Default":(interopApi)}
+                        {"_name":"OASNestedMode","Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)","Default":(interopApi)},
+                        {"_name":"BeautifyJsonBodyRequest","Description":"format/prettify the JSON request body","Default":(traceable)},
+                        {"_name":"BeautifyJsonBodyResponse","Description":"format/prettify the JSON response body","Default":"0"}
                     ]
             }
             Do logResponse.WriteLine("Module """_moduleClassName_""" created")
@@ -715,6 +772,34 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
             }
             Do ..s(apiPackage,"Export.Class."_tModuleIdx,tModuleClass)
         }
+        Set appPath=$Replace(appPath,"{namespace}",$namespace)
+        Set tOASModuleClassName = $Piece(moduleClassName,".",*)
+        Set tOASModuleClassName = "oas"_$ZConvert($Extract(tOASModuleClassName,1,1),"U")_$Extract(tOASModuleClassName,2,*)
+        If $Find(moduleClassName,".")>0 Set tOASModuleClassName=$Piece(moduleClassName,".",1,*-1)_"."_tOASModuleClassName
+        Set tOASModuleIdx = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_tOASModuleClassName_"""")
+        If tOASModuleIdx=-1 {
+            Set tOASModuleClass =  {
+                    "_name":(tOASModuleClassName),
+                    "Super":"apiPub.core.service",
+                    "TimeChanged":($Now()),
+                    "TimeCreated":($Now()),
+                    "Parameter": [
+                        {"_name":"OnlyOAS","Description":"If false allows API Calling","Default":1},                    
+                        {"_name":"DispatchBaseURL","Description":"Useful to treat documentation and api (urls) separately (different web applications)","Default":(appPath)},                    
+                        {"_name":"CHARSET","Description":"Charset for Output","Default":(charSet)},                    
+                        {"_name":"OASPath","Description":"Target path for OAS Documentation","Type":"%String","Default":"Get:/_spec"},
+                        {"_name":"DispatchClass","Description":"Target class that contains all API (Web Methods) for this module","Type":"%String","Default":(apiClassName)},
+                        {"_name":"DispatchBSName","Description":"When the class is also a Business Service","Type":($Select(interopApi=1:"%String",1:"")),"Default":($Select(interopApi=1:apiClassName,1:""))},
+                        {"_name":"Traceable","Description":"Use IRIS Production to generate tracing and monitoring (dashboards)","Type":"%Boolean","Default":0},
+                        {"_name":"APIDomain","Description":"Group for monitoring","Default":(apiDomain)},
+                        {"_name":"OASNestedMode","Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)","Default":(interopApi)},
+                        {"_name":"BeautifyJsonBodyRequest","Description":"format/prettify the JSON request body","Default":"0"},
+                        {"_name":"BeautifyJsonBodyResponse","Description":"format/prettify the JSON response body","Default":"0"}
+                    ]
+            }
+            Do logResponse.WriteLine("OAS Module """_tOASModuleClassName_""" created")
+            Do ..s(apiPackage,"Export.Class.+",tOASModuleClass)
+        } 
     }
 	Catch(e) {
 		Set tSC = e.AsStatus()
@@ -722,10 +807,12 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
 	Quit tSC
 }
 
-ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, interopApi As %Boolean = 0, apiDescription As %String, apiTitle As %String, Output apiPackage, Output apiClass, Output apiXData, ByRef logResponse As %Stream.GlobalCharacter) As %Status
+ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, interopApi As %Boolean = 0, apiTitle As %String, apiDescription As %String, Output apiPackage, Output apiClass, Output apiXData, ByRef logResponse As %Stream.GlobalCharacter) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try {
+        Set apiTitle = $Replace(apiTitle,"{apiClassName}",apiClassName)
+        Set apiDescription = $Replace(apiDescription,"{apiClassName}",apiClassName)
         Set apiXData={}
         Set apiPackage = {
             "Export":{
@@ -740,6 +827,10 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
         Set tClassesToExport=""
         If $IsObject(##class(%Dictionary.ClassDefinition).%OpenId(apiClassName)) Set tClassesToExport=apiClassName_".cls"
         If $IsObject(##class(%Dictionary.ClassDefinition).%OpenId(moduleClassName)) Set tClassesToExport=tClassesToExport_$Select(tClassesToExport'="":",",1:"")_moduleClassName_".cls"
+        Set tOASModuleClassName = $Piece(moduleClassName,".",*)
+        Set tOASModuleClassName = "oas"_$ZConvert($Extract(tOASModuleClassName,1,1),"U")_$Extract(tOASModuleClassName,2,*)
+        If $Find(moduleClassName,".")>0 Set tOASModuleClassName=$Piece(moduleClassName,".",1,*-1)_"."_tOASModuleClassName
+        If $IsObject(##class(%Dictionary.ClassDefinition).%OpenId(tOASModuleClassName)) Set tClassesToExport=tClassesToExport_$Select(tClassesToExport'="":",",1:"")_tOASModuleClassName_".cls"
         If tClassesToExport'="" {
             Set tSC = ##class(%SYSTEM.OBJ).ExportToStream(tClassesToExport,.tPack,"/displaylog=1",.errlog)
             If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -748,9 +839,9 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
         }
         Set tIdxClass = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_apiClassName_"""")
         Set tInfo = {
+                "title" : (apiTitle),
                 "description" : (apiDescription),
                 "version" : "1.0.0",
-                "title" : (apiTitle),
                 "termsOfService" : "http://swagger.io/terms/",
                 "contact" : {
                     "email" : "apiteam@swagger.io"
