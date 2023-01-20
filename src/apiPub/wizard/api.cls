@@ -63,7 +63,7 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     Set tInteropClass = {}
     Set tInteropComps = {}
 
-    Set tSC = ..getClassDefInfo(apiClassName,,,.isBusinessService,.isBusinessProcess,.isBusinessOperation)
+    Set tSC = ..getClassDefInfo(apiClassName,,,.isBusinessService,.isBusinessProcess,.isBusinessOperation,.isSOAPService)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     If (traceable) {
@@ -84,11 +84,6 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     If (traceable) {
         Set tSC = ..enableProdTracing(tInteropComps, tInstruct, .tCompileProd)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-    }
-
-    If (isBusinessService) {
-        Set tSC = ..enableProdClass(tInteropComps, apiClassName, tInstruct, .tCompileProd)
-        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
     If (tCompileProd) {
@@ -698,13 +693,13 @@ ClassMethod createApiWebApp(appPath As %String, oasAppPath As %String, moduleCla
 	Quit tSC
 }
 
-ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, Output isBusinessProcess, Output isBusinessOperation, level = 0) As %Status
+ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, Output isBusinessProcess, Output isBusinessOperation, Output isSOAPService, level = 0) As %Status
 {
 	Set tSC = $System.Status.OK()
     Try
 	{
         If level=0 {
-            Set (isXMLAdaptor,isBusinessService,isBusinessProcess,isBusinessOperation)=0
+            Set (isXMLAdaptor,isBusinessService,isBusinessProcess,isBusinessOperation,isSOAPService)=0
         }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
@@ -719,12 +714,13 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
                 If isBusinessProcess=0,classDefinition.Super["Ens.BusinessProcess" Set isBusinessProcess=1
                 If isBusinessOperation=0,classDefinition.Super["Ens.BusinessOperation" Set isBusinessOperation=1
+                If isSOAPService=0,classDefinition.Super["EnsLib.SOAP.Service" Set isSOAPService=1
                 for sup=1:1:$l(classDefinition.Super,",") {  continue:$p(classDefinition.Super,",",sup)=""
                     Set tSuper = $p(classDefinition.Super,",",sup)
                     If $Find(tSuper,"%")=0,$Length(tSuper,".")=1,$Length(aClassName,".")>1 {
                         Set tSuper = $Piece(aClassName,".",1,*-1)_"."_tSuper
                     }
-                    Set tSC = ..getClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,.isBusinessProcess,.isBusinessOperation,level+1)
+                    Set tSC = ..getClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,.isBusinessProcess,.isBusinessOperation,.isSOAPService,level+1)
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 }
             }
@@ -757,7 +753,7 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
                         {"_name":"APIDomain","Description":"Group for monitoring","Default":(apiDomain)},
                         {"_name":"OASNestedMode","Description":"If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)","Default":(interopApi)},
                         {"_name":"BeautifyJsonBodyRequest","Description":"format/prettify the JSON request body","Default":(traceable)},
-                        {"_name":"BeautifyJsonBodyResponse","Description":"format/prettify the JSON response body","Default":"0"}
+                        {"_name":"BeautifyJsonBodyResponse","Description":"format/prettify the JSON response body","Default":(traceable)}
                     ]
             }
             Do logResponse.WriteLine("Module """_moduleClassName_""" created")
@@ -873,16 +869,18 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
             If ..g(apiClass,"Method")="" {
                 Do ..s(apiClass,"Method",[])
             }
-            If '$IsObject(..g(apiClass,"XData")) {
-                Do ..s(apiClass,"XData",[(tXDataObj)])
-                Do ..s(apiXData,"info",tInfo)
-            } Else {
-                Set tApiPubXDataIdx = ..find(..g(apiClass,"XData"),"$ZConvert(..g(value,""_name""),""L"")=""apipub""")
-                If tApiPubXDataIdx'=-1 {
-                    Set apiXData = {}.%FromJSON(..g(apiClass,"XData."_tApiPubXDataIdx_".Data"))
-                } Else {
-                    Do ..s(apiClass,"XData.+",(tXDataObj))
+            If $find(..g(apiPackage,"Export.Class."_tIdxClass_".Super"),"EnsLib.SOAP.Service")=0 {
+                If '$IsObject(..g(apiClass,"XData")) {
+                    Do ..s(apiClass,"XData",[(tXDataObj)])
                     Do ..s(apiXData,"info",tInfo)
+                } Else {
+                    Set tApiPubXDataIdx = ..find(..g(apiClass,"XData"),"$ZConvert(..g(value,""_name""),""L"")=""apipub""")
+                    If tApiPubXDataIdx'=-1 {
+                        Set apiXData = {}.%FromJSON(..g(apiClass,"XData."_tApiPubXDataIdx_".Data"))
+                    } Else {
+                        Do ..s(apiClass,"XData.+",(tXDataObj))
+                        Do ..s(apiXData,"info",tInfo)
+                    }
                 }
             }
         }
@@ -898,12 +896,14 @@ ClassMethod importApiPackage(apiPackage As %DynamicObject, apiClass As %DynamicO
 	Set tSC = $System.Status.OK()
     Try
 	{
-        Set tFormatter = ##class(%JSON.Formatter).%New()
-        Set tFormSchema = ##class(%Stream.GlobalCharacter).%New()
-        Set tSC = tFormatter.FormatToStream(apiXData,tFormSchema)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-        Set tApiPubXDataIdx = ..find(..g(apiClass,"XData"),"$ZConvert(..g(value,""_name""),""L"")=""apipub""")
-        Do ..s(apiClass,"XData."_tApiPubXDataIdx_".Data",$Char(13)_tFormSchema.Read())
+        If apiXData.%Size()'=0 {
+            Set tFormatter = ##class(%JSON.Formatter).%New()
+            Set tFormSchema = ##class(%Stream.GlobalCharacter).%New()
+            Set tSC = tFormatter.FormatToStream(apiXData,tFormSchema)
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+            Set tApiPubXDataIdx = ..find(..g(apiClass,"XData"),"$ZConvert(..g(value,""_name""),""L"")=""apipub""")
+            Do ..s(apiClass,"XData."_tApiPubXDataIdx_".Data",$Char(13)_tFormSchema.Read())
+        }
         Do ##class(apiPub.core.converter).JSONToXML(apiPackage,.package,{"printResults":0})
         Do $system.OBJ.LoadStream(package,"ck/displaylog=1")
     }
@@ -954,7 +954,7 @@ XData apiPub [ MimeType = application/json ]
             },
             {
             "name": "Create & Publish - From Interoperability Components (Production)"
-            },
+            }
         ]
     }
 }
