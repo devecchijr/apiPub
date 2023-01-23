@@ -71,10 +71,10 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, isSOAPService, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, isBusinessService, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, isSOAPService, moduleClassName, appPath, apiDomain, charSet, traceable, isBusinessService, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -140,7 +140,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
     }
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     // Add validation methods
@@ -252,7 +252,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Do tResponseLog.WriteLine("Method ""getOutJSON"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -320,7 +320,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
     Set tSC = ..getProductionMethods(tInteropComps,componentName,.tProductionMethods,tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
-    Set tSC = ..getAPIPackage(apiClassName, moduleClassName, 1, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 1, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
     Set tEsc = $Char(13)
@@ -357,7 +357,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
             }
         }
     }
-    Set tSC = ..createApiModule(tApiPackage, apiClassName, moduleClassName, appPath, apiDomain, charSet, traceable, 1, tResponseLog)
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 1, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
@@ -733,10 +733,11 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
 	Quit tSC
 }
 
-ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %String, moduleClassName As %String, appPath As %String, apiDomain As %String, charSet As %String, traceable As %Boolean = 0, interopApi As %Boolean = 0, ByRef logResponse As %Stream.GlobalCharacter) As %Status
+ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %String, isSOAPService As %Boolean, moduleClassName As %String, appPath As %String, apiDomain As %String, charSet As %String, traceable As %Boolean = 0, interopApi As %Boolean = 0, ByRef logResponse As %Stream.GlobalCharacter) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try {
+        If (isSOAPService) Set traceable = 0
         Set tModuleIdx = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_moduleClassName_"""")
         If tModuleIdx=-1 {
             Set tModuleClass =  {
@@ -803,13 +804,14 @@ ClassMethod createApiModule(apiPackage As %DynamicObject, apiClassName As %Strin
 	Quit tSC
 }
 
-ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, interopApi As %Boolean = 0, apiTitle As %String, apiDescription As %String, Output apiPackage, Output apiClass, Output apiXData, ByRef logResponse As %Stream.GlobalCharacter) As %Status
+ClassMethod getAPIPackage(apiClassName As %String, isSOAPService As %Boolean, moduleClassName As %String, interopApi As %Boolean = 0, apiTitle As %String, apiDescription As %String, Output apiPackage, Output apiClass, Output apiXData, ByRef logResponse As %Stream.GlobalCharacter) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try {
         Set apiTitle = $Replace(apiTitle,"{apiClassName}",apiClassName)
         Set apiDescription = $Replace(apiDescription,"{apiClassName}",apiClassName)
         Set apiXData={}
+        Set apiClass={}
         Set apiPackage = {
             "Export":{
                 "_generator":"IRIS",
@@ -821,7 +823,7 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
             }
         }
         Set tClassesToExport=""
-        If $IsObject(##class(%Dictionary.ClassDefinition).%OpenId(apiClassName)) Set tClassesToExport=apiClassName_".cls"
+        If '(isSOAPService),$IsObject(##class(%Dictionary.ClassDefinition).%OpenId(apiClassName)) Set tClassesToExport=apiClassName_".cls"
         If $IsObject(##class(%Dictionary.ClassDefinition).%OpenId(moduleClassName)) Set tClassesToExport=tClassesToExport_$Select(tClassesToExport'="":",",1:"")_moduleClassName_".cls"
         Set tOASModuleClassName = $Piece(moduleClassName,".",*)
         Set tOASModuleClassName = "oas"_$ZConvert($Extract(tOASModuleClassName,1,1),"U")_$Extract(tOASModuleClassName,2,*)
@@ -833,43 +835,43 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
             Set tSC = ##class(apiPub.core.converter).XMLToJSON(tPack,{"list":{"Export^Class":1,"Export^Class^Method":1,"Export^Class^XData":1,"Export^Class^Parameter":1},"types":{},"circularRef":{}},.apiPackage,{"printResults":0})
             If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
         }
-        Set tIdxClass = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_apiClassName_"""")
-        Set tInfo = {
-                "title" : (apiTitle),
-                "description" : (apiDescription),
-                "version" : "1.0.0",
-                "termsOfService" : "http://swagger.io/terms/",
-                "contact" : {
-                    "email" : "apiteam@swagger.io"
-                },
-                "license" : {
-                    "name" : "Apache 2.0",
-                    "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+        If '(isSOAPService) {
+            Set tIdxClass = ..find(..g(apiPackage,"Export.Class"),"..g(value,""_name"")="""_apiClassName_"""")
+            Set tInfo = {
+                    "title" : (apiTitle),
+                    "description" : (apiDescription),
+                    "version" : "1.0.0",
+                    "termsOfService" : "http://swagger.io/terms/",
+                    "contact" : {
+                        "email" : "apiteam@swagger.io"
+                    },
+                    "license" : {
+                        "name" : "Apache 2.0",
+                        "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+                    }
+            }
+            Set tXDataObj = {
+                "_name":"apiPub",
+                "MimeType":"application/json",
+                "Data":"{}"
+            }
+            If tIdxClass=-1 {
+                Set apiClass =  {
+                            "_name":(apiClassName),
+                            "ProcedureBlock":1,
+                            "Super":("apiPub.core.jsonBuilder"_$Select(interopApi=1:",Ens.BusinessService",1:"")),
+                            "TimeChanged":($Now()),
+                            "TimeCreated":($Now()),
+                            "Method": [],
+                            "XData": [(tXDataObj)]
                 }
-        }
-        Set tXDataObj = {
-            "_name":"apiPub",
-            "MimeType":"application/json",
-            "Data":"{}"
-        }
-        If tIdxClass=-1 {
-            Set apiClass =  {
-                        "_name":(apiClassName),
-                        "ProcedureBlock":1,
-                        "Super":("apiPub.core.jsonBuilder"_$Select(interopApi=1:",Ens.BusinessService",1:"")),
-                        "TimeChanged":($Now()),
-                        "TimeCreated":($Now()),
-                        "Method": [],
-                        "XData": [(tXDataObj)]
-            }
-            Do ..s(apiPackage,"Export.Class.+",apiClass)
-            Do ..s(apiXData,"info",tInfo)
-        } Else {
-            Set apiClass = ..g(apiPackage,"Export.Class."_tIdxClass)
-            If ..g(apiClass,"Method")="" {
-                Do ..s(apiClass,"Method",[])
-            }
-            If $find(..g(apiPackage,"Export.Class."_tIdxClass_".Super"),"EnsLib.SOAP.Service")=0 {
+                Do ..s(apiPackage,"Export.Class.+",apiClass)
+                Do ..s(apiXData,"info",tInfo)
+            } Else {
+                Set apiClass = ..g(apiPackage,"Export.Class."_tIdxClass)
+                If ..g(apiClass,"Method")="" {
+                    Do ..s(apiClass,"Method",[])
+                }
                 If '$IsObject(..g(apiClass,"XData")) {
                     Do ..s(apiClass,"XData",[(tXDataObj)])
                     Do ..s(apiXData,"info",tInfo)
@@ -879,8 +881,8 @@ ClassMethod getAPIPackage(apiClassName As %String, moduleClassName As %String, i
                         Set apiXData = {}.%FromJSON(..g(apiClass,"XData."_tApiPubXDataIdx_".Data"))
                     } Else {
                         Do ..s(apiClass,"XData.+",(tXDataObj))
-                        Do ..s(apiXData,"info",tInfo)
                     }
+                    If ..g(apiXData,"info")="" Do ..s(apiXData,"info",tInfo)
                 }
             }
         }
