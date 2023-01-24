@@ -2,7 +2,7 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 {
 
 /// publish new APIs based on templates
-/// @apiPub[tag="Create & Publish - New API"]
+/// @apiPub[tag="New API"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/new/publishApi"]
 /// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/html)","get output(application/octet-stream)", "get output(application/json)"]]
@@ -22,7 +22,7 @@ ClassMethod publishNewAPI(template As %String, apiTitle As %String = "{apiClassN
 }
 
 /// view OAS schema based on a JSON sample (object body)
-/// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
+/// @apiPub[tag="From JSON sample for payload validation"]
 /// @apiPub[path="/fromjson/viewschema"]
 /// @apiPub[params.obj.description="Inform your sample object to view its correspondent Open Api Schema (OAS)"]
 /// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
@@ -36,8 +36,8 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
     Quit schema
 }
 
-/// publish automatically an Api based on existing class (ex: SOAP) 
-/// @apiPub[tag="Create & Publish - From SOAP or Existing Class"]
+/// publish automatically an Api based on existing class/web methods
+/// @apiPub[tag="From existing class/web methods"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromclass/publishApi"]
 /// @apiPub[params.apiClassName.description="Existing Class"]
@@ -98,14 +98,14 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions ")
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Quit tResponseLog
 }
 
 /// publish automatically an Api with OAS schema validation based on a JSON sample
-/// @apiPub[tag="Create & Publish - From JSON sample for payload validation"]
+/// @apiPub[tag="From JSON sample for payload validation"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromjson/publishApi"]
 /// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
@@ -276,14 +276,14 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions ")
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Quit tResponseLog
 }
 
 /// publish automatically an Api based on interoperability components (BP's and BO's from current production)
-/// @apiPub[tag="Create & Publish - From Interoperability Components (Production)"]
+/// @apiPub[tag="From interoperability components (Production)"]
 /// @apiPub[response.outputType="text/html"]
 /// @apiPub[path="/fromprod/publishApi"]
 /// @apiPub[params.componentName.description="production component name to publish. * to publish all components. This generation is based on message mapping or SendMessage method"]
@@ -385,9 +385,9 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
     Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
     Do tResponseLog.WriteLine("")
     Do tResponseLog.WriteLine("Instructions ")
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Do tResponseLog.Write(tInstruct.Read())
-    Do tResponseLog.WriteLine("===================================================================================================================")
+    Do tResponseLog.WriteLine("========================================================================================================================")
     Quit tResponseLog
 }
 
@@ -664,8 +664,8 @@ ClassMethod createApiWebApp(appPath As %String, oasAppPath As %String, moduleCla
         Set webProperties("Enabled") = 1 
         Set webProperties("AutheEnabled") = 32 
         Set webProperties("DeepSeeEnabled")=1 
-        If '(##class(Security.Applications).Exists(webName)) {
-            Set tSC = ##class(Security.Applications).Create(webName, .webProperties)
+        If '($ClassMethod("Security.Applications","Exists",webName)) {
+            Set tSC = $ClassMethod("Security.Applications","Create",webName,.webProperties)
             Do logResponse.WriteLine("App """_appPath_""" ("_appDescription_") created"_$Char(10,13))
         }
         Set webName = oasAppPath
@@ -678,8 +678,8 @@ ClassMethod createApiWebApp(appPath As %String, oasAppPath As %String, moduleCla
         Set webProperties("Enabled") = 1 
         Set webProperties("AutheEnabled") = 64 
         Set webProperties("DeepSeeEnabled")=1 
-        If '(##class(Security.Applications).Exists(webName)) {
-            Set tSC = ##class(Security.Applications).Create(webName, .webProperties)
+        If '($ClassMethod("Security.Applications","Exists",webName)) {
+            Set tSC = $ClassMethod("Security.Applications","Create",webName,.webProperties)
             Do logResponse.WriteLine("OAS App """_oasAppPath_""" ("_appDescription_") created"_$Char(10,13))
         }
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -946,16 +946,16 @@ XData apiPub [ MimeType = application/json ]
         },
         "tags": [
             {
-            "name": "Create & Publish - New API"
+            "name": "New API"
             },
             {
-            "name": "Create & Publish - From SOAP or Existing Class"
+            "name": "From existing class/web methods"
             },
             {
-            "name": "Create & Publish - From JSON sample for payload validation"
+            "name": "From JSON sample for payload validation"
             },
             {
-            "name": "Create & Publish - From Interoperability Components (Production)"
+            "name": "From interoperability components (Production)"
             }
         ]
     }
