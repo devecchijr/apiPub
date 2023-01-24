@@ -3,9 +3,9 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 
 /// publish new APIs based on templates
 /// @apiPub[tag="New API"]
-/// @apiPub[response.outputType="text/html"]
+/// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/new/publishApi"]
-/// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/html)","get output(application/octet-stream)", "get output(application/json)"]]
+/// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/plain)","get output(application/octet-stream)", "get output(application/json)", "put input/output(application/json)", "put input/output(text/plain)","put input/output(application/octet-stream)","post input/output(application/json)", "post input/output(text/plain)","post input/output(application/octet-stream)"]]
 /// @apiPub[params.template.schema.default="get output(status)"]
 /// @apiPub[params.apiClassName.description="Api classname (web methods)"]
 /// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
@@ -38,7 +38,7 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
 
 /// publish automatically an Api based on existing class/web methods
 /// @apiPub[tag="From existing class/web methods"]
-/// @apiPub[response.outputType="text/html"]
+/// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromclass/publishApi"]
 /// @apiPub[params.apiClassName.description="Existing Class"]
 /// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
@@ -106,7 +106,7 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
 
 /// publish automatically an Api with OAS schema validation based on a JSON sample
 /// @apiPub[tag="From JSON sample for payload validation"]
-/// @apiPub[response.outputType="text/html"]
+/// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromjson/publishApi"]
 /// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
 /// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
@@ -155,11 +155,16 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Set tValidateSchemaMethod = {
                 "_name":("validate"_objName),
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[verb=""put""]"_$Char(13)_
-                    "@apiPub[params.obj.schema="""_schemaPrefix_objName_"""]"_$Char(13)_
-                    "@apiPub[params.obj.parse=""true""]"_$Char(13)_
-                    "@apiPub[response.schema="""_schemaPrefix_objName_"""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"put",
+                            "params.obj.schema":(schemaPrefix_objName),
+                            "params.obj.parse":"true",
+                            "response.schema":(schemaPrefix_objName)
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"obj:%DynamicObject",
@@ -173,8 +178,14 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Set tNewMethod = {
                 "_name":"apiMethod",
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[path=""apipath""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"get",
+                            "path":"apipath"
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param:%String",
@@ -188,9 +199,15 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Set tNewMethod = {
                 "_name":"getOutStatus",
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getStatusPath/{param1}""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"get",
+                            "path":"getStatusPath/{param1}",
+                            "params.param1.description":"param description"
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
@@ -200,14 +217,20 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         }
         Do tResponseLog.WriteLine("Method ""getOutStatus"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
-    } ElseIf objName="get output(text/html)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutcharstream""")=-1) {
+    } ElseIf objName="get output(text/plain)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""getoutcharstream""")=-1) {
         Set tNewMethod = {
                 "_name":"getOutCharStream",
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getCharStreamPath/{param1}""]"_$Char(13)_
-                    "@apiPub[response.outputType=""text/html""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"get",
+                            "path":"getCharStreamPath/{param1}",
+                            "params.param1.description":"param description",
+                            "response.outputType":"text/plain"
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
@@ -221,11 +244,17 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Set tNewMethod = {
                 "_name":"getOutBinStream",
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getBinStreamPath/{param1}""]"_$Char(13)_
-                    "@apiPub[charset=""ISO-8859-1""]"_$Char(13)_
-                    "@apiPub[response.outputType=""application/octet-stream""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"get",
+                            "path":"getBinStreamPath/{param1}",
+                            "params.param1.description":"param description",
+                            "charset":"ISO-8859-1",
+                            "response.outputType":"application/octet-stream"
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
@@ -239,9 +268,15 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
         Set tNewMethod = {
                 "_name":"getOutJSON",
                 "Description":(
-                    "@apiPub[tag=""api group""]"_$Char(13)_
-                    "@apiPub[verb=""get""]"_$Char(13)_
-                    "@apiPub[path=""getJSONPath/{param1}""]"
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"get",
+                            "path":"getJSONPath/{param1}",
+                            "params.param1.description":"param description"
+                        }
+                    )
                 ),
                 "ClassMethod":1,
                 "FormalSpec":"param1:%String,param2:%Numeric,param3:%Boolean",
@@ -250,6 +285,151 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
                 "Implementation":("    Set tResp = {""prop"":(param1)}"_$Char(13)_"    Quit tResp")
         }
         Do tResponseLog.WriteLine("Method ""getOutJSON"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="put input/output(application/json)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""putinoutjson""")=-1) {
+        Set tNewMethod = {
+                "_name":"putInOutJSON",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"put",
+                            "path":"putInOutJSON/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Library.DynamicObject",
+                "ReturnType":"%Library.DynamicObject",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""putInOutJSON"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="put input/output(text/plain)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""putinouttext""")=-1) {
+        Set tNewMethod = {
+                "_name":"putInOutText",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"put",
+                            "path":"putInOutText/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description",
+                            "params.param2.inputType":"text/plain",
+                            "response.outputType":"text/plain"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Stream.GlobalCharacter",
+                "ReturnType":"%Stream.GlobalCharacter",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""putInOutText"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="put input/output(application/octet-stream)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""putinoutbinstream""")=-1) {
+        Set tNewMethod = {
+                "_name":"putInOutBinStream",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"put",
+                            "path":"putInOutBinStream/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description",
+                            "params.param2.inputType":"application/octet-stream",
+                            "charset":"ISO-8859-1",
+                            "response.outputType":"application/octet-stream"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Stream.GlobalBinary",
+                "ReturnType":"%Stream.GlobalBinary",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""putInOutBinStream"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="post input/output(application/json)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""postinoutjson""")=-1) {
+        Set tNewMethod = {
+                "_name":"postInOutJSON",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "path":"postInOutJSON/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Library.DynamicObject",
+                "ReturnType":"%Library.DynamicObject",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""postInOutJSON"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="post input/output(text/plain)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""postinouttext""")=-1) {
+        Set tNewMethod = {
+                "_name":"postInOutText",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "path":"postInOutText/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description",
+                            "params.param2.inputType":"text/plain",
+                            "response.outputType":"text/plain"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Stream.GlobalCharacter",
+                "ReturnType":"%Stream.GlobalCharacter",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""postInOutText"" created")
+        Do ..s(tAPIClass,"Method.+",tNewMethod)
+    } ElseIf objName="post input/output(application/octet-stream)",(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=""postinoutbinstream""")=-1) {
+        Set tNewMethod = {
+                "_name":"postInOutBinStream",
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "path":"postInOutBinStream/{param1}",
+                            "params.param1.description":"param description",
+                            "params.param2.description":"payload description",
+                            "params.param2.inputType":"application/octet-stream",
+                            "charset":"ISO-8859-1",
+                            "response.outputType":"application/octet-stream"
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"param1:%String,param2:%Stream.GlobalBinary",
+                "ReturnType":"%Stream.GlobalBinary",
+                "WebMethod":1,
+                "Implementation":("    Quit param2")
+        }
+        Do tResponseLog.WriteLine("Method ""postInOutBinStream"" created")
         Do ..s(tAPIClass,"Method.+",tNewMethod)
     }
     Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
@@ -284,7 +464,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
 
 /// publish automatically an Api based on interoperability components (BP's and BO's from current production)
 /// @apiPub[tag="From interoperability components (Production)"]
-/// @apiPub[response.outputType="text/html"]
+/// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromprod/publishApi"]
 /// @apiPub[params.componentName.description="production component name to publish. * to publish all components. This generation is based on message mapping or SendMessage method"]
 /// @apiPub[params.componentName.required="true"]
@@ -343,9 +523,14 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
                 Set tCompMethod = {
                         "_name":(tMethodName),
                         "Description":(
-                            $Select(isBusinessProcess=1:tEsc_"@apiPub[verb=""put""]",1:"")_
-                            tEsc_"@apiPub[tag="""_..g(val,"component")_"""]"_
-                            tEsc_"@apiPub[path="""_..normalizeCompName($Piece(..g(val,"component"),".",*-1,*))_"/"_..g(val,"method")_"""]"
+                            ..getApiPubNotation(
+                                {
+                                    "description":("submit "_..g(val,"inputType")_" msg request to "_..g(val,"component")),
+                                    "tag":(..g(val,"component")),
+                                    "verb":($Select(isBusinessProcess=1:"put",1:"post")),
+                                    "path":(..normalizeCompName($Piece(..g(val,"component"),".",*-1,*))_"/"_..g(val,"method"))
+                                }
+                            )
                         ),
                         "FormalSpec":("pRequest:"_..g(val,"inputType")_""),
                         "ReturnType":($Select(outputIsXMLAdaptor=1:..g(val,"outputType"),1:"%Status")),
@@ -926,6 +1111,18 @@ ClassMethod normalizeCompName(compName As %String) As %String
         Set tCompName=tCompName_tPiece
     }
     Quit tCompName
+}
+
+ClassMethod getApiPubNotation(params As %DynamicObject) As %String
+{
+    Set tRet = ""
+    If ..g(params,"description")'="" Set tRet=..g(params,"description")
+    If ..g(params,"desc")'="" Set tRet=..g(params,"desc")
+    While (..i(params, ,.idx,.val,.it)) {
+        If ((idx="description")||(idx="desc")) continue
+        Set tRet = tRet_$Select(tRet'="":$Char(13,10),1:tRet)_"@apiPub["_idx_"="_$Select(($IsObject(val)):val.%ToJSON(),1:""""_val_"""")_"]"
+    }
+    Quit tRet
 }
 
 XData apiPub [ MimeType = application/json ]
