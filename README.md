@@ -15,11 +15,11 @@ This project also includes a full IRIS sample class ([apiPub.samples.api](/src/a
 
 ![](docResources/PetStore.gif)
 
-## Test with your existing SOAP services
-If you already have any SOAP services published, you can try this tool with the same code.
+## Test with your existing web methods
+If you already have any [WebMethod] implemented, you can try this tool with the same code.
 ![](docResources/soapToOASRest.png)
 
-When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP services already built automatically become compatible.
+When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
 
 ![](docResources/XMLAdaptorCompat.png)
 
