@@ -14,19 +14,6 @@ Este projeto também inclui uma implementação de exemplo completa ([apiPub.sam
 
 ![](docResources/PetStore.gif)
 
-## Faça um teste com os teus serviços SOAP existentes 
-Se você já possui serviços SOAP publicados, você pode testar a sua publicação com Rest/JSON com OAS 3.0.
-![](docResources/soapToOASRest.png)
-
-Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira serviços SOAP já construídos se tornam automaticamente compatíveis.
-
-![](docResources/XMLAdaptorCompat.png)
-
-## Monitore as tuas API's com o IRIS Analytics 
-Habilite o monitoramento das API's para **administrar** e **rastrear** todas as *chamadas Rest*. Monte também os seus próprios indicadores.
-
-![](docResources/monitorYourAPI.gif)
-
 ## Instalação usando o [zpm](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
 ```
 zpm "install iris-apipub"
@@ -61,25 +48,26 @@ $ docker-compose build
 ```
 $ docker-compose up -d
 ```
+# Agora é possível utilizar o apiPub Wizard para automatizar a publicação de Api's
+Se você já instalou as aplicações **apiPub** e **swagger-ui**, você pode abrir a seguinte URL:
 
-## Testando a Aplicação
-Abra a URL do swagger http://localhost:52773/swagger-ui/index.html
+http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/oas/IRISAPP/_spec
 
-Tente executar alguma API do Petstore, como fazer o *post* de um novo *pet*.
+**ou**
 
-Veja o [dashboard do apiPub Monitor](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Tente fazer um drill down no domínio petStore para explorar e analisar as mensagens.
+```
+http://{host:port}/swagger-ui/index.html?url=http://{host:port}/apiPub/wizard/oas/{namespace}/_spec
+```
+![](docResources/wizard.png) 
 
-![](docResources/monitorYourAPI.gif)
-
-Mude ou crie metódos na classe [apiPub.samples.api](/src/apiPub/samples/api.cls) e volte a consultar a documentação gerada. 
-Repare que todas as mudanças são automaticamentes refletidas na documentação OAS ou nos schemas.
+**ou**
 
 ## **Publique sua API no padrão OAS 3.0 em apenas 3 passos:**
 
 ## Passo 1  
 Defina a classe de implementação das tuas API’s e **rotule** os métodos com o atributo [WebMethod]. Se preferir, utilize a classe ([apiPub.samples.api](/src/apiPub/samples/api.cls)) (PetStore sample).
 ![](docResources/labelingImplementationMethod.gif)
-*Você pode testar os seus serviços SOAP já implementados.*
+*Você pode testar os seus métodos SOAP já implementados.*
 
 ## Passo 2
 Use a classe de amostra [apiPub.samples.services](/src/apiPub/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
@@ -92,6 +80,31 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 ## Utilize o Swagger
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](docResources/testingFirstMethod.gif)
+
+## Faça um teste com os teus serviços web existentes 
+Se você já possui métodos web publicados (WebServices), você pode testar a sua publicação com Rest/JSON com OAS 3.0.
+![](docResources/soapToOASRest.png)
+
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira métodos web (Ex: SOAP) já construídos se tornam automaticamente compatíveis.
+
+![](docResources/XMLAdaptorCompat.png)
+
+## Monitore as tuas API's com o IRIS Analytics 
+Habilite o monitoramento das API's para **administrar** e **rastrear** todas as *chamadas Rest*. Monte também os seus próprios indicadores.
+
+![](docResources/monitorYourAPI.gif)
+
+## Testando a Aplicação
+Abra a URL do swagger http://localhost:52773/swagger-ui/index.html
+
+Tente executar alguma API do Petstore, como fazer o *post* de um novo *pet*.
+
+Veja o [dashboard do apiPub Monitor](http://localhost:52773/csp/irisapp/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=apiPub_Monitor_Dashboard/apiPub%20Monitor.dashboard). Tente fazer um drill down no domínio petStore para explorar e analisar as mensagens.
+
+![](docResources/monitorYourAPI.gif)
+
+Mude ou crie metódos na classe [apiPub.samples.api](/src/apiPub/samples/api.cls) e volte a consultar a documentação gerada. 
+Repare que todas as mudanças são automaticamentes refletidas na documentação OAS ou nos schemas.
 
 ## Defina o cabeçalho da especificação OAS
 ![](docResources/OASheader.png)
