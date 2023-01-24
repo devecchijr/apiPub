@@ -49,7 +49,7 @@ $ docker-compose build
 $ docker-compose up -d
 ```
 
-## Now you can use the apiPub Wizard to automate API publishing
+# Now you can use the apiPub Wizard to automate API publishing
 If you already install **apiPub** and **swagger-ui** apps, you can open the folowing URL.
 
 http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/oas/IRISAPP/_spec
@@ -60,6 +60,28 @@ http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/w
 http://{host:port}/swagger-ui/index.html?url=http://{host:port}/apiPub/wizard/oas/{namespace}/_spec
 ```
 ![](docResources/wizard.png) 
+
+**or**
+
+## **Publish your OAS 3.0 API in just 3 steps:**
+
+## Step 1  
+Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/src/apiPub/samples/api.cls) (PetStore sample).
+![](docResources/labelingImplementationMethod.gif) 
+*If you already have a Web Method in place, you can try it.*
+
+## Step 2
+Use the sample class [apiPub.samples.services](/src/apiPub/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
+![](docResources/configuringServiceClass.gif)
+
+## Step 3
+Create a Web Application and point the Dispatch class to the service class created previously (Step 2).
+![](docResources/creatingWebApp.gif)
+
+## Use the Swagger
+With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
+![](docResources/testingFirstMethod.gif)
+
 ## Test with your existing web methods
 If you already have any [WebMethod] implemented, you can try this tool with the same code.
 ![](docResources/soapToOASRest.png)
@@ -84,24 +106,6 @@ See the [apiPub Monitor dashboard](http://localhost:52773/csp/irisapp/_DeepSee.U
 
 Change or create methods on the [apiPub.samples.api](/src/apiPub/samples/api.cls) class and turn to see the documentation. Note that all changes are automatically reflected in the documentation or schemas.
 
-## **Publish your OAS 3.0 API in just 3 steps:**
-
-## Step 1  
-Define your API’s implementation class and **label** your methods with the [WebMethod] attribute. If you prefer, use the class [apiPub.samples.api](/src/apiPub/samples/api.cls) (PetStore sample).
-![](docResources/labelingImplementationMethod.gif) 
-*If you already have a Web Method in place, you can try it.*
-
-## Step 2
-Use the sample class [apiPub.samples.services](/src/apiPub/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
-![](docResources/configuringServiceClass.gif)
-
-## Step 3
-Create a Web Application and point the Dispatch class to the service class created previously (Step 2).
-![](docResources/creatingWebApp.gif)
-
-## Use the Swagger
-With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
-![](docResources/testingFirstMethod.gif)
 
 ## Define the OAS header
 ![](docResources/OASheader.png)
