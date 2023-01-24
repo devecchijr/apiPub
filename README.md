@@ -15,19 +15,6 @@ This project also includes a full IRIS sample class ([apiPub.samples.api](/src/a
 
 ![](docResources/PetStore.gif)
 
-## Test with your existing web methods
-If you already have any [WebMethod] implemented, you can try this tool with the same code.
-![](docResources/soapToOASRest.png)
-
-When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
-
-![](docResources/XMLAdaptorCompat.png)
-
-## Monitor your APIs with IRIS Analytics
-Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
-
-![](docResources/monitorYourAPI.gif)
-
 ## zpm Installation
 ```
 zpm "install iris-apipub"
@@ -61,6 +48,28 @@ $ docker-compose build
 ```
 $ docker-compose up -d
 ```
+
+## Now you can use the apiPub Wizard to automate API publishing
+If you already install **apiPub** and **swagger-ui** apps, you can open the folowing URL.
+
+http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/oas/IRISAPP/_spec
+**or**
+```
+http://{host:port}/swagger-ui/index.html?url=http://{host:port}/apiPub/wizard/oas/{namespace}/_spec
+```
+![](docResources/wizard.png) 
+## Test with your existing web methods
+If you already have any [WebMethod] implemented, you can try this tool with the same code.
+![](docResources/soapToOASRest.png)
+
+When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
+
+![](docResources/XMLAdaptorCompat.png)
+
+## Monitor your APIs with IRIS Analytics
+Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
+
+![](docResources/monitorYourAPI.gif)
 
 ## Testing the Application
 Open swagger URL http://localhost:52773/swagger-ui/index.html
