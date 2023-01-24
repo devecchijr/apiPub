@@ -15,12 +15,25 @@ This project also includes a full IRIS sample class ([apiPub.samples.api](/src/a
 
 ![](docResources/PetStore.gif)
 
+## Test with your existing SOAP services
+If you already have any SOAP services published, you can try this tool with the same code.
+![](docResources/soapToOASRest.png)
+
+When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP services already built automatically become compatible.
+
+![](docResources/XMLAdaptorCompat.png)
+
+## Monitor your APIs with IRIS Analytics
+Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
+
+![](docResources/monitorYourAPI.gif)
+
 ## zpm Installation
 ```
 zpm "install iris-apipub"
 ```
 
-You'll can use **swagger-ui** app for testing.
+You'll need to install the **swagger-ui** app for testing.
 ```
 zpm "install swagger-ui"
 ```
@@ -47,6 +60,7 @@ $ docker-compose build
 3. Run the IRIS container with your project:
 ```
 $ docker-compose up -d
+```
 
 ## Testing the Application
 Open swagger URL http://localhost:52773/swagger-ui/index.html
@@ -77,19 +91,6 @@ Create a Web Application and point the Dispatch class to the service class creat
 ## Use the Swagger
 With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
 ![](docResources/testingFirstMethod.gif)
-
-## Test with your existing SOAP web methods
-If you already have any SOAP web method, you can try this tool with the same code.
-![](docResources/soapToOASRest.png)
-
-When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
-
-![](docResources/XMLAdaptorCompat.png)
-
-## Monitor your APIs with IRIS Analytics
-Enable API monitoring to **manage** and **track** all *rest service calls*. Also build your own indicators.
-
-![](docResources/monitorYourAPI.gif)
 
 ## Define the OAS header
 ![](docResources/OASheader.png)
