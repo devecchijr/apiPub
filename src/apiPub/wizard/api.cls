@@ -2,7 +2,7 @@ Class apiPub.wizard.api Extends apiPub.core.jsonBuilder [ ProcedureBlock ]
 {
 
 /// publish new APIs based on templates
-/// @apiPub[tag="New API"]
+/// @apiPub[tag="new"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/new/publishApi"]
 /// @apiPub[params.template.schema.items.enum=["get output(status)","get output(text/plain)","get output(application/octet-stream)", "get output(application/json)", "put input/output(application/json)", "put input/output(text/plain)","put input/output(application/octet-stream)","post input/output(application/json)", "post input/output(text/plain)","post input/output(application/octet-stream)"]]
@@ -22,7 +22,7 @@ ClassMethod publishNewAPI(template As %String, apiTitle As %String = "{apiClassN
 }
 
 /// view OAS schema based on a JSON sample (object body)
-/// @apiPub[tag="From JSON sample for payload validation"]
+/// @apiPub[tag="schema"]
 /// @apiPub[path="/fromjson/viewschema"]
 /// @apiPub[params.obj.description="Inform your sample object to view its correspondent Open Api Schema (OAS)"]
 /// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
@@ -37,7 +37,7 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %Stri
 }
 
 /// publish automatically an Api based on existing class/web methods
-/// @apiPub[tag="From existing class/web methods"]
+/// @apiPub[tag="class"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromclass/publishApi"]
 /// @apiPub[params.apiClassName.description="Existing Class"]
@@ -104,8 +104,8 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     Quit tResponseLog
 }
 
-/// publish automatically an Api with OAS schema validation based on a JSON sample
-/// @apiPub[tag="From JSON sample for payload validation"]
+/// publish automatically an Api based on a JSON sample. It creates a JSON schema based on a json sample and relates to Api payload input parameter
+/// @apiPub[tag="schema"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromjson/publishApi"]
 /// @apiPub[params.obj.description="This JSON will be used as a sample to generate automatically the API schema validation"]
@@ -463,7 +463,7 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
 }
 
 /// publish automatically an Api based on interoperability components (BP's and BO's from current production)
-/// @apiPub[tag="From interoperability components (Production)"]
+/// @apiPub[tag="interop"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/fromprod/publishApi"]
 /// @apiPub[params.componentName.description="production component name to publish. * to publish all components. This generation is based on message mapping or SendMessage method"]
@@ -1143,16 +1143,20 @@ XData apiPub [ MimeType = application/json ]
         },
         "tags": [
             {
-            "name": "New API"
+            "name": "new",
+            "description": "New APIs based on basic templates."
             },
             {
-            "name": "From existing class/web methods"
+            "name": "class",
+            "description": "From existing class/web methods"
             },
             {
-            "name": "From JSON sample for payload validation"
+            "name": "schema",
+            "description": "Payload validation with Open API Schema"
             },
             {
-            "name": "From interoperability components (Production)"
+            "name": "interop",
+            "description": "From interoperability components (Production)"
             }
         ]
     }
