@@ -53,7 +53,9 @@ $ docker-compose up -d
 If you already install **apiPub** and **swagger-ui** apps, you can open the folowing URL.
 
 http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/oas/IRISAPP/_spec
+
 **or**
+
 ```
 http://{host:port}/swagger-ui/index.html?url=http://{host:port}/apiPub/wizard/oas/{namespace}/_spec
 ```
