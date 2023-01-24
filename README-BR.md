@@ -51,7 +51,7 @@ $ docker-compose up -d
 # Agora é possível utilizar o apiPub Wizard para automatizar a publicação de Api's
 Se você já instalou as aplicações **apiPub** e **swagger-ui**, você pode abrir a seguinte URL:
 
-http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/oas/IRISAPP/_spec
+http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/IRISAPP/_spec
 
 **ou**
 
