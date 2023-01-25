@@ -1,3 +1,6 @@
+<p style="text-align: center;"><b>IRIS - apiPub</b></p>
+<p style="text-align:center;"><img src="docResources/apiPub.png" alt="wizard" width="250"/></p>
+
 ## Introdução
  
 Estamos na era da **economia multi-plataforma**, e as API's são a *"liga"* deste cenário digital. Sendo tão importantes, elas são encaradas por desenvolvedores como um **serviço** ou **produto** a ser consumido. Assim sendo, a **experiência** na sua utilização é um fator crucial de **sucesso**.

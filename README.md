@@ -1,3 +1,5 @@
+<p style="text-align: center;"><b>IRIS - apiPub</b></p>
+<p style="text-align:center;"><img src="docResources/apiPub.png" alt="wizard" width="250"/></p>
 
 ## Introduction
 
@@ -59,7 +61,7 @@ http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/w
 ```
 http://{host:port}/swagger-ui/index.html?url=http://{host:port}/apiPub/wizard/oas/{namespace}/_spec
 ```
-![](docResources/wizard.png) 
+<img src="docResources/wizard.png" alt="wizard" width="400"/>
 
 **or**
 
