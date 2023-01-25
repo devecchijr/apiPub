@@ -517,9 +517,9 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         }
         Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^type","object",,"^")
         If (pIncludeXML) Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^xml^name","responseStatus",,"^")
-        Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^statusCode^type","string",,"^")
+        Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^statusCode^type","integer",,"^")
         Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^message^type","string",,"^")
-        Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^errorCode^type","string",,"^")
+        Do ..SetByLineKey(tSchemaDef,"components^schemas^responseStatus^properties^errorCode^type","integer",,"^")
         Do ..SetByLineKey(tSchemaDef,"externalDocs^description","Find out more about Swagger",,"^")
         Do ..SetByLineKey(tSchemaDef,"externalDocs^url","http://swagger.io",,"^")
         If mInfo.%Get("customServers")'="" {
