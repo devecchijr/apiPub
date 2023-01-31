@@ -104,6 +104,92 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     Quit tResponseLog
 }
 
+/// create automatically an IRIS class based on a JSON OAS specification file (OAS 3.0) - Api first approach
+/// @apiPub[tag="api first"]
+/// @apiPub[response.outputType="text/plain"]
+/// @apiPub[path="/apifirst/createclass"]
+/// @apiPub[params.oasFilePath.description="Inform the path/file name for Open API Specification JSON file (OAS 3.0)"]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFiles/devecchijr7-api.json", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    If traceable="" Set traceable = 0
+    If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
+    If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
+    If oasFilePath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasFilePath param is required"))}
+    If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
+    If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
+    If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
+    Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
+    Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
+    Set tInteropPackage = {}
+    Set tInteropClass = {}
+    Set tInteropComps = {}
+    Set tOAS = {}
+    Set tSpec = {}
+
+    Set tExClas=##class(%Dictionary.CompiledClass).%OpenId(apiClassName)
+    If $IsObject(tExClas) {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> "_apiClassName_" already exists"))}
+
+    Set tExClas=##class(%Dictionary.CompiledClass).%OpenId(moduleClassName)
+    If $IsObject(tExClas) {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> "_moduleClassName_" already exists"))}
+
+    Set stream=##class(%FileCharacterStream).%New()
+    Set tSC = stream.LinkToFile(oasFilePath)
+    If ('tSC)||(stream.SizeGet()=0) { Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS path")) }
+    Try {
+        Set tOAS = ##Class(%Library.DynamicObject).%FromJSON(stream.Read())
+    } Catch (e) {
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS format"))
+    }
+    If (traceable) {
+        Set tSC = ..getProduction(.tInteropPackage,.tInteropClass,.tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
+    Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 0, "{apiClassName}", "{apiClassName}", .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+
+    If (tOAS.%Size()=0)||(..g(tOAS,"openapi")="") {
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS file"))
+    }
+
+    Set tSC = ##class(apiPub.core.introspector).getApiClassFromOAS(tOAS, tAPIClass, .tXData, .apiDescription, tResponseLog)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Set tCompileProd = 0
+    If (traceable) {
+        Set tSC = ..enableProdTracing(tInteropComps, tInstruct, .tCompileProd)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    }
+
+    If (tCompileProd) {
+        Do tInstruct.WriteLine("Don't forget to update the current production")
+        Set tSC = ..importProduction(tInteropPackage,tInteropClass,tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
+
+    Set tSC = ..createApiWebApp(appPath, oasAppPath, moduleClassName, $Replace(apiDescription,"{apiClassName}",apiClassName), tResponseLog)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
+    Do tResponseLog.WriteLine("")
+    Do tResponseLog.WriteLine("Instructions ")
+    Do tResponseLog.WriteLine("========================================================================================================================")
+    Do tResponseLog.Write(tInstruct.Read())
+    Do tResponseLog.WriteLine("========================================================================================================================")
+    Quit tResponseLog
+}
+
 /// publish automatically an Api based on a JSON sample. It creates a JSON schema based on a json sample and relates to Api payload input parameter
 /// @apiPub[tag="schema"]
 /// @apiPub[response.outputType="text/plain"]

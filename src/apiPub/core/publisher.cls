@@ -166,7 +166,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     If tCustomParams'="" {
                         If tCustomParams.%Get("description")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^properties^"_pvalue.%Get("paramName")_"^description",tCustomParams.%Get("description"),,"^") 
                     }
-                } ElseIf pvalue.%Get("inputType")'="",pvalue.%Get("inputType")'="header" {
+                } ElseIf pvalue.%Get("inputType")'="",$Replace(pvalue.%Get("inputType"),"headers","header")'="header" {
                      //other input types  (entire body)
                     If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
@@ -328,7 +328,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 }
                             }
                         }
-                    } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")="header" {
+                    } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",$Replace(pvalue.%Get("outputType"),"headers","header")="header" {
                         Set tParamDesc = ..GetByLineKey(value,"customParams^params^"_pvalue.%Get("param")_"^description",pDelim)
                         If tParamDesc'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^description",tParamDesc,,"^")
                         Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^schema^type",pvalue.%Get("pmJDType"),,"^")

@@ -78,7 +78,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                 If minfo.%Get("resultParam")=key Continue
                 Set tPType = value.%Get("pmJType")
                 Set tValue=""
-                If value.%Get("inputType")="header" {
+                If $Replace(value.%Get("inputType"),"headers","header")="header" {
                     Set tValue = tInputHeaders.%Get(tPName)
                     If tValue="" Set tValue = tInputHeaders.%Get("HTTP_"_$Tr($ZConvert(tPName,"U"),"-","_"))
                 } ElseIf $Find("multipart/form-data application/x-www-form-urlencoded",value.%Get("inputType"))>0 {
@@ -298,7 +298,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                             Do tResult.%Set(tPName,tVal)
                         } Else {
                             //Not alocate specific values for different output type
-                            If value.%Get("outputType")'="",value.%Get("outputType")'="header" {
+                            If value.%Get("outputType")'="",$Replace(value.%Get("outputType"),"headers","header")'="header" {
                                 Set tResult = tVal
                                 Set pResponse.ContentType = value.%Get("outputType")  
                             } Else {
@@ -315,7 +315,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 } ElseIf value.%Get("oConvFunction")'="",tVal'="" {
                                     If tPType'="boolean" Set tVal = $ClassMethod(value.%Get("paramType"),value.%Get("oConvFunction"),tVal)
                                 }
-                                If value.%Get("outputType")="header" {
+                                If $Replace(value.%Get("outputType"),"headers","header")="header" {
                                     Do tHeadersResponse.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
                                 } Else {
                                     Do tResult.%Set(tPName,tVal,$Select(tVal'="":tPType,1:""))
