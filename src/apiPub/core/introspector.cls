@@ -28,6 +28,9 @@ ClassMethod getApiClassFromOAS(OAS As %DynamicObject, APIClass As %DynamicObject
 	Set tSC = $System.Status.OK()
     Try
 	{
+        If (OAS.%Size()=0)||(..g(OAS,"openapi")="") {
+            Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS content"))
+        }
         Set tSC = ..getMethodsSpec(OAS,.tSpec,{"printResults":0})
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         While ..i(tSpec,"methodSpec",.idx,.val,.it) {

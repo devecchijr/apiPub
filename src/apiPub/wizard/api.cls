@@ -115,7 +115,7 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
 /// @apiPub[params.appPath.description="Api path"]
 /// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
 /// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
-ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFiles/devecchijr7-api.json", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFiles/devecchijr7-Pet-1.0.0-swagger.json", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If traceable="" Set traceable = 0
     If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
@@ -152,10 +152,6 @@ ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFil
     }
     Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 0, "{apiClassName}", "{apiClassName}", .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
-
-    If (tOAS.%Size()=0)||(..g(tOAS,"openapi")="") {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS file"))
-    }
 
     Set tSC = ##class(apiPub.core.introspector).getApiClassFromOAS(tOAS, tAPIClass, .tXData, .apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
