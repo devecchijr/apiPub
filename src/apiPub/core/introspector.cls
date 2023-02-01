@@ -63,7 +63,7 @@ ClassMethod getApiClassFromOAS(OAS As %DynamicObject, APIClass As %DynamicObject
                 Set tImplCode = tb_"Set tSC = $System.Status.OK()"_crt_"Try {"_crt_tb_"//your code here"_crt_"}"_crt_"Catch(e) {"_crt_tb_"Set tSC = e.AsStatus()"_crt_"}"_crt_"Quit tSC"
             }
             Do ..s(tMethod,"Implementation",tImplCode)
-            If ..g(val,"successfulCode")'="",..g(val,"successfulCode")'="200" Do ..s(tApipubNotation,"successfulCode",..g(val,"successfulCode"))
+            If ..g(val,"successfulCode")'="",..g(val,"successfulCode")'="200",..g(val,"successfulCode")'="0" Do ..s(tApipubNotation,"successfulCode",..g(val,"successfulCode"))
             If ..g(val,"exceptionCodes")'="" {
                 Set tCodes=[]
                 While ..i(val,"exceptionCodes",.exIdx,.exVal,.exIt) {

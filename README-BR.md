@@ -52,6 +52,17 @@ $ docker-compose build
 $ docker-compose up -d
 ```
 # Agora é possível utilizar o apiPub Wizard para automatizar a publicação de Api's
+
+Com as novas opções abaixo, é possível agilizar a publicação de Apis:
+
+- Novas APIs baseadas em templates. É um excelente ponto de partida porque abrevia todo processo de criação manual (3 passos), incluindo a automação da criação da aplicação Web.
+ 
+- Baseada em uma amostra JSON (sample) - Ele automaticamente cria o schema (OAS) do objeto amostra e o relaciona à Api para validação (parsing).
+
+- Baseada em uma Produção IRIS (interop.). É possível escolher componentes da Produção que serão expostos em Apis rest/json.
+
+- Api First Approach (Introspection) - Ler uma especificação OAS 3.0 e criar o Spec dos métodos para a implementação, assim como na classe [apiPub.samples.apiFirst](/src/apiPub/samples/apiFirst.cls)
+  
 Se você já instalou as aplicações **apiPub** e **swagger-ui**, você pode abrir a seguinte URL:
 
 http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/apiPub/wizard/IRISAPP/_spec
@@ -593,9 +604,3 @@ Roteie as suas API's geradas e obtenha diversas vantagens com o [Intersystems AP
 |   array Of (Primitive)	      |   array of (Primitive JSON Type)  |                    |
 |   array Of (Complex Type)   |   array of (Complex Type)         |                    |
 |   RelationShip              |   object or array                 |                    |
-
-## Roadmap
-
-|   Item                                                        |
-|---------------------------------------------------------------|
-|   ***Api First Approach*** - Ler uma especificação OAS 3.0 e criar o Spec dos métodos, assim como na classe [apiPub.samples.apiFirst](/src/apiPub/samples/apiFirst.cls) |
