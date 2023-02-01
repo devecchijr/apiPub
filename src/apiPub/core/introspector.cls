@@ -35,13 +35,13 @@ ClassMethod getApiClassFromOAS(OAS As %DynamicObject, APIClass As %DynamicObject
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         While ..i(tSpec,"methodSpec",.idx,.val,.it) {
             Set tApipubNotation = {}
-            If ..g(val,"summary")'="" Do ..s(tApipubNotation,"description",..treatDescription(..g(val,"summary")))
+            If ..g(val,"summary")'="" Do ..s(tApipubNotation,"summary",..treatDescription(..g(val,"summary")))
             If ..g(val,"tag")'="" Do ..s(tApipubNotation,"tag",..g(val,"tag"))
             If ..g(val,"path")'="",'("/"_idx=..g(val,"path")) Do ..s(tApipubNotation,"path",..g(val,"path"))
             Do ..s(tApipubNotation,"verb",..g(val,"verb"))
             If ..g(tApipubNotation,"verb")="post",..g(val,"payload")'="" Do ..r(tApipubNotation,"verb")
             If ..g(tApipubNotation,"verb")="get",..g(val,"payload")="" Do ..r(tApipubNotation,"verb")
-            If ..g(val,"description")'="" Do ..s(tApipubNotation,"params.description",..treatDescription(..g(val,"description")),,"^")
+            If ..g(val,"description")'="" Do ..s(tApipubNotation,"description",..treatDescription(..g(val,"description")),,"^")
             Set tMethod = {
                     "_name":(idx),
                     "ClassMethod":1,
@@ -364,10 +364,9 @@ ClassMethod getResponse(responseSpec As %DynamicObject, ByRef apiPubNotation As 
 ClassMethod getApiPubNotation(params As %DynamicObject) As %String
 {
     Set tRet = ""
-    If ..g(params,"description")'="" Set tRet=..g(params,"description")
-    If ..g(params,"desc")'="" Set tRet=..g(params,"desc")
+    If ..g(params,"summary")'="" Set tRet=..g(params,"summary")
     While (..i(params, ,.idx,.val,.it)) {
-        If ((idx="description")||(idx="desc")) continue
+        If (idx="summary") continue
         Set tRet = tRet_$Select(tRet'="":$Char(13,10),1:tRet)_"@apiPub["_idx_"="_$Select(($IsObject(val)):val.%ToJSON(),1:""""_val_"""")_"]"
     }
     Quit tRet

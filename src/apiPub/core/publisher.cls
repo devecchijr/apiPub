@@ -94,9 +94,12 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         While tMet.%GetNext(.key,.value) {
             Set (tTagDescription,tTagDocsDescription,tTagDocsUrl)=""
             If (pClassMethodOnly),'(value.%Get("classMethod")) Continue
-            Set tDescription = $Select(value.%Get("description")'="":value.%Get("description"),1:"")
+            Set tOperationId = value.%Get("customParams").%Get("operationId")
+            If tOperationId="" Set tOperationId=key
+            Set tSummary = $Select(value.%Get("description")'="":value.%Get("description"),1:"")
+            Set tDescription = ""
             If value.%Get("customParams").%Get("description")'="" Set tDescription = value.%Get("customParams").%Get("description")
-            Set tSummary = tDescription
+            If tDescription="" Set tDescription = tOperationId_$Select(tSummary'="":" - "_tSummary,1:$Select(value.%Get("customParams").%Get("summary")'="":" - "_value.%Get("customParams").%Get("summary"),1:""))
             If value.%Get("customParams").%Get("summary")'="" Set tSummary = value.%Get("customParams").%Get("summary")
             Set tVerb=$zConvert(value.%Get("verb"),"L")
             Set tDeprecated=value.%Get("customParams").%Get("deprecated")
@@ -108,8 +111,6 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             } Else {
                 Set tPath = $Replace("/"_$Select(pBasePath'="":pBasePath_"/",1:"")_key,"//","/")
             }
-            Set tOperationId = value.%Get("customParams").%Get("operationId")
-            If tOperationId="" Set tOperationId=key
             Set tConsumes = value.%Get("customParams").%Get("consumes")
             Set tProduces = value.%Get("customParams").%Get("produces")
             Set tTagName=pTagName
@@ -139,7 +140,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             If tTagDocsUrl'="" Do ..SetByLineKey(tSchemaDef,"tags"_pDelim_tTagKey_pDelim_"externalDocs"_pDelim_"url",tTagDocsUrl,,pDelim)
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^tags[0]",tTagName,,"^")
             If tSummary'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tSummary,,"^")
-            If tDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^summary",tDescription,,"^")
+            If tDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tDescription,,"^")
             If (tDeprecated) Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^deprecated",tDeprecated,"boolean","^")
             Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^operationId",tOperationId,,"^")
             If tConsumes'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^consumes",tConsumes,,"^")
@@ -168,7 +169,6 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     }
                 } ElseIf pvalue.%Get("inputType")'="",pvalue.%Get("inputType")'="header" {
                      //other input types  (entire body)
-                    If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
                     If pvalue.%Get("pmJDFormat")'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^requestBody^content^"_pvalue.%Get("inputType")_"^schema^format",pvalue.%Get("pmJDFormat"),,"^")
                     Set tCustomParams = value.%Get("customParams").%Get("params").%Get(pvalue.%Get("param"))
@@ -177,7 +177,6 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                     }
                 } ElseIf pvalue.%Get("pmJDType")'="",'(pvalue.%Get("outputOnly")) {
                     // query and path params and header inputType
-                    If tParamDescription'="" Do ..SetByLineKey(tSchemaDef,"paths^"_tPath_"^"_tVerb_"^description",tParamDescription,,"^")
                     Set tInType="query"
                     If $Find(tPath,"{"_pvalue.%Get("paramName")_"}")>0 Set tInType="path"
                     If pvalue.%Get("inputType")'="" Set tInType = pvalue.%Get("inputType")
