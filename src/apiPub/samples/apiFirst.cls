@@ -1,6 +1,6 @@
 /// Methods spec projected using API first approach mode (apiPub wizard)
 /// All of the schemas and information needed on XDATA block were imported from Swagger Spec file
-/// All of schemas ared automatically parsed by apiPub tool
+/// All of schemas ared automatically parsed by apiPub framework
 Class apiPub.samples.apiFirst Extends %RegisteredObject [ ProcedureBlock ]
 {
 
@@ -66,7 +66,6 @@ ClassMethod findPetsByStatus(status As %String) As %DynamicArray [ WebMethod ]
 /// @apiPub[params.tags.required="1"]
 /// @apiPub[params.tags.description="Tags to filter by"]
 /// @apiPub[response.schema="findPetsByTags_response"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid tag value"}]]
 ClassMethod findPetsByTags(tags As %String) As %DynamicArray [ WebMethod ]
 {
@@ -80,7 +79,6 @@ ClassMethod findPetsByTags(tags As %String) As %DynamicArray [ WebMethod ]
 /// @apiPub[params.petId.required="1"]
 /// @apiPub[params.petId.description="ID of pet to return"]
 /// @apiPub[response.schema="Pet"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid ID supplied"},{"code":"404","description":"Pet not found"}]]
 ClassMethod getPetById(petId As %BigInt) As %DynamicObject [ WebMethod ]
 {
@@ -138,7 +136,6 @@ ClassMethod deletePet(apikey As %String, petId As %BigInt) As %Status [ WebMetho
 /// @apiPub[params.petId.description="ID of pet to update"]
 /// @apiPub[params.payload.inputType="application/octet-stream"]
 /// @apiPub[response.schema="ApiResponse"]
-/// @apiPub[successfulCode="200"]
 ClassMethod uploadFile(petId As %BigInt, payload As %Stream.GlobalBinary) As %DynamicObject [ WebMethod ]
 {
 	//your code here
@@ -149,7 +146,6 @@ ClassMethod uploadFile(petId As %BigInt, payload As %Stream.GlobalBinary) As %Dy
 /// @apiPub[path="/store/inventory"]
 /// @apiPub[params.description="Returns a map of status codes to quantities"]
 /// @apiPub[response.schema="getInventory_response"]
-/// @apiPub[successfulCode="200"]
 ClassMethod getInventory() As %DynamicObject [ WebMethod ]
 {
 	//your code here
@@ -161,7 +157,6 @@ ClassMethod getInventory() As %DynamicObject [ WebMethod ]
 /// @apiPub[params.payload.schema="Order"]
 /// @apiPub[params.payload.parse="1"]
 /// @apiPub[response.schema="Order"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid Order"}]]
 ClassMethod placeOrder(payload As %DynamicObject) As %DynamicObject [ WebMethod ]
 {
@@ -175,7 +170,6 @@ ClassMethod placeOrder(payload As %DynamicObject) As %DynamicObject [ WebMethod 
 /// @apiPub[params.orderId.required="1"]
 /// @apiPub[params.orderId.description="ID of pet that needs to be fetched"]
 /// @apiPub[response.schema="Order"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid ID supplied"},{"code":"404","description":"Order not found"}]]
 ClassMethod getOrderById(orderId As %BigInt) As %DynamicObject [ WebMethod ]
 {
@@ -268,13 +262,12 @@ ClassMethod createUsersWithListInput(payload As %DynamicArray) As %Status [ WebM
 /// @apiPub[params.password.description="The password for login in clear text"]
 /// @apiPub[params.XRateLimit.name="X-Rate-Limit"]
 /// @apiPub[params.XRateLimit.description="calls per hour allowed by the user"]
-/// @apiPub[params.XRateLimit.outputType="headers"]
+/// @apiPub[params.XRateLimit.outputType="header"]
 /// @apiPub[params.XExpiresAfter.name="X-Expires-After"]
 /// @apiPub[params.XExpiresAfter.description="date in UTC when token expires"]
-/// @apiPub[params.XExpiresAfter.outputType="headers"]
+/// @apiPub[params.XExpiresAfter.outputType="header"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[response.schema="loginUser_response"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid username/password supplied"}]]
 ClassMethod loginUser(username As %String, password As %String, Output XRateLimit As %Integer, Output XExpiresAfter As %DateTime) As %String [ WebMethod ]
 {
@@ -303,7 +296,6 @@ ClassMethod logoutUser() As %Status [ WebMethod ]
 /// @apiPub[params.username.required="1"]
 /// @apiPub[params.username.description="The name that needs to be fetched. Use user1 for testing."]
 /// @apiPub[response.schema="User"]
-/// @apiPub[successfulCode="200"]
 /// @apiPub[statusCodes=[{"code":"400","description":"Invalid username supplied"},{"code":"404","description":"User not found"}]]
 ClassMethod getUserByName(username As %String) As %DynamicObject [ WebMethod ]
 {
