@@ -344,7 +344,7 @@ ClassMethod getResponse(responseSpec As %DynamicObject, ByRef apiPubNotation As 
                 If ..g(hVal,"description")'="" Do ..s(apiPubNotation,"params."_tParamName_".description",..treatDescription(..g(hVal,"description")),,"^") 
                 Set tType = ..g(tTypes,..g(hVal,"schema.type")_"|"_..g(hVal,"schema.format"))
                 If tType="" Set tType="%String"
-                Do ..s(apiPubNotation,"params."_tParamName_".outputType",idx,,"^")
+                Do ..s(apiPubNotation,"params."_tParamName_".outputType","header",,"^")
                 Set outputParams=outputParams_$Select(outputParams'="":",",1:"")_"*"_tParamName_":"_tType
             }
         } ElseIf ..g(val,"schema.type")="string",..g(val,"schema.format")="" {
