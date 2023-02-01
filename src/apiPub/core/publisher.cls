@@ -887,7 +887,7 @@ ClassMethod TemplateToOpenApiSchemaOld(pJSON As %Library.DynamicObject, ByRef pO
                 Set tSC = $$$ERROR($$$GeneralError, "pObjectName must be informed when there is no main node")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }
-			Do ..TemplateToOpenApiSchema(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName), "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
+			Do ..TemplateToOpenApiSchemaOld(pJSON,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(pObjectName), "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object"))})
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
                 Do tFormatter.FormatToString(pOpenApiJSON.%ToJSON(),.jsonString)
@@ -901,7 +901,7 @@ ClassMethod TemplateToOpenApiSchemaOld(pJSON As %Library.DynamicObject, ByRef pO
                 Set tk = key  If pParentType="array",key=+key Set tk = ""
                 Set tKey = $Select(pParentKey'="":pParentKey, 1:"")_$Select(tk'="":pDelim_tk, 1:"")
                 If $IsObject(value),$Find($Piece(tKey,pDelim,*),"@")=0 {
-                    Do ..TemplateToOpenApiSchema(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
+                    Do ..TemplateToOpenApiSchemaOld(value,pObjectName,.pOpenApiJSON,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object"))})
 				} Else {
                     If $Find($Piece(tKey,pDelim,*),"@")=0 {
                         Set tCType = pJSON.%GetTypeOf(key)
