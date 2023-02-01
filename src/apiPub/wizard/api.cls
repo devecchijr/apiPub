@@ -104,10 +104,10 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
     Quit tResponseLog
 }
 
-/// create automatically an IRIS class based on a JSON OAS specification file (OAS 3.0) - Api first approach
+/// create automatically an IRIS class based on a OAS 3.0 JSON File 
 /// @apiPub[tag="api first"]
 /// @apiPub[response.outputType="text/plain"]
-/// @apiPub[path="/apifirst/createclass"]
+/// @apiPub[path="/apifirst/fromfile"]
 /// @apiPub[params.oasFilePath.description="Inform the path/file name for Open API Specification JSON file (OAS 3.0)"]
 /// @apiPub[params.apiClassName.description="Api classname (web methods)"]
 /// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
@@ -115,12 +115,35 @@ ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassNam
 /// @apiPub[params.appPath.description="Api path"]
 /// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
 /// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
-ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFiles/devecchijr7-Pet-1.0.0-swagger.json", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod createIRISClassFromOASFile(oasFilePath As %String = "/irisdev/app/tmpFiles/devecchijr7-Pet-1.0.0-swagger.json", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    Set stream=##class(%FileCharacterStream).%New()
+    Set tSC = stream.LinkToFile(oasFilePath)
+    If ('tSC)||(stream.SizeGet()=0) { Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS path")) }
+    Try {
+        Set tOAS = ##Class(%Library.DynamicObject).%FromJSON(stream.Read())
+    } Catch (e) {
+        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS format"))
+    }
+    Quit ..createIRISClassFromOAS(tOAS, apiDomain, apiClassName, moduleClassName, appPath, oasAppPath, schemaPrefix, charSet, traceable, pReq)
+}
+
+/// create automatically an IRIS class based on a OAS 3.0 JSON payload content
+/// @apiPub[tag="api first"]
+/// @apiPub[response.outputType="text/plain"]
+/// @apiPub[path="/apifirst/fromjson"]
+/// @apiPub[params.oasContent.description="Open API Specification (OAS 3.0) JSON payload"]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod createIRISClassFromOAS(oasContent As %DynamicObject, apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.fromOASApi", moduleClassName As %String = "package.name.fromOASModule", appPath As %String = "/{namespace}/fromOASApi", oasAppPath As %String = "/{namespace}/fromOASApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If traceable="" Set traceable = 0
     If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
     If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
-    If oasFilePath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasFilePath param is required"))}
     If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
     If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
     If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
@@ -138,14 +161,6 @@ ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFil
     Set tExClas=##class(%Dictionary.CompiledClass).%OpenId(moduleClassName)
     If $IsObject(tExClas) {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> "_moduleClassName_" already exists"))}
 
-    Set stream=##class(%FileCharacterStream).%New()
-    Set tSC = stream.LinkToFile(oasFilePath)
-    If ('tSC)||(stream.SizeGet()=0) { Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS path")) }
-    Try {
-        Set tOAS = ##Class(%Library.DynamicObject).%FromJSON(stream.Read())
-    } Catch (e) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> invalid OAS format"))
-    }
     If (traceable) {
         Set tSC = ..getProduction(.tInteropPackage,.tInteropClass,.tInteropComps,tResponseLog)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -153,7 +168,7 @@ ClassMethod createIRISClassFromOAS(oasFilePath As %String = "/irisdev/app/tmpFil
     Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 0, "{apiClassName}", "{apiClassName}", .tApiPackage, .tAPIClass, .tXData, tResponseLog)
     If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 
-    Set tSC = ##class(apiPub.core.introspector).getApiClassFromOAS(tOAS, tAPIClass, .tXData, .apiDescription, tResponseLog)
+    Set tSC = ##class(apiPub.core.introspector).getApiClassFromOAS(oasContent, tAPIClass, .tXData, .apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
     Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
@@ -1239,6 +1254,10 @@ XData apiPub [ MimeType = application/json ]
             {
             "name": "interop",
             "description": "From interoperability components (Production)"
+            },
+            {
+            "name": "api first",
+            "description": "From Open API Specification (OAS 3.0) - API First"
             }
         ]
     }
