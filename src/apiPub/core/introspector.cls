@@ -228,9 +228,11 @@ ClassMethod getMethodsSpec(pJSON As %Library.DynamicObject, Output pSpec As %Lib
                     }
                     Do ..getMethodsSpec(value,.pSpec,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
     			} Else {
-                    If $Find(tKey,"components"_pDelim_"schemas")>0 Do ..s(pSpec,"XData"_pDelim_$Replace(tKey,"components"_pDelim,""),value,,pDelim)
-                    If $Piece(tKey,pDelim,1)="info" Do ..s(pSpec,"XData"_pDelim_tKey,value,,pDelim)
-                    If $Piece(tKey,pDelim,1)="tags" Do ..s(pSpec,"XData"_pDelim_tKey,value,,pDelim)
+                    If $Find(tKey,"components"_pDelim_"schemas")>0 {
+                        Do ..s(pSpec,"XData"_pDelim_$Replace(tKey,"components"_pDelim,""),value,pJSON.%GetTypeOf(key),pDelim)
+                    }
+                    If $Piece(tKey,pDelim,1)="info" Do ..s(pSpec,"XData"_pDelim_tKey,value,pJSON.%GetTypeOf(key),pDelim)
+                    If $Piece(tKey,pDelim,1)="tags" Do ..s(pSpec,"XData"_pDelim_tKey,value,pJSON.%GetTypeOf(key),pDelim)
 	 			}
 			}
 		}
