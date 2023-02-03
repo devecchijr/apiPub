@@ -173,7 +173,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
 			Set prop = pJSON.%GetIterator()
 			While (prop.%GetNext(.key,.value)) {
                 If pParentType="array",key=+key Set key="*"
-                If key="items" Set key="0"
+                If key="items",$Piece(pParentKey,pDelim,*)'="properties" Set key="0"
 				Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
 				If $IsObject(value) {
                     Do ..GetFlatSchema(pObjName,value,.pSchema,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
