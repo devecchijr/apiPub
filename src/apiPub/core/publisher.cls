@@ -935,4 +935,98 @@ ClassMethod TemplateToOpenApiSchemaOld(pJSON As %Library.DynamicObject, ByRef pO
 	Quit tSC
 }
 
+ClassMethod OpenApiSchemaToTemplate(pObjName As %String, pJSON As %Library.DynamicObject, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try
+	{
+        //If not Defined The Params Set the Default Values
+        If '$Data(pParams) Set pParams={}
+        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+
+        //Internal Params
+        If '$Data(pInternal) Set pInternal={"parentKey":"", "datetime":($REPLACE($ZDATETIME($ZTIMESTAMP,3,1,3)," ","T")_"Z"),"parentType":"","originalJSON":(pJSON),"level":0,"parentIndex":""}
+        Set pParentKey = pInternal.parentKey
+        Set pDateTime = pInternal.datetime
+        Set pParentIndex = pInternal.parentIndex
+        Set pParentType = pInternal.parentType
+        Set pLevel = pInternal.level
+		If pParentType="" {
+			Set pSchema = {}
+            If pJSON.%Get(pObjName) = "" {
+                Set tSC = $$$ERROR($$$GeneralError, "invalid schema")
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            }        
+			Set tSC = ..OpenApiSchemaToTemplate(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"datetime":(pDateTime),"parentKey":"", "parentType":"object","originalJSON":(pInternal.originalJSON),"level":1,"parentIndex":""})
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            If pPrintResults {
+                Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+                Do tFormatter.FormatToString(pSchema.%ToJSON(),.jsonString)
+                Write jsonString,!
+            }
+		} Else {
+			Set prop = pJSON.%GetIterator()
+			While (prop.%GetNext(.key,.value)) {
+                Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
+                If key="items",$Piece(pParentKey,pDelim,*)'="properties" Set tKey=$Piece(tKey,pDelim,1,*-1)
+                If ..g(value,"type")="array",key'=+key Set tKey = tKey_pDelim_"0"
+				If $IsObject(value) {
+                    Do ..OpenApiSchemaToTemplate(pObjName,value,.pSchema,pParams,{"datetime":(pDateTime),"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1),"parentIndex":(pParentIndex)})
+    			} Else {
+                    If $Piece(tKey,pDelim,*)="$ref","allOf oneOf anyOf"[$Piece(tKey,pDelim,*-2) {
+                        Set tJSON = ..GetByLineKey(pInternal.originalJSON,$Piece(value,"#/components/schemas/",2),"/")
+                        If tJSON'="",$IsObject(tJSON) {
+                            Set tParentIndex = $Piece(tKey,pDelim,*-1)
+                            Set tKey = $Piece(tKey,pDelim,1,*-3)
+                            If ($Length(tKey,pDelim)<5)||($Piece(tKey,pDelim,1,*-2)'[$Piece(tKey,pDelim,*-1,*)) {
+                                Set tKey = tKey_pDelim_tParentIndex
+                                Do ..OpenApiSchemaToTemplate(pObjName,tJSON,.pSchema,pParams,{"datetime":(pDateTime), "parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1),"parentIndex":(tParentIndex)})
+                            } 
+                        }
+                    } Else {
+					    If $Piece(tKey,pDelim,*)="$ref" {
+                            Set tJSON = ..GetByLineKey(pInternal.originalJSON,$Piece(value,"#/components/schemas/",2),"/")
+                            If tJSON'="",$IsObject(tJSON) {
+                                Set tKey = $Piece(tKey,pDelim,1,*-1)
+                                If ($Length(tKey,pDelim)<5)||($Piece(tKey,pDelim,1,*-2)'[$Piece(tKey,pDelim,*-1,*)) {
+                                    Do ..OpenApiSchemaToTemplate(pObjName,tJSON,.pSchema,pParams,{"datetime":(pDateTime), "parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1),"parentIndex":""})
+                                }
+                            }
+                        } ElseIf ("type"[$Piece(tKey,pDelim,*)) {
+                            Set (tValue,tType)=value
+                            Set tFkey=$Piece(..ReplaceSch(tKey),pDelim,2,*)
+                            Set tValue = {}
+                            If tType="array" Set tValue = []
+                            If tType="number" Set tValue = 0
+                            If tType="integer" Set tValue = 0
+                            If tType="boolean" Set tValue = "true"
+                            If tType="string" Set tValue = "string"
+                            //..g(pSchema,$Piece(tFkey,1,*-1),pDelim),!
+                            If $IsObject(..g(pJSON,"enum")) Set tValue = ..g(pJSON,"enum"_pDelim_"0",pDelim)
+                            If ..g(pJSON,"example")'="" Set tValue = ..g(pJSON,"example")
+                            If ..g(pJSON,"format")'="",..g(pJSON,"format")="date" Set tValue = $E(pDateTime,1,10)
+                            If ..g(pJSON,"format")'="",..g(pJSON,"format")="date-time" Set tValue = pDateTime
+                            If tFkey'="" {
+                                Do ..s(pSchema,tFkey,tValue,$Select("boolean number"[tType:tType,1:""),pDelim)
+                            }
+                        }  
+                    }
+	 			}
+			}
+		}
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod ReplaceSch(str)
+{
+    //Quit str
+    Quit $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(str,"^properties^properties","^properties^##properties"),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type^type","^type^##type"),"^type",""),"##",""),"^*^","^"),"^*","")
+}
+
 }

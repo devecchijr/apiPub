@@ -23,10 +23,10 @@ ClassMethod publishNewAPI(template As %String, apiTitle As %String = "{apiClassN
 
 /// view OAS schema based on a JSON sample (object body)
 /// @apiPub[tag="schema"]
-/// @apiPub[path="/fromjson/viewschema"]
+/// @apiPub[path="/utils/fromjson/viewschema"]
 /// @apiPub[params.obj.description="Inform your sample object to view its correspondent Open Api Schema (OAS)"]
 /// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
-ClassMethod viewSchemaFromJSON(obj As %DynamicObject = "myObj", objName As %String, schemaPrefix As %String = "Sch-", nestedMode As %Boolean = 0) As %DynamicObject [ WebMethod ]
+ClassMethod viewSchemaFromJSON(obj As %DynamicObject, objName As %String = "myObj", schemaPrefix As %String = "Sch-", nestedMode As %Boolean = 0) As %DynamicObject [ WebMethod ]
 {
     If nestedMode = "" set nestedMode = 0
     If objName="" set objName = "myObj"
@@ -557,6 +557,18 @@ ClassMethod publishApiFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Do tResponseLog.Write(tInstruct.Read())
     Do tResponseLog.WriteLine("========================================================================================================================")
     Quit tResponseLog
+}
+
+/// view a JSON sample object based on an OAS schema
+/// @apiPub[tag="schema"]
+/// @apiPub[path="/utils/fromschema/viewjson"]
+/// @apiPub[params.pSchema.description="Inform your JSON Open Api Schema (Children of components/schemas) to view its correspondent sample object. It must contain the other objects related to your main object (object references). "]
+ClassMethod viewJSONFromSchema(pSchema As %DynamicObject, objName As %String = "Sch-MyObj") As %DynamicObject [ WebMethod ]
+{
+    If objName="" set objName = "Sch-MyObj"
+    Set tSC = ##class(apiPub.core.publisher).OpenApiSchemaToTemplate(objName,pSchema,.flatSchema,{"printResults":false}) 
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    Quit flatSchema
 }
 
 /// publish automatically an Api based on interoperability components (BP's and BO's from current production)
