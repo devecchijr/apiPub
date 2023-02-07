@@ -130,6 +130,11 @@ Create a Web Application and point the Dispatch class to the service class creat
 With the [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) tool is possible to expose your service specifications. Just point to the documentation path and ... **VOILÁ!!**
 ![](docResources/testingFirstMethod.gif)
 
+To access the swagger-ui page with the Open Api Specification at once you can use the following request sample (just change the url parameter to your open api URL):
+```
+http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/crud/_spec
+```
+
 ## Test with your existing web methods
 If you already have any [WebMethod] implemented, you can try this tool with the same code.
 ![](docResources/soapToOASRest.png)

@@ -128,6 +128,11 @@ Crie uma Aplicação Web e aponte a classe de Dispatch para a classe de serviço
 Com o [iris-web-swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) é possível expor a especificação do teu serviço. Basta apontar para o path de documentação e ... **VOILÁ!!**  
 ![](docResources/testingFirstMethod.gif)
 
+Para acessar a página do swagger-ui com a especificação Open Api (OAS) de uma só vez use o exemplo a seguir (apenas mude o parâmetro url para a sua URL open api (OAS)):
+```
+http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/crud/_spec
+```
+
 ## Faça um teste com os teus serviços web existentes 
 Se você já possui métodos web publicados (WebServices), você pode testar a sua publicação com Rest/JSON com OAS 3.0.
 ![](docResources/soapToOASRest.png)
