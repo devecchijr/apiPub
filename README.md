@@ -84,7 +84,42 @@ Define your API’s implementation class and **label** your methods with the [We
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
-Use the sample class [apiPub.samples.services](/src/apiPub/samples/services.cls) or create a **subclass** of apiPub.core.service and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS 3.0 documentation path.
+Create a **subclass** of apiPub.core.service (copy/paste then following sample) and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS documentation path (OASPath parameter).
+
+```
+Class package.name.module Extends apiPub.core.service
+{
+
+/// Charset for Output
+Parameter CHARSET = "UTF-8";
+
+/// Target path for OAS Documentation
+Parameter OASPath As %String = "Get:/_spec";
+
+/// Target class that contains all API (Web Methods) for this module
+Parameter DispatchClass As %String = "package.name.api";
+
+/// When the class is also a Business Service
+Parameter DispatchBSName;
+
+/// Use IRIS Production to generate tracing and monitoring (dashboards)
+Parameter Traceable As %Boolean = 0;
+
+/// Group for monitoring
+Parameter APIDomain = "Api Domain";
+
+/// If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)
+Parameter OASNestedMode = 0;
+
+/// format/prettify the JSON request body
+Parameter BeautifyJsonBodyRequest = 0;
+
+/// format/prettify the JSON response body
+Parameter BeautifyJsonBodyResponse = 0;
+
+}
+```
+
 ![](docResources/configuringServiceClass.gif)
 
 ## Step 3

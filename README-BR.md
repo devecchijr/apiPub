@@ -84,7 +84,40 @@ Defina a classe de implementação das tuas API’s e **rotule** os métodos com
 *Você pode testar os seus métodos SOAP já implementados.*
 
 ## Passo 2
-Use a classe de amostra [apiPub.samples.services](/src/apiPub/samples/services.cls) ou crie uma **subclasse** de apiPub.core.service e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
+Crie uma **subclasse** de apiPub.core.service, conforme exemplo a seguir (copiar/colar) e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
+```
+Class package.name.module Extends apiPub.core.service
+{
+
+/// Charset for Output
+Parameter CHARSET = "UTF-8";
+
+/// Target path for OAS Documentation
+Parameter OASPath As %String = "Get:/_spec";
+
+/// Target class that contains all API (Web Methods) for this module
+Parameter DispatchClass As %String = "package.name.api";
+
+/// When the class is also a Business Service
+Parameter DispatchBSName;
+
+/// Use IRIS Production to generate tracing and monitoring (dashboards)
+Parameter Traceable As %Boolean = 0;
+
+/// Group for monitoring
+Parameter APIDomain = "Api Domain";
+
+/// If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)
+Parameter OASNestedMode = 0;
+
+/// format/prettify the JSON request body
+Parameter BeautifyJsonBodyRequest = 0;
+
+/// format/prettify the JSON response body
+Parameter BeautifyJsonBodyResponse = 0;
+
+}
+```
 ![](docResources/configuringServiceClass.gif)
 
 ## Passo 3
