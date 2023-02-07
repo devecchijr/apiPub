@@ -84,7 +84,7 @@ Define your API’s implementation class and **label** your methods with the [We
 *If you already have a Web Method in place, you can try it.*
 
 ## Step 2
-Create a **subclass** of apiPub.core.service (copy/paste then following sample) and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS documentation path (OASPath parameter).
+Create a **subclass** of apiPub.core.service (copy/paste from the following example) and point the DispatchClass property to your Implementation class (Step 1). Also inform the OAS documentation path (OASPath parameter).
 
 ```
 Class package.name.module Extends apiPub.core.service
