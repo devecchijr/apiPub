@@ -84,7 +84,7 @@ Defina a classe de implementação das tuas API’s e **rotule** os métodos com
 *Você pode testar os seus métodos SOAP já implementados.*
 
 ## Passo 2
-Crie uma **subclasse** de apiPub.core.service, conforme exemplo a seguir (copiar/colar) e aponte a propriedade DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0. 
+Crie uma **subclasse** de apiPub.core.service, conforme exemplo a seguir (copiar/colar) e aponte o parâmetro DispatchClass para a sua classe de Implementação criada anteriormente. Informe também o path de documentação OAS 3.0 (parâmetro OASPath). 
 ```
 Class package.name.module Extends apiPub.core.service
 {
