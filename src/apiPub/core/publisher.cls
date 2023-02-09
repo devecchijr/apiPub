@@ -156,7 +156,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
                 Set tCustomDescription = ..g(value,"customParams.params."_pvalue.%Get("param")_".description")
-                If pvalue.%Get("param")'="response",(pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1) Set tOutParObjCount=tOutParObjCount+1
+                If pvalue.%Get("param")'="response",(pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1),pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")'="header" Set tOutParObjCount=tOutParObjCount+1
                 //Special type to get the whole http request
                 If pvalue.%Get("paramType")="apiPub.service.message",..g(value,"param")'="response" Continue
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
