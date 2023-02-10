@@ -369,12 +369,6 @@ Exemplo:
 
 Neste caso, está sendo atribuido o nome *petId* e a descrição *ID of pet to return* para o parâmetro definido como *pId*
 
-Quando a customização não é específica para um determinado parâmetro, utiliza-se a seguinte notação
->/// @apiPub[params.*property*="*value*"]
-
-No exemplo abaixo, a descrição *This can only be done by the logged in user* é atribuída para todo o *request*, não apenas para um parâmetro:  
->/// @apiPub[params.description="This can only be done by the logged in user."]
-
 ## Outras Propriedades que podem ser customizadas para parâmetros específicos
 
 Utilize a seguinte notação para parâmetros de entrada ou saída:
@@ -385,6 +379,7 @@ Para respostas:
 
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   name           |   se o parâmetro ou resposta precisa ser exposto com um nome diferente                                                                                                                                                                                                                                         |
 |   required           |   "true" se o parâmetro for requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos                                                                                                                                                                                                                                        |
 |   schema.items.enum  |   exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/src/apiPub/samples/api.cls)                                                                                                                                                                                           |
 |   schema.default     |   aponta para um valor default para enumeradores.                                                                                                                                                                                                                                                                                                    |
