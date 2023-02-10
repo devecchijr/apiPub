@@ -264,7 +264,7 @@ Example:
 >/// @apiPub[verb="put"]
 
 ## Customizing Paths
-This tool automatically sets paths or routing based on the *method name*.
+apiPub automatically sets paths or routing based on the *method name*.
 
 If you want to customize the **path**, add the following line in the method comments.
 
@@ -299,6 +299,15 @@ It is possible to define the method **tag** (group) when there is more than one 
 
 Example:
 >/// @apiPub[tag="user"]
+
+## Customizing Description and Summary
+apiPub automatically sets the method description (no @apiPub notation) as a summary but you can change.
+
+>/// @apiPub[summary="*content*"]
+
+A diferent description also can be set.
+
+>/// @apiPub[description="*content*"]
 
 ## Customizing The Successful Code
 
@@ -383,8 +392,10 @@ For responses:
 
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   description           |   detailed description of a parameter or response                                                                                                                                                                                                                                        |
 |   name           |   if a parameter or a response has to be exposed with a different name                                                                                                                                                                                                                                        |
 |   schema           |   name of related schema inside apiPub XData (schemas) for parameters or responses                                                                                                                                                                                                                                       |
+|   parse           |   "false" to not parse when you have a schema related.                                                                                                                                                                                                                                         |
 |   required           |   "true" if the parameter is required. All **path** parameters are already automatically required.                                                                                                                                                                                                                                        |
 |   schema.items.enum  |   display of enumerators for %String or %Library.DynamicArray param types. See the **findByStatus** method of the [apiPub.samples.api](/src/apiPub/samples/api.cls) class.                                                                                                                                                                                  |
 |   schema.default     |   default value for enumerators.                                                                                                                                                                                                                                                                                                    |
