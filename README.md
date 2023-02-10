@@ -301,11 +301,11 @@ Example:
 >/// @apiPub[tag="user"]
 
 ## Customizing Description and Summary
-apiPub automatically sets the method description (no @apiPub notation) as a summary but you can change.
+apiPub automatically sets the summary as the method description (no @apiPub notation), but you can change.
 
 >/// @apiPub[summary="*content*"]
 
-A diferent description also can be set.
+A description also can be set.
 
 >/// @apiPub[description="*content*"]
 
