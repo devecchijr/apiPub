@@ -103,7 +103,7 @@ ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse A
 			Set tSC = ..ResponseHandler(pRequest, pResponse, tSC)
 			Return tSC
 		}
-		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not mapped"))
+		Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path not found"))
     }
     Catch(e) {
 		Set tSC = e.AsStatus()
@@ -579,13 +579,13 @@ ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pIdxMap As %
 			Set tF = tPoint.%Get(tPc)
 			If tF="" {
 				Set tF = tPoint.%Get("@P")
-				If tF="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not mapped"))
+				If tF="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not found"))
 				Do tParams.%Set(tPoint.%Get("@parName"),tPc)
 			}
 			Set tPoint=tF
 		}
 		Set pAPIInfo = {}
-		If '$IsObject(tPoint) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not mapped"))
+		If '$IsObject(tPoint) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "path "_tPath_" not found"))
 		Set prop = tPoint.%GetIterator()
 		While (prop.%GetNext(.key,.value)) {
 			If '$IsObject(value),key'="@parName" {
