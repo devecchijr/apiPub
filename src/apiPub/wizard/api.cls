@@ -728,7 +728,9 @@ ClassMethod enableProdClass(interopComponents As %DynamicObject, apiClassName As
             Do instruct.WriteLine(apiClassName_" added to production") 
             Set compileProd = 1        
         } ElseIf ..g(interopComponents,"Production.Item")'="",tProdItem=-1 {
-            Do instruct.WriteLine("Please include """_apiClassName_""" into current production for components calling")
+            Do instruct.WriteLine("This is not a TEST or DEVELOPMENT environment")
+            Do instruct.WriteLine("If so, configure the System Mode accordingly to automate this process")
+            Do instruct.WriteLine("Please include """_apiClassName_""" into current production")
         }
     }
 	Catch(e)
