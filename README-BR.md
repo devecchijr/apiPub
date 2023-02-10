@@ -298,6 +298,15 @@ No exemplo acima, o parâmetro interno *pId* é exposto como *petId*.
 Exemplo:
 >/// @apiPub[tag="user"]
 
+## Customizando o Sumário e a Descrição
+apiPub automaticamente define o sumário como a descrição do método (sem notação @apiPub), mas é possível alterar.
+
+>/// @apiPub[summary="*content*"]
+
+A descrição também pode ser definida.
+
+>/// @apiPub[description="*content*"]
+
 ## Customizando o *Status Code* de Sucesso
 
 Caso se queira alterar o *Status Code* sucesso do método, que é por padrão ***200***, utiliza-se a seguinte notação.
@@ -379,8 +388,10 @@ Para respostas:
 
 |   Property           |   Description                                                                                                                                                                                                                                                                                                                                        |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   description           |   descrição detalhada do parâmetro ou resposta                                                                                                                                                                                                                                        |
 |   name           |   se o parâmetro ou resposta precisa ser exposto com um nome diferente                                                                                                                                                                                                                                         |
 |   schema           |   nome do schema relacionado dentro do bloco XData (schemas) para parametros ou respostas (response)                                                                                                                                                                                                                                       |
+|   parse           |   "false" para não fazer o parsing quando há um schema relacionado.                                                                                                                                                                                                                                         |
 |   required           |   "true" se o parâmetro for requerido. Todos os parâmetros do tipo **path** já são automaticamente requeridos                                                                                                                                                                                                                                        |
 |   schema.items.enum  |   exposição de Enumeradores para tipos %String ou %Library.DynamicArray. Veja o método ***findByStatus*** da classe [apiPub.samples.api](/src/apiPub/samples/api.cls)                                                                                                                                                                                           |
 |   schema.default     |   aponta para um valor default para enumeradores.                                                                                                                                                                                                                                                                                                    |
