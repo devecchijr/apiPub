@@ -1,7 +1,6 @@
 Class apiPub.core.introspector Extends apiPub.core.jsonBuilder
 {
 
-/// w ##class(apiPub.core.introspector).getMethodsSpecFromFile("/irisdev/app/tmpFiles/devecchijr7-Pet-1.0.0-swagger.json")
 ClassMethod getMethodsSpecFromFile(pFileName As %String) As %Status
 {
 	Set tSC = $System.Status.OK()
@@ -260,7 +259,7 @@ ClassMethod getInputParams(paramsSpec As %DynamicObject, payload As %DynamicObje
     While (..i(paramsSpec,,.idx,.val,.it)) {
         Set tParamName = $Tr(idx,"!@#$%ˆ&*()_-","")
         If idx'=tParamName Do ..s(apiPubNotation,"params."_tParamName_".name",idx,,"^")
-        If ..g(val,"required")'="" Do ..s(apiPubNotation,"params."_tParamName_".required",..g(val,"required"),,"^") 
+        If ..g(val,"required")=1,..g(val,"in")'="path" Do ..s(apiPubNotation,"params."_tParamName_".required",..g(val,"required"),,"^") 
         If ..g(val,"description")'="" Do ..s(apiPubNotation,"params."_tParamName_".description",..treatDescription(..g(val,"description")),,"^") 
         Set tType = ..g(tTypes,..g(val,"schema.type")_"|"_..g(val,"schema.format"))
         If tType="" Set tType="%String"
@@ -268,8 +267,11 @@ ClassMethod getInputParams(paramsSpec As %DynamicObject, payload As %DynamicObje
             Do ..s(apiPubNotation,"params."_tParamName_".inputType","header",,"^")
         }
         If ..g(val,"schema.type")="array" {
-            If ..g(val,"schema.items.enum")'="" Do ..s(apiPubNotation,"params."_tParamName_".schema.items.enum",..g(val,"schema.items.enum"),,"^")
-            If ..g(val,"schema.items.default")'="" Do ..s(apiPubNotation,"params."_tParamName_".schema.items.default",..g(val,"schema.items.default"),,"^")
+            If ..g(val,"schema.items.type")="string" Set tType="%DynamicArray"
+        }
+        If ..g(val,"schema.type")="string",..g(val,"schema.enum")'="" {
+            Do ..s(apiPubNotation,"params."_tParamName_".schema.items.enum",..g(val,"schema.enum"),,"^")
+            If ..g(val,"schema.default")'="" Do ..s(apiPubNotation,"params."_tParamName_".schema.items.default",..g(val,"schema.default"),,"^")
         }
         Set tRet=tRet_$Select(tRet'="":",",1:"")_tParamName_":"_tType
     }
@@ -303,6 +305,7 @@ ClassMethod getInputParams(paramsSpec As %DynamicObject, payload As %DynamicObje
             Set tRet=tRet_$Select(tRet'="":",",1:"")_"payload"_":"_tType
         } ElseIf ..g(val,"schema.type")="string",..g(val,"schema.format")="binary" {
             Do ..s(apiPubNotation,"params.payload.inputType",idx,,"^")
+            Do ..s(apiPubNotation,"charset","ISO-8859-1",,"^")
             Set tType="%Stream.GlobalBinary"
             Set tRet=tRet_$Select(tRet'="":",",1:"")_"payload"_":"_tType
         }
