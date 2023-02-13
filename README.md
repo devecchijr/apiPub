@@ -244,7 +244,7 @@ It is possible to customize various aspects of the API's, such as tags, paths an
 
 Syntax:
 >***/// @apiPub[assignment clause]***  
-[*Method/ClassMethod*] *methodName(params as type) As returnType* {  
+[*Method/ClassMethod*] *methodName(params as type) As responseType* {  
 >    
 >}
 

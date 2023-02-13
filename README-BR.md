@@ -242,7 +242,7 @@ Parameter TAGDOCSURL As %String = "http://intersystems.com";
 
 Sintaxe:
 >***/// @apiPub[assignment clause]***  
-[*Method/ClassMethod*] *methodName(params as type) As returnType* {  
+[*Method/ClassMethod*] *methodName(params as type) As responseType* {  
 >    
 >}
 
