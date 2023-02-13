@@ -361,6 +361,12 @@ Exemplo:
 
 >/// @apiPub[charset="UTF-8"]
 
+## Alterando o Tracing de um método individualmente
+
+Mesmo que o parâmetro *traceable* seja definido em seu módulo (classe herdada apiPub.core.service), é possível mudar o comportamento de rastreabilidade individualmente usando a seguinte notação:
+
+>/// @apiPub[trace="true/false"]
+
 ## Customizando nomes e outras funcionalidades dos parâmetros
 Pode-se customizar vários aspectos de cada parâmetro de entrada e saída dos métodos, como por exemplo os nomes e as descrições que serão expostas para cada parâmetro.
 

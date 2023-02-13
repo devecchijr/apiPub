@@ -362,6 +362,12 @@ Example:
 
 >/// @apiPub[charset="UTF-8"]
 
+## Customizing tracing for a specific method
+
+Even if the *traceable* parameter is defined on your module (apiPub.core.service inherited class), it's possible change the method tracing behavior individualy using the following notation:
+
+>/// @apiPub[trace="true/false"]
+
 ## Customizing parameter names and other parameters functionality
 It's possible to customize various aspects of each input and output method parameter, such as the names and descriptions that will be exposed.
 
