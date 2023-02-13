@@ -268,6 +268,10 @@ ClassMethod getInputParams(paramsSpec As %DynamicObject, payload As %DynamicObje
         }
         If ..g(val,"schema.type")="array" {
             If ..g(val,"schema.items.type")="string" Set tType="%DynamicArray"
+            If ..g(val,"schema.items.enum")'="" {
+                Do ..s(apiPubNotation,"params."_tParamName_".schema.items.enum",..g(val,"schema.items.enum"),,"^")
+                If ..g(val,"schema.default")'="" Do ..s(apiPubNotation,"params."_tParamName_".schema.default",..g(val,"schema.default"),,"^")
+            }
         }
         If ..g(val,"schema.type")="string",..g(val,"schema.enum")'="" {
             Do ..s(apiPubNotation,"params."_tParamName_".schema.items.enum",..g(val,"schema.enum"),,"^")
