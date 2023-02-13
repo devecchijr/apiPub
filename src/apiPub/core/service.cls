@@ -620,11 +620,13 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		Set pRestRequest = ##Class(apiPub.service.message).%New()
 		Set tParams={}
-		Set tIdx = pRequest.Next("")
+		//Deprecated Set tIdx = pRequest.Next("")
+		Set tIdx=$Order(%request.Data(""))		
 		While tIdx'="" {
             Set tValue = $Get(pRequest.Data(tIdx,1))
             If tValue'="" Do tParams.%Set(tIdx,$Select((..#CHARSET'="")&&($ZCVT(..#CHARSET,"U")'="UTF-8"):tValue, 1:$ZCVT(tValue,"O","UTF8")))
-			Set tIdx = pRequest.Next(tIdx)
+			//Deprecated Set tIdx = pRequest.Next(tIdx)
+			Set tIdx=$Order(%request.Data(tIdx))		
 		}
 		Set tHeaders = {}
 		Set tIdx = pRequest.NextCgiEnv("")
