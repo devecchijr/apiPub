@@ -123,28 +123,6 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
     Quit tSC
 }
 
-ClassMethod GetCacheCustomPaths(pClassName As %String, Output pJSON As %Library.DynamicObject) As %Status
-{
-    Set tSC = $System.Status.OK()
-    Try {
-        //Get Last Class Modification Date
-        Set tSC = ..GetClassDefInfo(pClassName,.tTimeChanged)
-        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        Set tDtClassDef = $Piece($Get(^TmpApipubPaths(pClassName),""),"||",1)
-        If (tDtClassDef="")||(tDtClassDef'=tTimeChanged) {
-            Set tSC = ..GetCustomPaths(pClassName,.pJSON,{"printResults":0})
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set ^TmpApipubPaths(pClassName)=tTimeChanged_"||"_pJSON.%ToJSON()
-        } Else {
-            Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubPaths(pClassName),"||",2))
-        }
-    }
-    Catch(e) {
-        Set tSC = e.AsStatus()
-    }
-    Quit tSC
-}
-
 ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -194,7 +172,6 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                                 }
                             }                           
                         }
-                        //**************************
                         Set tPath = $Length(tPath,"/")_"##"_$Piece(tPath,":",1)_":"_$Piece(tPath,":",2,*)
                         Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
                         If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
@@ -222,7 +199,6 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
         }
     }
     Catch(e) {
-        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC
@@ -338,7 +314,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     Set tPMType = primitiveTypes.%Get($S($Length(tParamType,".")>1:"%",1:"")_$ZConvert($Piece(tParamType,".",*),"L"))
                     Set tXmlAdaptor=0
                     If tPMType="" {
-                        Set tSC = ..GetClassDefInfo(tParamType,.dt,.tXmlAdaptor)
+                        Set tSC = ..GetClassDefInfo(tParamType,,.tXmlAdaptor)
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                     Set tParam = tParamName
@@ -411,7 +387,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         Do tParamObj.%Set("oConvFunction",$Piece(tPMType,"|",5))
                         Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tElType)
                         If $IsObject(tClassDef) {
-                            Set tSC = ..GetClassDefInfo(tElType,.dt,.tXmlAdaptor)
+                            Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor)
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             Do tParamObj.%Set("complexType",(tXmlAdaptor=1))
                         }
@@ -449,7 +425,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     Set tClassDef=""
                     If tPMType="" Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tPMClass)
                     If $IsObject(tClassDef) {
-                        Set tSC = ..GetClassDefInfo(tPMClass,.dt,.tXmlAdaptor)
+                        Set tSC = ..GetClassDefInfo(tPMClass,,.tXmlAdaptor)
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                     Set tElType = $Tr($Piece($Piece(tParams,"ELEMENTTYPE=",2),",",1),"""","")
@@ -458,7 +434,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         Set tPMClass=tElType_"|"_tPMClass
                         Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tElType)
                         If $IsObject(tClassDef) {
-                            Set tSC = ..GetClassDefInfo(tElType,.dt,.tXmlAdaptor)
+                            Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor)
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         }
                     }
@@ -531,7 +507,6 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
         }
     }
     Catch(e) {
-        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC
@@ -561,23 +536,12 @@ ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
     Try
 	{
         If level=0 {
-            Set (isXMLAdaptor,isBusinessService,isRoutedApi)=0
-            //If class is a subclass of apiPub.core.routedApi take cache metadata
-            If $Data(^TmpApipubClassInfo(aClassName)) {
-                Set timeChanged = $Piece(^TmpApipubClassInfo(aClassName),"^",1)
-                Set isXMLAdaptor = $Piece(^TmpApipubClassInfo(aClassName),"^",2)
-                Set isBusinessService = $Piece(^TmpApipubClassInfo(aClassName),"^",3)
-                Return tSC
-            }
+            Set (isXMLAdaptor,isBusinessService)=0
         }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
-            If '$Data(timeChanged) Set timeChanged = classDefinition.TimeChanged
-            If ##class(%Dictionary.ClassDefinition).%ExistsId("%SYSTEM.SQL.Functions")=1 {
-                If $System.SQL.Functions.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
-            } Else {
-                If $System.SQL.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
-            }
+            If '$Data(timeChanged) Set timeChanged = +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
+            If +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")>timeChanged Set timeChanged=+$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
@@ -699,6 +663,35 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
     Quit tSC
 }
 
+ClassMethod GetCachedCustomPaths(pClassName As %String, Output pJSON As %Library.DynamicObject) As %Status
+{
+    Set tSC = $System.Status.OK()
+    Try {
+        //Get Last Class Modification Date
+        Set tSC = ..GetClassDefInfo(pClassName,.tTimeChanged)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tCachedRoutes=##class(apiPub.service.cache).CacheIdxOpen(pClassName_"||rt")
+        If '$IsObject(tCachedRoutes) {
+            Set tCachedRoutes=##class(apiPub.service.cache).%New()
+            Set tCachedRoutes.Key = pClassName_"||rt"
+        }
+        If (tCachedRoutes.DateTimeCtl="")||(tCachedRoutes.DateTimeCtl'=tTimeChanged) {
+            Set tSC = ..GetCustomPaths(pClassName,.pJSON,{"printResults":0})
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tCachedRoutes.DateTimeCtl=tTimeChanged
+            Do pJSON.%ToJSON(tCachedRoutes.Content)
+            Set tSC = tCachedRoutes.%Save()
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        } Else {
+            Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedRoutes.Content)
+        }
+    }
+    Catch(e) {
+        Set tSC = e.AsStatus()
+    }
+    Quit tSC
+}
+
 ClassMethod ClassNameToXSDInfo(pClassName As %String, Output pXSDInfo As %Library.DynamicObject, pParams As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -710,14 +703,21 @@ ClassMethod ClassNameToXSDInfo(pClassName As %String, Output pXSDInfo As %Librar
         //Get Last Class Modification Date
         Set tSC = ..GetClassDefInfo(pClassName,.tTimeChanged)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-        //Cache XSD Definitions 
-        Set tDtClassDef = $Piece($Get(^TmpApipubCache(pClassName),""),"||",1)
-        If (tDtClassDef="")||(tDtClassDef'=tTimeChanged) {
+        //Cached XSD Definitions 
+        Set tCachedXsd=##class(apiPub.service.cache).CacheIdxOpen(pClassName_"||nd")
+        If '$IsObject(tCachedXsd) {
+            Set tCachedXsd=##class(apiPub.service.cache).%New()
+            Set tCachedXsd.Key = pClassName_"||nd"
+        }
+        If (tCachedXsd.DateTimeCtl="")||(tCachedXsd.DateTimeCtl'=tTimeChanged) {
             Set tSC = ..NodesFromXSD(pClassName,.pXSDInfo,{"printResults":0})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            Set ^TmpApipubCache(pClassName)=tTimeChanged_"||"_pXSDInfo.%ToJSON()
+            Set tCachedXsd.DateTimeCtl=tTimeChanged
+            Do pXSDInfo.%ToJSON(tCachedXsd.Content)
+            Set tSC = tCachedXsd.%Save()
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         } Else {
-            Set pXSDInfo = ##class(%Library.DynamicObject).%New().%FromJSON($Piece(^TmpApipubCache(pClassName),"||",2))
+            Set pXSDInfo = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedXsd.Content)
         }
         If pPrintResults {
             Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""

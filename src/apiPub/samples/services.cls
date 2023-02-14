@@ -17,6 +17,9 @@ Parameter OnlyOAS = 0;
 /// Use TracerBSName for monitoring
 Parameter Traceable = 0;
 
+/// If OASNestedMode=1 publisher avoid name conflict for OAS Schemas (Complex Requests and Responses)
+Parameter OASNestedMode = 0;
+
 Parameter TracerBSName = "apiPub.tracer.bs";
 
 Parameter APIDomain = "petStore";

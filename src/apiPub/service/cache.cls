@@ -1,0 +1,40 @@
+Class apiPub.service.cache Extends %Persistent
+{
+
+/// classname||rt for routes
+/// classname||nd for xml nodes
+/// classname||sc0 for schemas nested=0
+/// classname||sc1 for schemas nested=1
+Property Key As %String(MAXLEN = 100);
+
+Property DateTimeCtl As %BigInt;
+
+Property Content As %Stream.GlobalCharacter;
+
+Index CacheIdx On Key [ Unique ];
+
+Storage Default
+{
+<Data name="cacheDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Key</Value>
+</Value>
+<Value name="3">
+<Value>DateTimeCtl</Value>
+</Value>
+<Value name="4">
+<Value>Content</Value>
+</Value>
+</Data>
+<DataLocation>^apiPub.service.cacheD</DataLocation>
+<DefaultData>cacheDefaultData</DefaultData>
+<IdLocation>^apiPub.service.cacheD</IdLocation>
+<IndexLocation>^apiPub.service.cacheI</IndexLocation>
+<StreamLocation>^apiPub.service.cacheS</StreamLocation>
+<Type>%Storage.Persistent</Type>
+}
+
+}

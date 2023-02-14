@@ -999,12 +999,8 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
         }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
-            If '$Data(timeChanged) Set timeChanged = classDefinition.TimeChanged
-            If ##class(%Dictionary.ClassDefinition).%ExistsId("%SYSTEM.SQL.Functions")=1 {
-                If $System.SQL.Functions.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
-            } Else {
-                If $System.SQL.DATEDIFF("ms",$ZDT($Piece(timeChanged,".",1),3),$ZDT($Piece(classDefinition.TimeChanged,".",1),3))>0 Set timeChanged=classDefinition.TimeChanged
-            }
+            If '$Data(timeChanged) Set timeChanged = +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
+            If +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")>timeChanged Set timeChanged=+$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1

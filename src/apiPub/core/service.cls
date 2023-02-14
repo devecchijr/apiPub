@@ -596,7 +596,6 @@ ClassMethod GetPathInfo(pHttpVerb As %String, pOrigPath As %String, pIdxMap As %
 	}
 	Catch(e)
 	{
-		//w $System.Status.GetOneErrorText(e.AsStatus()),!
 		Set tSC = e.AsStatus()
 	}
 	Quit tSC
@@ -721,7 +720,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 				Set tSC = $$$ERROR($$$GeneralError, ..#DispatchClass_" is not a valid class")
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 			}
-			Set tSC = ##class(apiPub.core.irisMetadata).GetCacheCustomPaths(..#DispatchClass,.tIdxMap)
+			Set tSC = ##class(apiPub.core.irisMetadata).GetCachedCustomPaths(..#DispatchClass,.tIdxMap)
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		}
 		//Add Documentation Path
@@ -742,19 +741,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 			If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 		}
 		Set tSC = ..GetPathInfo(pRestRequest.HttpVerb,tOriginalPath,tIdxMap,.tAPIInfo)
-       	If 'tSC { 
-			//Try again if structure of api changed
-			If $Data(^TmpApipubClassInfo) {
-				Set tSb=$Order(^TmpApipubClassInfo(""))
-				While tSb'="" {
-					If ##class(apiPub.core.irisMetadata).IsSubClassOf(tSb,"apiPub.core.routedApi")=0 {
-						Kill ^TmpApipubClassInfo(tSb)
-					}
-					Set tSb=$Order(^TmpApipubClassInfo(tSb))
-				}
-			}
-			Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) 
-		}
+       	If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
 		If $IsObject(tAPIInfo) {
 			If tAPIInfo.%Get("className")'="" Set pRestRequest.DispatchClass = tAPIInfo.%Get("className")
 			If tAPIInfo.%Get("methodName")'="" Set pRestRequest.DispatchMethod = tAPIInfo.%Get("methodName")
@@ -914,6 +901,8 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path" Method="POST" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path/" Method="POST" Call="FromHttpCall"/>
 <Route Url="/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/" Method="PUT" Call="FromHttpCall"/>
@@ -931,6 +920,8 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path" Method="PUT" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PUT" Call="FromHttpCall"/>
 <Route Url="/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/" Method="DELETE" Call="FromHttpCall"/>
@@ -948,6 +939,8 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path" Method="DELETE" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path/" Method="DELETE" Call="FromHttpCall"/>
 <Route Url="/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/" Method="PATCH" Call="FromHttpCall"/>
@@ -965,6 +958,8 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
 <Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path" Method="PATCH" Call="FromHttpCall"/>
+<Route Url="/:path/:path/:path/:path/:path/:path/:path/:path/:path/" Method="PATCH" Call="FromHttpCall"/>
 </Routes>
 }
 
