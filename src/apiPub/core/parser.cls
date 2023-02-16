@@ -208,7 +208,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                         } ElseIf ("format type"[$Piece(tKey,pDelim,*))||($Piece(tKey,pDelim,*-1)="enum")||($Piece(tKey,pDelim,*-1)="required") {
                             Set tFkey=..ReplaceSch(tKey)
                             If $Piece(tKey,pDelim,*-1)="required" {
-                               If "allOf oneOf anyOf"'[$Piece(tKey,pDelim,*-3) Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")
+                               If (("allOf oneOf anyOf"'[$Piece(tKey,pDelim,*-3))||($Piece(tKey,pDelim,*-3)="")) Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")
                             } Else {
                                 Set tParent = $Piece(tFkey,pDelim,1,*-1)
                                 If $Extract(pSchema.%Get(tParent),1,1)="*" Do pSchema.%Set(tParent,$Extract(pSchema.%Get(tParent),2,*))
