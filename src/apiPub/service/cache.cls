@@ -1,3 +1,4 @@
+/// apiPub cached data 
 Class apiPub.service.cache Extends %Persistent
 {
 
@@ -5,7 +6,8 @@ Class apiPub.service.cache Extends %Persistent
 /// classname||nd for xml nodes
 /// classname||sc0 for schemas nested=0
 /// classname||sc1 for schemas nested=1
-Property Key As %String(MAXLEN = 100);
+/// classname||methodname||sp for method spec
+Property Key As %String(MAXLEN = 200);
 
 Property DateTimeCtl As %BigInt;
 

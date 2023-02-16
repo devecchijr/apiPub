@@ -207,8 +207,8 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                             }
                         } ElseIf ("format type"[$Piece(tKey,pDelim,*))||($Piece(tKey,pDelim,*-1)="enum")||($Piece(tKey,pDelim,*-1)="required") {
                             Set tFkey=..ReplaceSch(tKey)
-                            If $Piece(tKey,pDelim,*-1)="required" { 
-                               Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")  
+                            If $Piece(tKey,pDelim,*-1)="required" {
+                               If "allOf oneOf anyOf"'[$Piece(tKey,pDelim,*-3) Do ..SetByLineKey(pSchema,"required."_tFkey_"."_value,1,,".")
                             } Else {
                                 Set tParent = $Piece(tFkey,pDelim,1,*-1)
                                 If $Extract(pSchema.%Get(tParent),1,1)="*" Do pSchema.%Set(tParent,$Extract(pSchema.%Get(tParent),2,*))
@@ -234,7 +234,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
 
 ClassMethod ReplaceSch(str)
 {
-    Quit $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(str,"^properties^properties","^properties^##properties"),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type^type","^type^##type"),"^type",""),"##",""),"^*^","^"),"^*","")
+    Quit $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(str,"^properties^properties","^properties^##properties"),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type^type","^type^##type"),"^type",""),"^required^required","^required^##required"),"^required",""),"##",""),"^*^","^"),"^*","")
 }
 
 }

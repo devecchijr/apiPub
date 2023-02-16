@@ -19,7 +19,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
         Set tHeadersResponse = {}
         Set pDelim = $Select(tParams.keyDelimiter'="":tParams.keyDelimiter,1:"^")
         Set pPrintResults = $Select(tParams.printResults'="":tParams.printResults,1:0)
-        Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(tMethodKey,.minfo,{"printResults":0,"showClassSchemas":1})
+        Set tSC = ##class(apiPub.core.irisMetadata).GetMethodInfo(tMethodKey,.minfo,{"printResults":0})
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         If minfo.%Size()=0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"invalid method call ("_tMethodKey_")"))
         Set tVerb=$ZConvert(minfo.%Get("customParams").%Get("verb"),"L")
@@ -354,7 +354,6 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
         }
     }
     Catch(e) {
-        //w $System.Status.GetOneErrorText(e.AsStatus()),!
         Set tSC = e.AsStatus()
     }
     Quit tSC
