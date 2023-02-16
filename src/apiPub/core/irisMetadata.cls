@@ -31,35 +31,35 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("schemas")'="" {
                         Set tProp = tXDataJSON.%Get("schemas").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
-                            Do ..SetByLineKey(pJSON,"customSchemas"_pDelim_key,value,,pDelim)
+                            Do ..s(pJSON,"customSchemas"_pDelim_key,value,,pDelim)
                         }
                     }
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("info")'="" {
                         Set tProp = tXDataJSON.%Get("info").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
-                            Do ..SetByLineKey(pJSON,"customInfo"_pDelim_key,value,,pDelim)
+                            Do ..s(pJSON,"customInfo"_pDelim_key,value,,pDelim)
                         }
                     }
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("tags")'="" {
                         Set tProp = tXDataJSON.%Get("tags").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
-                            Do ..SetByLineKey(pJSON,"customTags"_pDelim_key,value,,pDelim)
+                            Do ..s(pJSON,"customTags"_pDelim_key,value,,pDelim)
                         }
                     }
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("securitySchemes")'="" {
                         Set tProp = tXDataJSON.%Get("securitySchemes").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
-                            Do ..SetByLineKey(pJSON,"customSecurity"_pDelim_key,value,,pDelim)
+                            Do ..s(pJSON,"customSecurity"_pDelim_key,value,,pDelim)
                         }
                     }
                     If $IsObject(tXDataJSON),tXDataJSON.%Get("servers")'="" {
                         Set tProp = tXDataJSON.%Get("servers").%GetIterator()
                         While tProp.%GetNext(.key,.value) {
-                            Do ..SetByLineKey(pJSON,"customServers"_pDelim_key,value,,pDelim)
+                            Do ..s(pJSON,"customServers"_pDelim_key,value,,pDelim)
                         }
                     }
                 }
-                Do ..SetByLineKey(pJSON,"description",tCD.Description,,pDelim)
+                Do ..s(pJSON,"description",tCD.Description,,pDelim)
                 Set key=""
                 Set tMD=tCD.Methods.GetNext(.key)
                 While(key'="") {
@@ -67,10 +67,10 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                         Set tMD=tCD.Methods.GetNext(.key)
                         Continue
                     }
-                    If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..GetByLineKey(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
+                    If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..g(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.methodInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                        Do ..SetByLineKey(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(methodInfo.%ToJSON()),,pDelim)
+                        Do ..s(pJSON,"methods"_pDelim_tMD.Name,##class(%Library.DynamicObject).%New().%FromJSON(methodInfo.%ToJSON()),,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -112,7 +112,7 @@ ClassMethod GetMethodParams(pTag As %String, pMethodCom As %String, Output pOutp
                 }
                 Set tKey=$Tr($Piece(tAttBlock,"=",1),"""","")
                 If tKey="path",$E(tVal,1)'="/" Set tVal="/"_tVal
-                Do ..SetByLineKey(pOutputParams,tKey,tVal,,".")
+                Do ..s(pOutputParams,tKey,tVal,,".")
             }
         }
         Set pOutputCom = $Replace($Replace(pOutputCom,$Char(10),""),$Char(13),"")
@@ -233,7 +233,7 @@ ClassMethod GetSubclassesOf(superclassName As %String, subClasses As %DynamicArr
 	Quit tSC
 }
 
-ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pLevel) As %Status
+ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pLevel, Output pSchemas As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
     Try {
@@ -241,6 +241,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
         If '$Data(pLevel) {
             Set pLevel=0
             Set pJSON={}
+            Set pSchemas={}
         }
         If pLevel'=+pLevel Set pLevel=0
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^")
@@ -260,6 +261,15 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
             } Else {
                 If tCachedSpec.DateTimeCtl=tTimeChanged Set tCachedData=1
             }
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Set tCachedSchemas=##class(apiPub.service.cache).CacheIdxOpen($Piece(pMethodKey,"||",1)_"||sch")
+            If '$IsObject(tCachedSchemas) {
+                Set tCachedSchemas = ##class(apiPub.service.cache).%New()
+                Set tCachedSchemas.Key = $Piece(pMethodKey,"||",1)_"||sch"
+                Set tCachedData=0
+            } Else {
+                If tCachedSchemas.DateTimeCtl'=tTimeChanged Set tCachedData=0
+            }
         } 
         //If not cached yet
         If (tTimeChanged="")||(tCachedData=0) {
@@ -275,45 +285,48 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                     Set tCompiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
                     Set tXDataJSON={"schemas":{}}
                     If $IsObject(tCompiledXdata),$IsObject(tCompiledXdata.Data) {
-                        Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)                        
+                        Set tXDataJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCompiledXdata.Data)
+                        //review this block after (how to get date from xdata)
                         If tXDataJSON.%Get($Piece(pMethodKey,"||",2))'="" {
                             Set tProp = tXDataJSON.%Get($Piece(pMethodKey,"||",2)).%GetIterator()
                             While tProp.%GetNext(.key,.value) {
                                 Do tApiPubParams.%Set(key,value)  
                             }
                         }
+                        While ..i(tXDataJSON,"schemas",.tScIdx,.tScVal,.tScIt) {
+                            If ..g(pSchemas,tScIdx)="" {
+                                Do ..s(pSchemas,tScIdx,tScVal)
+                            }
+                        }
                     }
-                    Do ..SetByLineKey(pJSON,"description",tMD.Description,,pDelim)
-                    Do ..SetByLineKey(pJSON,"classMethod",tMD.ClassMethod,,pDelim)
-                    Do ..SetByLineKey(pJSON,"soapMessageName",tMD.SoapMessageName,,pDelim)
-                    Do ..SetByLineKey(pJSON,"soapNameSpace",tMD.SoapNameSpace,,pDelim)
-                    Do ..SetByLineKey(pJSON,"soapRequestMessage",tMD.SoapRequestMessage,,pDelim)
+                    Do ..s(pJSON,"description",tMD.Description,,pDelim)
+                    Do ..s(pJSON,"classMethod",tMD.ClassMethod,,pDelim)
+                    If tMD.SoapMessageName'="" Do ..s(pJSON,"soapMessageName",tMD.SoapMessageName,,pDelim)
+                    If tMD.SoapNameSpace'="" Do ..s(pJSON,"soapNameSpace",tMD.SoapNameSpace,,pDelim)
+                    If tMD.SoapRequestMessage'= "" Do ..s(pJSON,"soapRequestMessage",tMD.SoapRequestMessage,,pDelim)
                     Set tProtected = 1
-                    If (..GetByLineKey(tApiPubParams,"protected")=0) Set tProtected = 0
-                    If (..GetByLineKey(tApiPubParams,"public")=1) Set tProtected = 0
-                    Do ..SetByLineKey(pJSON,"protected",tProtected,,pDelim)
-                    Do ..SetByLineKey(pJSON,"trace",(..GetByLineKey(tApiPubParams,"trace")=1),,pDelim)
-                    Do ..SetByLineKey(pJSON,"formalSpec",[],,pDelim)
-                    Do ..SetByLineKey(pJSON,"inputBodyParams",[],,pDelim)
-                    Do ..SetByLineKey(pJSON,"byRefBodyParams",[],,pDelim)
-                    Do ..SetByLineKey(pJSON,"outputBodyParams",[],,pDelim)
-                    Do ..SetByLineKey(pJSON,"customParams",{},,pDelim)
-                    If tXDataJSON.%Get("schemas")'="" {
-                        Do ..SetByLineKey(pJSON,"schemas",tXDataJSON.%Get("schemas"),,pDelim)
-                    }
+                    If (..g(tApiPubParams,"protected")=0) Set tProtected = 0
+                    If (..g(tApiPubParams,"public")=1) Set tProtected = 0
+                    Do ..s(pJSON,"protected",tProtected,,pDelim)
+                    Do ..s(pJSON,"trace",(..g(tApiPubParams,"trace")=1),,pDelim)
+                    Do ..s(pJSON,"formalSpec",[],,pDelim)
+                    Do ..s(pJSON,"inputBodyParams",[],,pDelim)
+                    Do ..s(pJSON,"byRefBodyParams",[],,pDelim)
+                    Do ..s(pJSON,"outputBodyParams",[],,pDelim)
+                    Do ..s(pJSON,"customParams",{},,pDelim)
                     Set tResponseDescription=""
                     Set tComplexSchema=0
                     Set (tResponseContentType,tResponseCharSet) = ""
                     If tApiPubParams.%Size()>0 {
-                        Do ..SetByLineKey(pJSON,"customParams",tApiPubParams,,pDelim)
-                        If ..GetByLineKey(tApiPubParams,"response.name",".")'="" Set pResponseObjName = ..GetByLineKey(tApiPubParams,"response.name",".")
-                        If ..GetByLineKey(tApiPubParams,"response.outputType",".")'="" Set tResponseContentType = ..GetByLineKey(tApiPubParams,"response.outputType",".")
-                        If ..GetByLineKey(tApiPubParams,"response.contentType",".")'="" Set tResponseContentType = ..GetByLineKey(tApiPubParams,"response.contentType",".")
-                        If ..GetByLineKey(tApiPubParams,"response.charset",".")'="" Set tResponseCharSet = ..GetByLineKey(tApiPubParams,"response.charset",".")
-                        If tResponseCharSet="",..GetByLineKey(tApiPubParams,"charset",".")'="" Set tResponseCharSet = ..GetByLineKey(tApiPubParams,"charset",".")
-                        If ..GetByLineKey(tApiPubParams,"successfulCode",".")'="" Set pSuccessfulCode = ..GetByLineKey(tApiPubParams,"successfulCode",".")
+                        Do ..s(pJSON,"customParams",tApiPubParams,,pDelim)
+                        If ..g(tApiPubParams,"response.name",".")'="" Set pResponseObjName = ..g(tApiPubParams,"response.name",".")
+                        If ..g(tApiPubParams,"response.outputType",".")'="" Set tResponseContentType = ..g(tApiPubParams,"response.outputType",".")
+                        If ..g(tApiPubParams,"response.contentType",".")'="" Set tResponseContentType = ..g(tApiPubParams,"response.contentType",".")
+                        If ..g(tApiPubParams,"response.charset",".")'="" Set tResponseCharSet = ..g(tApiPubParams,"response.charset",".")
+                        If tResponseCharSet="",..g(tApiPubParams,"charset",".")'="" Set tResponseCharSet = ..g(tApiPubParams,"charset",".")
+                        If ..g(tApiPubParams,"successfulCode",".")'="" Set pSuccessfulCode = ..g(tApiPubParams,"successfulCode",".")
                     }
-                    Do ..SetByLineKey(pJSON,"successfulCode",pSuccessfulCode,,pDelim)
+                    Do ..s(pJSON,"successfulCode",pSuccessfulCode,,pDelim)
                     Set (tBinaryStreamParams,tCharStreamParams)=""
                     For i=1:1:$ListLength(tMD.FormalSpecParsed) {
                         Set (tParamName,tParamDesc,tParamType,tParamInOut,tParamDefault,tParamAtts)=""
@@ -335,14 +348,14 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         Set tParam = tParamName
                         Set (tParamOutput,tParamInput)=""
                         If tApiPubParams.%Size()>0 {
-                            If ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")'="" Set tParamName = ..GetByLineKey(tApiPubParams,"params."_tParam_".name",".")
-                            If ..GetByLineKey(tApiPubParams,"params."_tParam_".outputType",".")'="" Set tParamOutput = ..GetByLineKey(tApiPubParams,"params."_tParam_".outputType",".")
-                            If ..GetByLineKey(tApiPubParams,"params."_tParam_".inputType",".")'="" Set tParamInput = ..GetByLineKey(tApiPubParams,"params."_tParam_".inputType",".")
+                            If ..g(tApiPubParams,"params."_tParam_".name",".")'="" Set tParamName = ..g(tApiPubParams,"params."_tParam_".name",".")
+                            If ..g(tApiPubParams,"params."_tParam_".outputType",".")'="" Set tParamOutput = ..g(tApiPubParams,"params."_tParam_".outputType",".")
+                            If ..g(tApiPubParams,"params."_tParam_".inputType",".")'="" Set tParamInput = ..g(tApiPubParams,"params."_tParam_".inputType",".")
                         }
                         // if type=stream and inputType not defined, then set a defaut
                         If tParamInput="",$Piece(tPMType,"|",4)="stream",tParamName'="response" {
-                            If "%Stream.GlobalBinary %Stream.FileBinary"[tParamType Set tBinaryStreamParams=tBinaryStreamParams_$Select(tBinaryStreamParams'="":",",1:"")_..GetByLineKey(pJSON,"formalSpec").%Size()                     
-                            If "%Stream.GlobalCharacter %Stream.FileCharacter"[tParamType Set tCharStreamParams=tCharStreamParams_$Select(tCharStreamParams'="":",",1:"")_..GetByLineKey(pJSON,"formalSpec").%Size()                     
+                            If "%Stream.GlobalBinary %Stream.FileBinary"[tParamType Set tBinaryStreamParams=tBinaryStreamParams_$Select(tBinaryStreamParams'="":",",1:"")_..g(pJSON,"formalSpec").%Size()                     
+                            If "%Stream.GlobalCharacter %Stream.FileCharacter"[tParamType Set tCharStreamParams=tCharStreamParams_$Select(tCharStreamParams'="":",",1:"")_..g(pJSON,"formalSpec").%Size()                     
                         }
                         Set tParamObj = {
                             "param":(tParam),
@@ -368,8 +381,8 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         If (tParamType="%Library.DynamicObject")||(tParamType="%Library.DynamicArray") Do tParamObj.%Set("complexType",1)
                         Set tElType = $Tr($Piece($Piece(tParamAtts,"ELEMENTTYPE=",2),",",1),"""","")
                         If tApiPubParams.%Get("params")'="" {
-                            Set tSchema = ..GetByLineKey(tApiPubParams,"params."_tParam_".schema",".")
-                            Set tParse = ..GetByLineKey(tApiPubParams,"params."_tParam_".parse",".")
+                            Set tSchema = ..g(tApiPubParams,"params."_tParam_".schema",".")
+                            Set tParse = ..g(tApiPubParams,"params."_tParam_".parse",".")
                             If $ZConvert(tParse,"L")="false" Set tParse = 0
                             If tSchema'="" Set tComplexSchema=1
                             If $IsObject(tSchema),tSchema.%Get("items")'="" Set tComplexSchema=0
@@ -407,16 +420,16 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                 Do tParamObj.%Set("complexType",(tXmlAdaptor=1))
                             }
                         }
-                        If (tParamObj.%Get("complexType")),(tParamInOut="*") Do ..SetByLineKey(pJSON,"outputBodyParams[+]",i-1,,pDelim)
-                        If (tParamObj.%Get("complexType")),(tParamInOut="&") Do ..SetByLineKey(pJSON,"byRefBodyParams[+]",i-1,,pDelim)
-                        If (tParamObj.%Get("complexType")),(tParamInOut="") Do ..SetByLineKey(pJSON,"inputBodyParams[+]",i-1,,pDelim)
-                        Do ..SetByLineKey(pJSON,"formalSpec[+]",tParamObj,,pDelim)
+                        If (tParamObj.%Get("complexType")),(tParamInOut="*") Do ..s(pJSON,"outputBodyParams[+]",i-1,,pDelim)
+                        If (tParamObj.%Get("complexType")),(tParamInOut="&") Do ..s(pJSON,"byRefBodyParams[+]",i-1,,pDelim)
+                        If (tParamObj.%Get("complexType")),(tParamInOut="") Do ..s(pJSON,"inputBodyParams[+]",i-1,,pDelim)
+                        Do ..s(pJSON,"formalSpec[+]",tParamObj,,pDelim)
                     }
                     //set defaulf values for not defined inputtypes
                     If tCharStreamParams'="" {
                         For i=1:1:$L(tCharStreamParams,",") {
-                            Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
-                            Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".param")_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
+                            Do ..s(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
+                            Do ..s(pJSON,"customParams.params."_..g(pJSON,"formalSpec."_$Piece(tCharStreamParams,",",i)_".param")_".inputType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
                             Do pJSON.%Set("requestContentType",$Select($L(tCharStreamParams,",")=1:"text/html",1:"multipart/form-data"))
                         }
                     }
@@ -424,8 +437,8 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         // different types in the same method
                         If tCharStreamParams'="" Set tBinaryStreamParams=tBinaryStreamParams_","_tCharStreamParams
                         For i=1:1:$L(tBinaryStreamParams,",") {
-                            Do ..SetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".inputType","multipart/form-data")
-                            Do ..SetByLineKey(pJSON,"customParams.params."_..GetByLineKey(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".param")_".inputType","multipart/form-data")
+                            Do ..s(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".inputType","multipart/form-data")
+                            Do ..s(pJSON,"customParams.params."_..g(pJSON,"formalSpec."_$Piece(tBinaryStreamParams,",",i)_".param")_".inputType","multipart/form-data")
                             Do pJSON.%Set("requestContentType","multipart/form-data")
                         }
                     }
@@ -470,15 +483,15 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         }
                         If tResponseContentType'="",tResponseContentType'="header" Do pJSON.%Set("responseContentType",tResponseContentType)
                         If (tPMClass="%Library.DynamicObject")||(tPMClass="%Library.DynamicArray") Do tRetParamObj.%Set("complexType",1)
-                        Do ..SetByLineKey(pJSON,"formalSpec[+]",tRetParamObj,,pDelim)
-                        Do ..SetByLineKey(pJSON,"resultParam",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
-                        If (tRetParamObj.%Get("complexType")) Do ..SetByLineKey(pJSON,"outputBodyParams[+]",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
+                        Do ..s(pJSON,"formalSpec[+]",tRetParamObj,,pDelim)
+                        Do ..s(pJSON,"resultParam",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
+                        If (tRetParamObj.%Get("complexType")) Do ..s(pJSON,"outputBodyParams[+]",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
                         Set tIt = pJSON.%Get("formalSpec").%GetIterator()
                         While tIt.%GetNext(.key,.value) {
-                            If key'=pJSON.%Get("resultParam"),(value.%Get("outputOnly")),(value.%Get("complexType")) Do ..SetByLineKey(pJSON,"outputBodyParams[+]",key,,pDelim)
+                            If key'=pJSON.%Get("resultParam"),(value.%Get("outputOnly")),(value.%Get("complexType")) Do ..s(pJSON,"outputBodyParams[+]",key,,pDelim)
                         }
                         If tApiPubParams.%Get("response")'="" {
-                            Set tSchema = ..GetByLineKey(tApiPubParams,"response.schema",".")
+                            Set tSchema = ..g(tApiPubParams,"response.schema",".")
                             If (tRetParamObj.%Get("complexType")) {
                                 If '$IsObject(tSchema),tXDataJSON.%Get("schemas")'="" {
                                     If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
@@ -493,14 +506,14 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             }
                         }
                     } Else {
-                        Do ..SetByLineKey(pJSON,"resultParam","",,pDelim)
-                        Do ..SetByLineKey(pJSON,"outputBodyParams",[],,pDelim)
+                        Do ..s(pJSON,"resultParam","",,pDelim)
+                        Do ..s(pJSON,"outputBodyParams",[],,pDelim)
                     }
-                    If tResponseCharSet'="" Do ..SetByLineKey(pJSON,"responseCharset",tResponseCharSet,,pDelim)                 
+                    If tResponseCharSet'="" Do ..s(pJSON,"responseCharset",tResponseCharSet,,pDelim)                 
                 } Else {
                     If tCD.Super'="" {
                         For sup=1:1:$l(tCD.Super,",") {  Continue:$p(tCD.Super,",",sup)=""
-                            Set tSC = ..GetMethodInfo($Piece(tCD.Super,",",sup)_"||"_$Piece(pMethodKey,"||",2),.pJSON,pParams,pLevel+1)
+                            Set tSC = ..GetMethodInfo($Piece(tCD.Super,",",sup)_"||"_$Piece(pMethodKey,"||",2),.pJSON,pParams,pLevel+1,.pSchemas)
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         }
                     }
@@ -520,10 +533,17 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 Do pJSON.%ToJSON(tCachedSpec.Content)
                 Set tSC = tCachedSpec.%Save()
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+
+                // Save Cached schemas
+                Set tCachedSchemas.DateTimeCtl=tTimeChanged
+                Do pSchemas.%ToJSON(tCachedSchemas.Content)
+                Set tSC = tCachedSchemas.%Save()
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             }
         } Else {
             //Get cached data
             Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedSpec.Content)
+            Set pSchemas = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedSchemas.Content)
         }
         If pLevel=0,pJSON.%Size()>0,pPrintResults {
             Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
@@ -650,23 +670,23 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
                         //Check If Its An Object Array (wrapped object)
                         Set tCircKey = tParentCircRefCtrl.%Get(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType)
                         If (tCircKey="")||(tKey'[tCircKey),$IsObject(tObjType) Do pCircRefCtrl.%Set(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType,tKey)
-                        If (tIsArrayType) Do ..SetByLineKey(pXSDInfo,"list."_tKey,1,,".")  
+                        If (tIsArrayType) Do ..s(pXSDInfo,"list."_tKey,1,,".")  
                         If (tCircKey="")||(tKey'[tCircKey) {
                             If $IsObject(tObjType),tObjType.%Get("type")="" {
                                 Do ..NodesFromXSD(pClassName,.pXSDInfo,pParams,{"parentKey":(tKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType)})
                             } Else {
                                 Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(value.%Get("type"),"L")),"|",1)
                                 If tJSONType="" Set tJSONType="string"
-                                If "boolean number"[tJSONType Do ..SetByLineKey(pXSDInfo,"types."_tKey,tJSONType,,".")  
+                                If "boolean number"[tJSONType Do ..s(pXSDInfo,"types."_tKey,tJSONType,,".")  
                             }
                         } Else {
-                            If tKey[tCircKey Do ..SetByLineKey(pXSDInfo,"circularRef."_tKey,tCircKey,,".")
+                            If tKey[tCircKey Do ..s(pXSDInfo,"circularRef."_tKey,tCircKey,,".")
                         }
                     } Else {
-                        If (tIsArrayType) Do ..SetByLineKey(pXSDInfo,"list."_tKey,1,,".")  
+                        If (tIsArrayType) Do ..s(pXSDInfo,"list."_tKey,1,,".")  
                         Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(value.%Get("type"),"L")),"|",1)
                         If tJSONType="" Set tJSONType="string"
-                        If "boolean number"[tJSONType Do ..SetByLineKey(pXSDInfo,"types."_tKey,tJSONType,,".")  
+                        If "boolean number"[tJSONType Do ..s(pXSDInfo,"types."_tKey,tJSONType,,".")  
                     }
                 } Else {
                     // treat baseOn types
@@ -675,7 +695,7 @@ ClassMethod NodesFromXSD(pClassName As %String, Output pXSDInfo As %Library.Dyna
                     Set tJSONType = $Piece(pMapTypes.%Get($ZConvert($Piece(value,":",2),"L")),"|",1)
                     If tJSONType="" Set tJSONType="string"
                     If "boolean number"[tJSONType {
-                        Do ..SetByLineKey(pXSDInfo,"types."_tKey,tJSONType,,".")  
+                        Do ..s(pXSDInfo,"types."_tKey,tJSONType,,".")  
                     }
                 }
             }
@@ -844,10 +864,10 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                                 Set tText=tMethodDesc
                                 Set tCPar = tApiPubParams.%GetIterator()
                                 While tCPar.%GetNext(.cpkey,.cpvalue) {
-                                    Do ..SetByLineKey(pInternal.xmlJSON,$Piece(tLineKey,pDelim,1,*-1)_pDelim_cpkey,cpvalue,,pDelim)
+                                    Do ..s(pInternal.xmlJSON,$Piece(tLineKey,pDelim,1,*-1)_pDelim_cpkey,cpvalue,,pDelim)
                                 }
                             }
-                            Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey,tText,,pDelim)
+                            Set tSC = ..s(pInternal.xmlJSON,tLineKey,tText,,pDelim)
                         }
                     }
                     If tAttCount>0 {
@@ -859,20 +879,20 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                                 Set tKey = tValue
                             }
                             If key="extension",tAtt="base" {
-                                Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey_pDelim_"basedOn",tValue,,pDelim)
+                                Set tSC = ..s(pInternal.xmlJSON,tLineKey_pDelim_"basedOn",tValue,,pDelim)
                             }
                             If key="restriction",tAtt="base" {
-                                Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey_pDelim_"type",$Piece(tValue,":",*),,pDelim)
-                                Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey_pDelim_"restriction",1,,pDelim)
+                                Set tSC = ..s(pInternal.xmlJSON,tLineKey_pDelim_"type",$Piece(tValue,":",*),,pDelim)
+                                Set tSC = ..s(pInternal.xmlJSON,tLineKey_pDelim_"restriction",1,,pDelim)
                             }
                             If "maxLength minLength"[key,tAtt="value" {
                                 If $Length(tLineKey,pDelim)>1 {
-                                    Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey,tValue,,pDelim)
+                                    Set tSC = ..s(pInternal.xmlJSON,tLineKey,tValue,,pDelim)
                                 }
                             }
                             If key="enumeration",tAtt="value" {
                                 If $Length(tLineKey,pDelim)>1 {
-                                    Set tSC = ..SetByLineKey(pInternal.xmlJSON,tLineKey_pDelim_"+",tValue,,pDelim)
+                                    Set tSC = ..s(pInternal.xmlJSON,tLineKey_pDelim_"+",tValue,,pDelim)
                                 }
                             }
                             If pLevel > 1,tAtt="name" {
@@ -886,10 +906,10 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                             If tAtt'="name" {
                                 Set tValue = pNode.GetAttributeValue(tAtt)
                                 If tMetaKey'="" {
-                                    Set tSC = ..SetByLineKey(pInternal.xmlJSON,tMetaKey_pDelim_tAtt,$Piece(tValue,":",*),,pDelim)
+                                    Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_tAtt,$Piece(tValue,":",*),,pDelim)
                                     If tAtt = "type",$find(tValue,":")>0 {
-                                        If tKey["^attribute^" Set tSC = ..SetByLineKey(pInternal.xmlJSON,tMetaKey_pDelim_"attribute",1,"boolean",pDelim)
-                                        Set tSC = ..SetByLineKey(pInternal.xmlJSON,tMetaKey_pDelim_"namespace",$Piece(tValue,":",1),,pDelim)
+                                        If tKey["^attribute^" Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_"attribute",1,"boolean",pDelim)
+                                        Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_"namespace",$Piece(tValue,":",1),,pDelim)
                                     }
                                 }    
                             }
