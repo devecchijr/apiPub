@@ -11,6 +11,7 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pCachedKey = $Select(pParams.cachedKey'="":pParams.cachedKey,1:1)
 
         //Internal Params
         If '$Data(pInternal) Set pInternal={"oPKey":"","pKey":"" ,"pType":"","originalJSON":(pJSON),"level":0}
@@ -20,7 +21,7 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
         Set pLevel = pInternal.level
 		If pParentType="" {
 			Set pResult = {"valid":1,"invalidItems":[]}
-            Set tSC = ..GetFlatSchema(pObjName,pSchema,.tFlatSchema,{"printResults":0})
+            Set tSC = ..GetFlatSchema(pObjName,pSchema,.tFlatSchema,{"printResults":0,"cachedKey":(pCachedKey)})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
             Set tSchemaVal=tFlatSchema.%Get(pObjName)
             If $Find(tSchemaVal,"*object")=0,$Find(tSchemaVal,"*array")=0 Do ..Parse(pObjName,pJSON,tFlatSchema,.pResult,.pInLineResult,pParams,{"oPKey":(pObjName),"pKey":(pObjName), "pType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
@@ -150,7 +151,7 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
         If '$Data(pParams) Set pParams={}
         Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
-
+        Set pCachedKey = $Select(pParams.cachedKey'="":pParams.cachedKey,1:"")
         //Internal Params
         If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":"","originalJSON":(pJSON),"level":0}
         Set pParentKey = pInternal.parentKey
@@ -161,9 +162,32 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
             If pJSON.%Get(pObjName) = "" {
                 Set tSC = $$$ERROR($$$GeneralError, "invalid schema")
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            }        
-			Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            }
+            Set tCached=0      
+            If pCachedKey'="" {
+                //Get Last Class Modification Date
+                Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo($Piece(pCachedKey,"||",1),.tTimeChanged)
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                Set tParseStruc=##class(apiPub.service.cache).CacheIdxOpen(pCachedKey_"||ps")
+                If '$IsObject(tParseStruc) {
+                    Set tParseStruc=##class(apiPub.service.cache).%New()
+                    Set tParseStruc.Key = pCachedKey_"||ps"
+                } Else {
+                    If tParseStruc.DateTimeCtl=tTimeChanged Set tCached = 1
+                }
+            }
+            If tCached = 0 {
+                Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                If pCachedKey'="" {
+                    Set tParseStruc.DateTimeCtl=tTimeChanged
+                    Do pSchema.%ToJSON(tParseStruc.Content)
+                    Set tSC = tParseStruc.%Save()
+                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                }
+            } Else {
+                Set pSchema = ##class(%Library.DynamicObject).%New().%FromJSON(tParseStruc.Content)
+            }
             If pPrintResults {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
                 Do tFormatter.FormatToString(pSchema.%ToJSON(),.jsonString)

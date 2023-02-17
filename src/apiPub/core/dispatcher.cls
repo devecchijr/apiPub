@@ -127,7 +127,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                         If (tParamType = "%Library.DynamicObject")||(tParamType = "%Library.DynamicArray") {
                             Set reqObj={}.%FromJSON(jsonReqObj.%ToJSON())
                             If tSchemaName'="",tParse'=0 {
-                                Set tSC = ##class(apiPub.core.parser).Parse(tSchemaName,reqObj,tSchema,.tParseResult,.tParseText,{"printResults":0})
+                                Set tSC = ##class(apiPub.core.parser).Parse(tSchemaName,reqObj,tSchema,.tParseResult,.tParseText,{"printResults":0,"cachedKey":(pRequest.DispatchClass_"||"_tSchemaName)})
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                 If tParseText'="1" {
                                     Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<400> Bad Request - "_tParseText))

@@ -555,7 +555,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
     Quit tSC
 }
 
-ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try
@@ -591,34 +591,34 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
             If (tCachedOAS.DateTimeCtl="")||(tCachedOAS.DateTimeCtl'=tTimeChanged) {
                 Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                Set pXSDInfo = {}
+                Set pSchema = {}
                 Set tMapTypes = ##class(apiPub.core.typeMapper).GetXSDMapTypes()
                 If pJSON.%Size()>0{
                     Set prop = pJSON.%GetIterator()
                     While prop.%GetNext(.key,.value) {
                         If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
-                            Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
+                            Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         }
                     }
                 }
                 //nestedMode use complete className to avoid name conflict
                 If pNestedMode=1{
-                    Set prop = pXSDInfo.%GetIterator()
+                    Set prop = pSchema.%GetIterator()
                     Do prop.%GetNext(.key,.value)
-                    Set pXSDInfo={}
-                    Do ..s(pXSDInfo,pClassName,value,,pDelim)
+                    Set pSchema={}
+                    Do ..s(pSchema,pClassName,value,,pDelim)
                 }
                 Set tCachedOAS.DateTimeCtl=tTimeChanged
-                Do pXSDInfo.%ToJSON(tCachedOAS.Content)
+                Do pSchema.%ToJSON(tCachedOAS.Content)
                 Set tSC = tCachedOAS.%Save()
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             } Else {
-                Set pXSDInfo = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedOAS.Content)
+                Set pSchema = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedOAS.Content)
             }
             If pPrintResults  {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
-                Do tFormatter.FormatToString(pXSDInfo.%ToJSON(),.jsonString)
+                Do tFormatter.FormatToString(pSchema.%ToJSON(),.jsonString)
                 Write jsonString,!
             }
 		} Else {
@@ -630,27 +630,27 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                 Set tType = pOriginalJSON.%Get(tBasedOn).%Get("type")
                 If tType="" {
                     If (pNestedMode) {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn"))),"requiredKeys":(pRequiredKeys)})
+                        Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn"))),"requiredKeys":(pRequiredKeys)})
                     } Else {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn)),"requiredKeys":(pRequiredKeys)})
+                        Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn)),"requiredKeys":(pRequiredKeys)})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                        Do ..s(pXSDInfo,pParentKey_pDelim_"allOf"_pDelim_"0"_pDelim_"$ref","#/components/schemas/"_tBasedOn,,pDelim)  
+                        Do ..s(pSchema,pParentKey_pDelim_"allOf"_pDelim_"0"_pDelim_"$ref","#/components/schemas/"_tBasedOn,,pDelim)  
                         Set pParentKey=pParentKey_pDelim_"allOf"_pDelim_"1"
                     }
                 } Else {
                     Set tBasedOnType = $Piece(pMapTypes.%Get($ZConvert($Piece(tType,":",2),"L")),"|",2)
                     If tBasedOnType="" Set tBasedOnType="string"
                     Set tBasedOnFormat = $Piece(pMapTypes.%Get($ZConvert($Piece(tType,":",2),"L")),"|",3)
-                    Do ..s(pXSDInfo,pParentKey_pDelim_"properties"_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
-                    If tBasedOnFormat'="" Do ..s(pXSDInfo,pParentKey_pDelim_"properties"_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
+                    Do ..s(pSchema,pParentKey_pDelim_"properties"_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
+                    If tBasedOnFormat'="" Do ..s(pSchema,pParentKey_pDelim_"properties"_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
                 }
             }
             //Correct Auto-Reference Limitation
             Do pCircRefCtrl.%Set(pParentType_pDelim_pParentType,pNestedParentKey)
             Set tParentCircRefCtrl = ##class(%Library.DynamicObject).%New().%FromJSON(pCircRefCtrl.%ToJSON())
             If pJSON.%Get("type")="" {
-                Do ..s(pXSDInfo,pParentKey_pDelim_"type","object",,pDelim)  
-                Do ..s(pXSDInfo,pParentKey_pDelim_"xml"_pDelim_"name",$Piece(tOParentKey,pDelim,*),,pDelim)  
+                Do ..s(pSchema,pParentKey_pDelim_"type","object",,pDelim)  
+                Do ..s(pSchema,pParentKey_pDelim_"xml"_pDelim_"name",$Piece(tOParentKey,pDelim,*),,pDelim)  
                 Set pParentKey=pParentKey_pDelim_"properties"
                 Set pNestedParentKey=pNestedParentKey_pDelim_"properties"
             } 
@@ -673,95 +673,95 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pXSDInfo As %Library.
                         If (tCircKey="")||(tNestedKey'[tCircKey),$IsObject(tObjType) Do pCircRefCtrl.%Set(pParentType_pDelim_$Select((tIsArrayType):"ArrOf",1:"")_tType,tNestedKey)
                         If (tRequired),pRequiredKeys.%Get($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*))="" {
                             Do pRequiredKeys.%Set($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*),1)
-                            Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                            Do ..s(pSchema,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
                         }
                         If (tIsArrayType) {
-                            Do ..s(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
+                            Do ..s(pSchema,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"
                             Set tNestedKey=tNestedKey_pDelim_"items"
                         }
                         If (tCircKey="")||(tNestedKey'[tCircKey) {
-                            Do ..s(pXSDInfo,tKey,{},,pDelim)  
+                            Do ..s(pSchema,tKey,{},,pDelim)  
                             If $IsObject(tObjType),tObjType.%Get("type")="" {
                                 If (tType["ArrayOf")||(tType["PairOf") Set tNested=1
-                                If tNested=0 Do ..s(pXSDInfo,tKey_pDelim_"allOf[0]"_pDelim_"$ref","#/components/schemas/"_tType,,pDelim)
-                                If value.%Get("documentation")'="" Do ..s(pXSDInfo,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
-                                If value.%Get("example")'="" Do ..s(pXSDInfo,tKey_pDelim_"example",value.%Get("example"),,pDelim)
-                                Set tSC = ..GetOpenAPISchema(pClassName,.pXSDInfo,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType),"requiredKeys":(pRequiredKeys)})
+                                If tNested=0 Do ..s(pSchema,tKey_pDelim_"allOf[0]"_pDelim_"$ref","#/components/schemas/"_tType,,pDelim)
+                                If value.%Get("documentation")'="" Do ..s(pSchema,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
+                                If value.%Get("example")'="" Do ..s(pSchema,tKey_pDelim_"example",value.%Get("example"),,pDelim)
+                                Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType),"requiredKeys":(pRequiredKeys)})
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             } Else {
                                 Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(tType,"L")),"|",2)
                                 If tJSONType="" Set tJSONType="string"
                                 Set tJSONFormat = $Piece(pMapTypes.%Get($ZConvert(tType,"L")),"|",3)
-                                Do ..s(pXSDInfo,tKey_pDelim_"type",tJSONType,,pDelim)
-                                If tJSONFormat'="" Do ..s(pXSDInfo,tKey_pDelim_"format",tJSONFormat,,pDelim)
+                                Do ..s(pSchema,tKey_pDelim_"type",tJSONType,,pDelim)
+                                If tJSONFormat'="" Do ..s(pSchema,tKey_pDelim_"format",tJSONFormat,,pDelim)
                                 If tBasedOn'="" {
                                     Set tBasedOnType = $Piece(pMapTypes.%Get($ZConvert($Piece(tBasedOn,":",2),"L")),"|",2)
                                     Set tBasedOnFormat = $Piece(pMapTypes.%Get($ZConvert($Piece(tBasedOn,":",2),"L")),"|",3)
                                     If tBasedOnType'="" {
-                                        Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
-                                        If tBasedOnFormat'="" Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
+                                        Do ..s(pSchema,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
+                                        If tBasedOnFormat'="" Do ..s(pSchema,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
                                     }
                                 }
                                 If value.%Get("enumeration")'="" {
                                     If "number integer"[tJSONType {
                                         Set tEnum = value.%Get("enumeration").%GetIterator()
                                         While (tEnum.%GetNext(.enk,.vk)) {
-                                            Do ..s(pXSDInfo,tKey_pDelim_"enum"_pDelim_enk,+vk,"number",pDelim)
+                                            Do ..s(pSchema,tKey_pDelim_"enum"_pDelim_enk,+vk,"number",pDelim)
                                         }
                                     } Else {
-                                        Do ..s(pXSDInfo,tKey_pDelim_"enum",value.%Get("enumeration"),,pDelim)
+                                        Do ..s(pSchema,tKey_pDelim_"enum",value.%Get("enumeration"),,pDelim)
                                     }
                                 }
                             } 
-                            If value.%Get("documentation")'="" Do ..s(pXSDInfo,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
-                            If value.%Get("example")'="" Do ..s(pXSDInfo,tKey_pDelim_"example",value.%Get("example"),,pDelim)
+                            If value.%Get("documentation")'="" Do ..s(pSchema,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
+                            If value.%Get("example")'="" Do ..s(pSchema,tKey_pDelim_"example",value.%Get("example"),,pDelim)
                         } Else {
                             If tNestedKey[tCircKey {
-                                If ..g(pXSDInfo,tKey,pDelim)="" {
+                                If ..g(pSchema,tKey,pDelim)="" {
                                     Set tAutoRefKey = "#/components/schemas/"_$Replace(tCircKey,"^","/")
                                     If pNestedMode=1,$Piece(tAutoRefKey,"/",4)=$Piece(pClassName,".",*) Set $Piece(tAutoRefKey,"/",4)=pClassName
-                                    Do ..s(pXSDInfo,tKey_pDelim_"$ref",tAutoRefKey,,pDelim)
+                                    Do ..s(pSchema,tKey_pDelim_"$ref",tAutoRefKey,,pDelim)
                                 }
                             }
                         }
                     } Else {
                         If (tRequired),pRequiredKeys.%Get($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*))="" {
                             Do pRequiredKeys.%Set($Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]"_$Piece(tKey,pDelim,*),1)
-                            Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
+                            Do ..s(pSchema,$Piece(tKey,pDelim,1,*-2)_pDelim_"required[+]",$Piece(tKey,pDelim,*),,pDelim)
                         }
                         If (tIsArrayType) {
-                            Do ..s(pXSDInfo,tKey_pDelim_"type","array",,pDelim)  
+                            Do ..s(pSchema,tKey_pDelim_"type","array",,pDelim)  
                             Set tKey=tKey_pDelim_"items"
                             Set tNestedKey=tNestedKey_pDelim_"items"
                         }
                         Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(value.%Get("type"),"L")),"|",2)
                         If tJSONType="" Set tJSONType="object"
                         Set tJSONFormat = $Piece(pMapTypes.%Get($ZConvert(value.%Get("type"),"L")),"|",3)
-                        Do ..s(pXSDInfo,tKey_pDelim_"type",tJSONType,,pDelim)
-                        If tJSONFormat'="" Do ..s(pXSDInfo,tKey_pDelim_"format",tJSONFormat,,pDelim)
+                        Do ..s(pSchema,tKey_pDelim_"type",tJSONType,,pDelim)
+                        If tJSONFormat'="" Do ..s(pSchema,tKey_pDelim_"format",tJSONFormat,,pDelim)
                         If tBasedOn'="" {
                             Set tBasedOnType = $Piece(pMapTypes.%Get($ZConvert($Piece(tBasedOn,":",2),"L")),"|",2)
                             Set tBasedOnFormat = $Piece(pMapTypes.%Get($ZConvert($Piece(tBasedOn,":",2),"L")),"|",3)
                             If tBasedOnType'="" {
-                                Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
-                                If tBasedOnFormat'="" Do ..s(pXSDInfo,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
+                                Do ..s(pSchema,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"type",tBasedOnType,,pDelim)
+                                If tBasedOnFormat'="" Do ..s(pSchema,$Piece(tKey,pDelim,1,*-1)_pDelim_pCharsKey_pDelim_"format",tBasedOnFormat,,pDelim)
                             }
                         }
                         If value.%Get("enumeration")'="" {
                             If "number integer"[tJSONType {
                                 Set tEnum = value.%Get("enumeration").%GetIterator()
                                 While (tEnum.%GetNext(.enk,.vk)) {
-                                    Do ..s(pXSDInfo,tKey_pDelim_"enum"_pDelim_enk,+vk,"number",pDelim)
+                                    Do ..s(pSchema,tKey_pDelim_"enum"_pDelim_enk,+vk,"number",pDelim)
                                 }
                             } Else {
-                                Do ..s(pXSDInfo,tKey_pDelim_"enum",value.%Get("enumeration"),,pDelim)
+                                Do ..s(pSchema,tKey_pDelim_"enum",value.%Get("enumeration"),,pDelim)
                             }
                         }
                         Set tOType = $Select("string boolean date dateTime decimal"'[value.%Get("type"):"("_value.%Get("type")_") ",1:"")
                         if tOType="(long) " Set tOType=""
-                        If (value.%Get("documentation")'="")||(tOType'="") Do ..s(pXSDInfo,tKey_pDelim_"description",tOType_value.%Get("documentation"),,pDelim)
-                        If (value.%Get("example")'="") Do ..s(pXSDInfo,tKey_pDelim_"example",tOType_value.%Get("example"),,pDelim)
+                        If (value.%Get("documentation")'="")||(tOType'="") Do ..s(pSchema,tKey_pDelim_"description",tOType_value.%Get("documentation"),,pDelim)
+                        If (value.%Get("example")'="") Do ..s(pSchema,tKey_pDelim_"example",tOType_value.%Get("example"),,pDelim)
                     }
                 }
 			}

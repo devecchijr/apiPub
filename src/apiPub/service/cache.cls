@@ -4,9 +4,11 @@ Class apiPub.service.cache Extends %Persistent
 
 /// classname||rt for routes
 /// classname||nd for xml nodes
-/// classname||sc0 for schemas nested=0
-/// classname||sc1 for schemas nested=1
+/// classname||sc0 for obj schemas nested=0
+/// classname||sc1 for obj schemas nested=1
 /// classname||methodname||sp for method spec
+/// classname||methodname||sch for xdata schemas
+/// classname||schemaName||ps for parsing structures
 Property Key As %String(MAXLEN = 200);
 
 Property DateTimeCtl As %BigInt;

@@ -247,6 +247,25 @@ ClassMethod JSONToXML(pJSON As %Library.DynamicObject, Output pXmlStream As %Abs
 	Quit tSC
 }
 
+ClassMethod XMLObjToJSON(pXmlStream As %AbstractStream, pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject) As %Status
+{
+    Set tSC = $System.Status.OK()
+    Try
+	{
+        Do ..s(pParams,"printResults",0)
+        Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSDInfo(pClassName,.tXSDInfo,{"printResults":0})
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+
+        Set tSC = ##class(apiPub.core.converter).XMLToJSON(pXmlStream,tXSDInfo,.pJSON,pParams)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+    }
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
 ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.DynamicObject, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject, ByRef pNode As %XML.Node) As %Status
 {
     Set tSC = $System.Status.OK()
