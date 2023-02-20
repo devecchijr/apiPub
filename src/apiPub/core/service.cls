@@ -149,7 +149,7 @@ ClassMethod GetOAS(pRequest As apiPub.service.message, Output pResponse As apiPu
 		}
         Set tSC = ##class(apiPub.core.publisher).GetOASFromClass(pRequest.DispatchClass,.tJsonResponse,tParams,tRequestURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-        Do pResponse.Body.Write(tJsonResponse.%ToJSON())
+		Do tJsonResponse.%ToJSON(pResponse.Body)
         Set pResponse.ContentType =  "application/json"
         Set pResponse.ResponseStatusCode = 200
     }
@@ -269,8 +269,8 @@ ClassMethod TreatMsgResponse(pRequest As apiPub.service.message, ByRef pResponse
         	Set pResponse.ResponseReasonPhrase = ..GetResponseReasonPhrase(pResponse.ResponseStatusCode)
         }
         If pResponse.ContentType="" Set pResponse.ContentType = pDefaultForEmptyContentType
-        If $IsObject(pResponse.Body),pResponse.Body.SizeGet()>0{
-            If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyResponse),pResponse.ContentType'="",$Find($ZConvert(pResponse.ContentType,"L"),"json")>0,$Find(pResponse.Body.Read(),"{")>0 {
+        If ((..#Traceable)||pRequest.Trace=1),$IsObject(pResponse.Body),pResponse.Body.SizeGet()>0{
+			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyResponse),$Find($ZConvert(pResponse.ContentType,"L"),"json")>0 {
         		Set tFormatter = ##class(%JSON.Formatter).%New()
                 Set pBodyResponse = ##class(%DynamicObject).%FromJSON(pResponse.Body)
                 Set tSC = tFormatter.FormatToStream(pBodyResponse,pResponse.Body)
@@ -313,7 +313,7 @@ ClassMethod HttpResponseToMsgResponse(pURL As %String, pHttpRequest As %Net.Http
         }
         If tHeaders.%Size()>0 {
             Set tHeaderStr = ""
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+			If ((..#Traceable)||pMessageRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
         		Set tFormatter = ##class(%JSON.Formatter).%New()
 				Set tSC = tFormatter.FormatToString(tHeaders.%ToJSON(),.tHeaderStr) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -332,7 +332,7 @@ ClassMethod HttpResponseToMsgResponse(pURL As %String, pHttpRequest As %Net.Http
 		}
         If tParams.%Size()>0 {
             Set tParamsStr = ""
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+			If ((..#Traceable)||pMessageRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
         		Set tFormatter = ##class(%JSON.Formatter).%New()
 				Set tSC = tFormatter.FormatToString(tParams.%ToJSON(),.tParamsStr) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -636,7 +636,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		If tHeaders.%Size()>0 {
 			Set tStrHeaders = ""
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+			If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
         		Set tFormatter = ##class(%JSON.Formatter).%New()
 				Set tSC = tFormatter.FormatToString(tHeaders.%ToJSON(),.tStrHeaders) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -651,7 +651,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 					Set tAuthHeader = {}.%FromJSON($$$BASE64URLDECODE(b64header))
 					Set b64body = $Piece(token,".",2)
 					Set tAuthPayload = {}.%FromJSON($$$BASE64URLDECODE(b64body))
-					If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+					If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
 						Set tFormatter = ##class(%JSON.Formatter).%New()
 						Do tFormatter.FormatToString(tAuthHeader.%ToJSON(),.tStrAuthHeader) 
 						Do tFormatter.FormatToString(tAuthPayload.%ToJSON(),.tStrAuthPayload) 
@@ -675,7 +675,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		If tCookies.%Size()>0 {
 			Set tStrCookies=""
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+			If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
         		Set tFormatter = ##class(%JSON.Formatter).%New()
 				Set tSC = tFormatter.FormatToString(tCookies.%ToJSON(),.tStrCookies) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -696,7 +696,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
 		Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"
 		Set pRestRequest.CharSet = ..#CHARSET
-		If $IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
+		If ((..#Traceable)||pRestRequest.Trace=1),$IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
 			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyRequest),$Find($ZConvert(pRestRequest.ContentType,"L"),"json") {
 				Set tSC = tFormatter.FormatToStream(pRequest.Content,pRestRequest.Body) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
@@ -765,7 +765,7 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		}
 		If tParams.%Size()>0 {
 			Set tStrParams = ""
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+			If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
 				Set tSC = tFormatter.FormatToString(tParams.%ToJSON(),.tStrParams) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 			} Else {
