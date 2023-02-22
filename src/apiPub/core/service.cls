@@ -696,8 +696,8 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
 		Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"
 		Set pRestRequest.CharSet = ..#CHARSET
-		If ((..#Traceable)||pRestRequest.Trace=1),$IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
-			If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyRequest),$Find($ZConvert(pRestRequest.ContentType,"L"),"json") {
+		If $IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
+			If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyRequest),$Find($ZConvert(pRestRequest.ContentType,"L"),"json") {
 				Set tSC = tFormatter.FormatToStream(pRequest.Content,pRestRequest.Body) 
 				If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 			} Else {
