@@ -294,8 +294,8 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             }
                         }
                         While ..i(tXDataJSON,"schemas",.tScIdx,.tScVal,.tScIt) {
-                            If ..g(pSchemas,tScIdx)="" {
-                                Do ..s(pSchemas,tScIdx,tScVal)
+                            If ..g(pSchemas,tScIdx,"^")="" {
+                                Do ..s(pSchemas,tScIdx,tScVal,,"^")
                             }
                         }
                     }

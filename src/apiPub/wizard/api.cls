@@ -36,10 +36,23 @@ ClassMethod viewSchemaFromJSON(obj As %DynamicObject, objName As %String = "myOb
     Quit schema
 }
 
+/// view OAS schema based on an IRIS class
+/// @apiPub[tag="schema"]
+/// @apiPub[path="/utils/fromclass/viewschema"]
+/// @apiPub[params.className.description="Inform your classname (%XML.Adaptor inherited) to view its correspondent Open Api Schema (OAS)"]
+/// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
+ClassMethod viewSchemaFromClass(className As %String = "apiPub.samples.Pet", nestedMode As %Boolean = 0) As %DynamicObject [ WebMethod ]
+{
+    If nestedMode = "" set nestedMode = 0
+    Set tSC = ##class(apiPub.core.publisher).GetOpenAPISchema(className,.schema,{"printResults":0,"nestedMode":(nestedMode)})
+    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    Quit schema
+}
+
 /// publish automatically an Api based on existing class/web methods
-/// @apiPub[tag="class"]
+/// @apiPub[tag="existing web method"]
 /// @apiPub[response.outputType="text/plain"]
-/// @apiPub[path="/fromclass/publishApi"]
+/// @apiPub[path="/fromwebmethod/publishApi"]
 /// @apiPub[params.apiClassName.description="Existing Class"]
 /// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
 /// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
@@ -171,6 +184,106 @@ ClassMethod createIRISClassFromOAS(oasContent As %DynamicObject, apiDomain As %S
     Set tSC = ##class(apiPub.core.introspector).getApiClassFromOAS(oasContent, tAPIClass, .tXData, .apiDescription, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
+    Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Set tSC = ..importApiPackage(tApiPackage, tAPIClass, tXData)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Set tCompileProd = 0
+    If (traceable) {
+        Set tSC = ..enableProdTracing(tInteropComps, tInstruct, .tCompileProd)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+    }
+
+    If (tCompileProd) {
+        Do tInstruct.WriteLine("Don't forget to update the current production")
+        Set tSC = ..importProduction(tInteropPackage,tInteropClass,tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
+
+    Set tSC = ..createApiWebApp(appPath, oasAppPath, moduleClassName, $Replace(apiDescription,"{apiClassName}",apiClassName), tResponseLog)
+    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+
+    Do ..addAPIDocToIntrLog(pReq.RequestURL, appPath, oasAppPath, tInstruct)
+    Do tResponseLog.WriteLine("")
+    Do tResponseLog.WriteLine("Instructions ")
+    Do tResponseLog.WriteLine("========================================================================================================================")
+    Do tResponseLog.Write(tInstruct.Read())
+    Do tResponseLog.WriteLine("========================================================================================================================")
+    Quit tResponseLog
+}
+
+/// publish automatically an Api based on an IRIS class schema. It creates a JSON schema based on an iris class and relates to Api payload input parameter
+/// @apiPub[tag="schema"]
+/// @apiPub[response.outputType="text/plain"]
+/// @apiPub[path="/fromclass/publishApi"]
+/// @apiPub[params.classname.description="iris class name for schema generation"]
+/// @apiPub[params.nestedMode.description="Use nestedMode to avoid names conflict"]
+/// @apiPub[params.apiClassName.description="Api classname (web methods)"]
+/// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
+/// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]
+/// @apiPub[params.apiTitle.description="Api title for OAS"]
+/// @apiPub[params.apiDescription.description="Api description for OAS"]
+/// @apiPub[params.appPath.description="Api path"]
+/// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
+/// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
+ClassMethod publishApiFromClassname(className As %String = "apiPub.samples.Pet", nestedMode As %Boolean = 0, apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", apiClassName As %String = "package.name.api", moduleClassName As %String = "package.name.module", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+{
+    Set tSC = ##class(apiPub.core.publisher).GetOpenAPISchema(className,.tSchema1,{"printResults":0,"nestedMode":(nestedMode)})
+    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    Do ..i(tSchema1,,.objName,.tval,.tit)
+    If nestedMode = "" set nestedMode = 0
+    If traceable="" Set traceable = 0
+    If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
+    If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
+    If objName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> objName param is required"))}
+    If apiClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiClassName param is required"))}
+    If moduleClassName="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> moduleClassName param is required"))}
+    If apiDomain="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> apiDomain param is required"))}
+    Set tResponseLog = ##class(%Stream.GlobalCharacter).%New()
+    Set tInstruct = ##class(%Stream.GlobalCharacter).%New()
+    Set tInteropPackage = {}
+    Set tInteropClass = {}
+    Set tInteropComps = {}
+    If (traceable) {
+        Set tSC = ..getProduction(.tInteropPackage,.tInteropClass,.tInteropComps,tResponseLog)
+        If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+    }
+
+    Set tSC = ..getAPIPackage(apiClassName, 0, moduleClassName, 0, apiTitle, apiDescription, .tApiPackage, .tAPIClass, .tXData, tResponseLog)
+    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+
+    // Add validation methods
+    If objName'="object",$find(objName," ")=0,(..find(..g(tAPIClass,"Method"),"$ZConvert(..g(value,""_name""),""L"")=$ZConvert(""validate"_..normalizeCompName(objName)_""",""L"")")=-1) {
+        While (..i(tSchema1,,.idx,.val,.it)) {
+            If ..g(tXData,"schemas^"_idx)="" {
+                Do ..s(tXData,"schemas^"_idx,val,,"^")
+            }
+        }
+        Set tValidateSchemaMethod = {
+                "_name":("validate"_..normalizeCompName(objName)),
+                "Description":(
+                    ..getApiPubNotation(
+                        {
+                            "description":"my api",
+                            "tag":"api group",
+                            "verb":"put",
+                            "params.obj.schema":(objName),
+                            "params.obj.parse":"true",
+                            "response.schema":(objName)
+                        }
+                    )
+                ),
+                "ClassMethod":1,
+                "FormalSpec":"obj:%DynamicObject",
+                "ReturnType":"%DynamicObject",
+                "WebMethod":1,
+                "Implementation":("    Quit obj")
+        }
+        Do tResponseLog.WriteLine("Method ""validate"_..normalizeCompName(objName)_""" created")
+        Do ..s(tAPIClass,"Method.+",tValidateSchemaMethod)
+    }
     Set tSC = ..createApiModule(tApiPackage, apiClassName, 0, moduleClassName, appPath, apiDomain, charSet, traceable, 0, tResponseLog)
     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
 
@@ -1254,7 +1367,7 @@ XData apiPub [ MimeType = application/json ]
             "description": "New APIs based on basic templates."
             },
             {
-            "name": "class",
+            "name": "existing web method",
             "description": "From existing class/web methods"
             },
             {
