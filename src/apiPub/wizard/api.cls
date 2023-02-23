@@ -806,7 +806,11 @@ ClassMethod importProduction(interopPackage As %DynamicObject, interopClass As %
         Set tSC = ##class(apiPub.core.converter).JSONToXML(interopComponents,.tXMLXData,{"printResults":0})  
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
         Do tXMLXData.ReadLine()
-        Do ..s(interopClass,"XData.Data",tXMLXData.Read())
+        Set tStrContent = ""
+        While (tXMLXData.AtEnd=0) {
+            Set tStrContent = tStrContent_tXMLXData.Read()
+        }
+        Do ..s(interopClass,"XData.Data",tStrContent)
         Do ##class(apiPub.core.converter).JSONToXML(interopPackage,.xmlProdPackage,{"printResults":0})
         Do $system.OBJ.LoadStream(xmlProdPackage,"ck/displaylog=1")
     }
@@ -860,6 +864,10 @@ ClassMethod enableProdTracing(interopComponents As %DynamicObject, instruct As %
 	{
         Set tDevEnv = ("TEST DEVELOPMENT"[$SYSTEM.Version.SystemMode())&&($SYSTEM.Version.SystemMode()'="")
         If ..g(interopComponents,"Production.Item")'="" {
+            If '(tDevEnv) {
+                Do instruct.WriteLine("This is not a TEST or DEVELOPMENT environment")
+                Do instruct.WriteLine("If so, configure the System Mode accordingly to automate this process")
+            }
             If ..find(..g(interopComponents,"Production.Item"),"..g(value,""_ClassName"")=""apiPub.tracer.bs""")=-1 {
                 If '(tDevEnv) Do instruct.WriteLine("Please include ""apiPub.tracer.bs"" into current production for tracing")
                 If (tDevEnv) {
@@ -1309,7 +1317,12 @@ ClassMethod importApiPackage(apiPackage As %DynamicObject, apiClass As %DynamicO
             Set tSC = tFormatter.FormatToStream(apiXData,tFormSchema)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
             Set tApiPubXDataIdx = ..find(..g(apiClass,"XData"),"$ZConvert(..g(value,""_name""),""L"")=""apipub""")
-            Do ..s(apiClass,"XData."_tApiPubXDataIdx_".Data",$Char(13)_tFormSchema.Read())
+            Set tStrContent = ""
+            Do tFormSchema.Rewind()
+            While (tFormSchema.AtEnd=0) {
+                Set tStrContent = tStrContent_tFormSchema.Read()
+            }
+            Do ..s(apiClass,"XData."_tApiPubXDataIdx_".Data",$Char(13)_tStrContent)
         }
         Do ##class(apiPub.core.converter).JSONToXML(apiPackage,.package,{"printResults":0})
         Do $system.OBJ.LoadStream(package,"ck/displaylog=1")
