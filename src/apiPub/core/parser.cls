@@ -142,6 +142,30 @@ ClassMethod Parse(pObjName As %String, pJSON As %Library.DynamicObject, pSchema 
 	Quit tSC
 }
 
+/// Verify circular reference
+ClassMethod NotCircRef(pKey As %String, pValue As %String, ByRef pSchema As %DynamicObject, ByRef pCircRef As %DynamicObject, pDelim As %String) As %Boolean
+{
+        Set tFkey=..ReplaceSch(pKey)
+        Set tObjRef=$Tr($Piece(pValue,"#/components/schemas/",2),"/",pDelim)
+        Set pRefKey=""
+        For i = 1:1:$L(tObjRef,pDelim) {
+            Set tPieceKey = $Piece(tObjRef,pDelim,i)
+            If tPieceKey="items",$Piece(pRefKey,pDelim,*)'="properties" Set tPieceKey="0"
+            Set pRefKey = $Select(pRefKey'="":pRefKey_pDelim, 1:"")_$Select(tPieceKey'="":tPieceKey, 1:"")
+        }
+        Set tCircRef=..g(pCircRef,pRefKey)
+        Set tLoopKey=""
+        While (..i(tCircRef,"",.lidx,.lval,.lit)) {
+            If ($E(tFkey,1,$L(lidx)+1)=(lidx_pDelim)) Set tLoopKey=lidx
+        }
+        If tLoopKey'="" {
+            Do pSchema.%Set(tFkey,"circRef"_pDelim_..ReplaceSch(tLoopKey))            
+        } Else {
+            Do ..s(pCircRef,pRefKey_"."_tFkey,1)
+        }
+        Quit (tLoopKey="")
+}
+
 ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
 	Set tSC = $System.Status.OK()
@@ -153,8 +177,9 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pCachedKey = $Select(pParams.cachedKey'="":pParams.cachedKey,1:"")
         //Internal Params
-        If '$Data(pInternal) Set pInternal={"parentKey":"", "parentType":"","originalJSON":(pJSON),"level":0}
+        If '$Data(pInternal) Set pInternal={"parentKey":"", "circRef":{}, "parentType":"","originalJSON":(pJSON),"level":0}
         Set pParentKey = pInternal.parentKey
+        Set pCircRef = pInternal.circRef
         Set pParentType = pInternal.parentType
         Set pLevel = pInternal.level
 		If pParentType="" {
@@ -176,8 +201,8 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
                     If tParseStruc.DateTimeCtl=tTimeChanged Set tCached = 1
                 }
             }
-            If tCached = 0 {
-                Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"", "parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
+            If '(tCached) {
+                Set tSC = ..GetFlatSchema(pObjName,##class(%Library.DynamicObject).%New().%Set(pObjName,pJSON.%Get(pObjName)) ,.pSchema,pParams,{"parentKey":"","circRef":{},"parentType":($Select($ClassName(pJSON)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":1})
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 If pCachedKey'="" {
                     Set tParseStruc.DateTimeCtl=tTimeChanged
@@ -196,38 +221,31 @@ ClassMethod GetFlatSchema(pObjName As %String, pJSON As %Library.DynamicObject, 
 		} Else {
 			Set prop = pJSON.%GetIterator()
 			While (prop.%GetNext(.key,.value)) {
+                If pParentKey="" {
+                    Set pCircRef = {}
+                }
                 If pParentType="array",key=+key Set key="*"
                 If key="items",$Piece(pParentKey,pDelim,*)'="properties" Set key="0"
 				Set tKey = $Select(pParentKey'="":pParentKey_pDelim, 1:"")_$Select(key'="":key, 1:"")
 				If $IsObject(value) {
-                    Do ..GetFlatSchema(pObjName,value,.pSchema,pParams,{"parentKey":(tKey), "parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
+                    Do ..GetFlatSchema(pObjName,value,.pSchema,pParams,{"parentKey":(tKey),"circRef":(pCircRef),"parentType":($Select($ClassName(value)="%Library.DynamicArray":"array",1:"object")),"originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
     			} Else {
                     If $Piece(tKey,pDelim,*)="$ref","allOf oneOf anyOf"[$Piece(tKey,pDelim,*-2) {
                         Set tJSON = ..GetByLineKey(pInternal.originalJSON,$Piece(value,"#/components/schemas/",2),"/")
                         If tJSON'="",$IsObject(tJSON) {
                             Set tKey = $Piece(tKey,pDelim,1,*-3)
-                            If ($Length(tKey,pDelim)<5)||($Piece(tKey,pDelim,1,*-2)'[$Piece(tKey,pDelim,*-1,*)) {
-                                Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
-                            } Else {
-                                Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                Set tFValue = ..ReplaceSch($Extract(tKey,1,tFind-1))
-                                Set tFkey=..ReplaceSch(tKey)
-                                Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
-                            }
+                            If (..NotCircRef(tKey,value,pSchema,pCircRef,pDelim)) {
+                                Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey),"circRef":(pCircRef),"parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
+                            } 
                         }
                     } Else {
 					    If $Piece(tKey,pDelim,*)="$ref" {
                             Set tJSON = ..GetByLineKey(pInternal.originalJSON,$Piece(value,"#/components/schemas/",2),"/")
                             If tJSON'="",$IsObject(tJSON) {
                                 Set tKey = $Piece(tKey,pDelim,1,*-1)
-                                If ($Length(tKey,pDelim)<5)||($Piece(tKey,pDelim,1,*-2)'[$Piece(tKey,pDelim,*-1,*)) {
-                                    Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey), "parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
-                                } Else {
-                                    Set tFind = $Find(tKey,$Piece(tKey,pDelim,*-1,*))
-                                    Set tFValue = ..ReplaceSch($Extract(tKey,1,tFind-1))
-                                    Set tFkey=..ReplaceSch(tKey)
-                                    Do pSchema.%Set(tFkey,"circRef"_pDelim_tFValue)
-                                }
+                                If (..NotCircRef(tKey,value,pSchema,pCircRef,pDelim)) {
+                                    Do ..GetFlatSchema(pObjName,tJSON,.pSchema,pParams,{"parentKey":(tKey),"circRef":(pCircRef),"parentType":"object","originalJSON":(pInternal.originalJSON),"level":(pLevel+1)})
+                                } 
                             }
                         } ElseIf ("format type"[$Piece(tKey,pDelim,*))||($Piece(tKey,pDelim,*-1)="enum")||($Piece(tKey,pDelim,*-1)="required") {
                             Set tFkey=..ReplaceSch(tKey)
