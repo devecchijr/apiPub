@@ -484,11 +484,13 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         If tResponseContentType'="",tResponseContentType'="header" Do pJSON.%Set("responseContentType",tResponseContentType)
                         If (tPMClass="%Library.DynamicObject")||(tPMClass="%Library.DynamicArray") Do tRetParamObj.%Set("complexType",1)
                         Do ..s(pJSON,"formalSpec[+]",tRetParamObj,,pDelim)
-                        Do ..s(pJSON,"resultParam",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
+                        Do ..s(pJSON,"resultParam",pJSON.%Get("formalSpec").%Size()-1,,pDelim)
                         If (tRetParamObj.%Get("complexType")) Do ..s(pJSON,"outputBodyParams[+]",pJSON.%Get("formalSpec").%Size()-1,,pDelim)                    
                         Set tIt = pJSON.%Get("formalSpec").%GetIterator()
                         While tIt.%GetNext(.key,.value) {
-                            If key'=pJSON.%Get("resultParam"),(value.%Get("outputOnly")),(value.%Get("complexType")) Do ..s(pJSON,"outputBodyParams[+]",key,,pDelim)
+                            If key'=pJSON.%Get("resultParam"),(value.%Get("outputOnly")),(value.%Get("complexType")) {
+                                If ..find(..g(pJSON,"outputBodyParams"),"value="_key)=-1 Do ..s(pJSON,"outputBodyParams[+]",key,,pDelim)
+                            }
                         }
                         If tApiPubParams.%Get("response")'="" {
                             Set tSchema = ..g(tApiPubParams,"response.schema",".")

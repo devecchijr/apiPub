@@ -73,6 +73,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
             While (tFS.%GetNext(.key,.value)) {
                 Set tPName = value.%Get("paramName")
                 Xecute ("Kill tmpZ"_$Tr(tPName,"!@#$%^&*()_- ",""))
+                If value.%Get("pmJType")'="",value.%Get("pmJType")'="status",value.%Get("outputType")'="header",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
                 If minfo.%Get("resultParam")=key Continue
                 Set tPType = value.%Get("pmJType")
                 Set tValue=""
@@ -92,10 +93,8 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                     Do tStreamobj.CopyFrom(pRequest.Body)
                     Set tValue = tStreamobj
                 } Else {
-
                     Set tValue = tInputParams.%Get(tPName)
                 }
-                If value.%Get("pmJType")'="",value.%Get("pmJType")'="status",value.%Get("outputType")'="header",(value.%Get("outputOnly")=1)||(value.%Get("byRef")=1) Set tOutputParams=tOutputParams+1
                 If (tPType'="") //Primitive Values
                     ||((value.%Get("complexType")=1)&&(pInputBody.%Get(tPName)'="")) //Complex Values
                     ||((value.%Get("outputOnly")=1)||(value.%Get("byRef")=1)) //Output Values

@@ -156,7 +156,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             Set tPar = value.%Get("formalSpec").%GetIterator()
             While tPar.%GetNext(.pkey,.pvalue) {
                 Set tCustomDescription = ..g(value,"customParams.params."_pvalue.%Get("param")_".description")
-                If pvalue.%Get("param")'="response",(pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1),pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")'="header" Set tOutParObjCount=tOutParObjCount+1
+                If pvalue.%Get("pmJType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")'="header",(pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1) Set tOutParObjCount=tOutParObjCount+1
                 //Special type to get the whole http request
                 If pvalue.%Get("paramType")="apiPub.service.message",..g(value,"param")'="response" Continue
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
@@ -232,7 +232,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
             }
             Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^description","successful operation",,"^")
             Set tOutBodyObjCount = value.%Get("byRefBodyParams").%Size()+value.%Get("outputBodyParams").%Size()
-            Set tSingleOutputObj = (tOutBodyObjCount=1)&&(tOutParObjCount=0)
+            Set tSingleOutputObj = tOutBodyObjCount+tOutParObjCount=1
             If (tOutBodyObjCount+tOutParObjCount)>1 {
                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^type","object",,"^")
                 If (pIncludeXML) {
@@ -1042,7 +1042,6 @@ ClassMethod OpenApiSchemaToTemplate(pObjName As %String, pJSON As %Library.Dynam
 
 ClassMethod ReplaceSch(str)
 {
-    //Quit str
     Quit $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(str,"^properties^properties","^properties^##properties"),"^properties",""),"^oneOf","^anyOf"),"^anyOf",""),"^allOf",""),"^type^type","^type^##type"),"^type",""),"##",""),"^*^","^"),"^*","")
 }
 

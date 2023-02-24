@@ -736,8 +736,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
         Set tMethodName = ..g(val,"method")_..normalizeCompName($Piece(..g(val,"component"),".",*-1,*))
         If inputIsXMLAdaptor=1,isBusinessService=0,$Piece(..g(val,"inputType"),".",1)'="apiPub" {
             If ((..g(tAPIClass,"Method")="") || (..find(..g(tAPIClass,"Method"),"$ZCVT(..g(value,""_name""),""L"")=$ZCVT("""_tMethodName_""",""L"")")=-1)) {
-                Set tImpSync = tEsc_"    Set tResponse = ##class(Ens.Response).%New()"_
-                            tEsc_"    Set tSC = ..SendRequestSync("""_..g(val,"component")_""",pRequest,.tResponse)"_
+                Set tImpSync = tEsc_"    Set tSC = ..SendRequestSync("""_..g(val,"component")_""",pRequest,.tResponse)"_
                             tEsc_"    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)"_
                             tEsc_"    Quit tResponse"_
                             tEsc
@@ -754,7 +753,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
                                 }
                             )
                         ),
-                        "FormalSpec":("pRequest:"_..g(val,"inputType")_""),
+                        "FormalSpec":("pRequest:"_..g(val,"inputType")_$Select(outputIsXMLAdaptor=1:",*tSC:%Status",1:"")),
                         "ReturnType":($Select(outputIsXMLAdaptor=1:..g(val,"outputType"),1:"%Status")),
                         "WebMethod":"1",
                         "Implementation":($Select(outputIsXMLAdaptor=1:tImpSync,1:tImpAsync))
