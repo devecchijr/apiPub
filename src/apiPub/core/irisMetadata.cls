@@ -499,7 +499,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                     If tXDataJSON.%Get("schemas").%Get(tSchema)'="" {
                                         Do tRetParamObj.%Set("customSchemaName",tSchema)
                                     }
-                                } ElseIf tSchema.%Size()=1 {
+                                } ElseIf $IsObject(tSchema),tSchema.%Size()=1 {
                                     Do tRetParamObj.%Set("customSchema",##class(%Library.DynamicObject).%New().%FromJSON(tSchema.%ToJSON()))
                                     Set prop = tSchema.%GetIterator()
                                     Do prop.%GetNext(.tKey,.tValue)
