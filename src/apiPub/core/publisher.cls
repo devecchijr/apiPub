@@ -250,6 +250,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                 Set tIsArray=($Piece(pvalue.%Get("paramType"),"|",2)'="")
                 If ((pvalue.%Get("outputOnly")=1)||(pvalue.%Get("byRef")=1)) {
                     Set tParamType = $Piece($Piece(pvalue.%Get("paramType"),"|",1),".",*)
+                    Set tParamDesc = ..g(value,"customParams"_$Select(pvalue.%Get("param")="response":"^",1:"^params^")_pvalue.%Get("param")_"^description",pDelim)
                     If pvalue.%Get("complexType")=1,tOutBodyObjCount>0 {
                         If "DynamicObject DynamicArray"[tParamType {
                             Set tJSONSchema = pvalue.%Get("customSchema")
@@ -278,9 +279,11 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                         If tParamType="object" {
                             If (tSingleOutputObj) {
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^type","object",,"^")
+                                If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^description",tParamDesc,,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^type","object",,"^")
                             } Else {
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^type","object",,"^")
+                                If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^description",tParamDesc,,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^type","object",,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^xml^name",pvalue.%Get("paramName"),,"^")
                             }
@@ -293,11 +296,13 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 ]}
                             If (tSingleOutputObj) {
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^type","array",,"^")
+                                If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^description",tParamDesc,,"^")
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^items",tArrayObj,,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^type","array",,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^items",tArrayObj,,"^")
                             } Else {
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^type","array",,"^")
+                                If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^description",tParamDesc,,"^")
                                 Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^items",tArrayObj,,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^type","array",,"^")
                                 If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^items",tArrayObj,,"^")
@@ -324,18 +329,17 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                             }
                         }
                     } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")="header" {
-                        Set tParamDesc = ..g(value,"customParams^params^"_pvalue.%Get("param")_"^description",pDelim)
                         If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^description",tParamDesc,,"^")
                         Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
                         If pvalue.%Get("pmJDFormat")'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^headers^"_pvalue.%Get("paramName")_"^schema^format",pvalue.%Get("pmJDFormat"),,"^")
                     } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status",pvalue.%Get("outputType")'="" {
-                        Set tParamDesc = ..g(value,"customParams^params^"_pvalue.%Get("param")_"^description",pDelim)
-                        If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^description",tParamDesc,,"^")
+                        If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^"_pvalue.%Get("outputType")_"^schema^description",tParamDesc,,"^")
                         Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^"_pvalue.%Get("outputType")_"^schema^type",pvalue.%Get("pmJDType"),,"^")
                         If pvalue.%Get("pmJDFormat")'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^"_pvalue.%Get("outputType")_"^schema^format",pvalue.%Get("pmJDFormat"),,"^")
                     } ElseIf pvalue.%Get("pmJDType")'="",pvalue.%Get("pmJType")'="status" {
                         Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^type","object",,"^")
                         Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^type",$Select((tIsArray):"array",1:pvalue.%Get("pmJDType")),,"^")
+                        If tParamDesc'="" Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^description",tParamDesc,,"^")
                         If pvalue.%Get("pmJDFormat")'="",'tIsArray Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^format",pvalue.%Get("pmJDFormat"),,"^")
                         If (tIsArray) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^items^type",pvalue.%Get("pmJDType"),,"^")
                         If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^type",$Select((tIsArray):"array",1:pvalue.%Get("pmJDType")),,"^")
