@@ -61,7 +61,7 @@ ClassMethod viewSchemaFromClass(className As %String = "apiPub.samples.Pet", nes
 /// @apiPub[params.appPath.description="Api path"]
 /// @apiPub[params.oasAppPath.description="Dedicated path for Unathenticated Open API Specification App"]
 /// @apiPub[params.apiDomain.description="Monitoring group (traceable on)"]
-ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassName", moduleClassName As %String = "package.name.module", apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", schemaPrefix As %String = "sch-", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
+ClassMethod publishApiFromExistClass(apiClassName As %String = "existingClassName", moduleClassName As %String = "package.name.module", apiTitle As %String = "{apiClassName}", apiDescription As %String = "{apiClassName}", apiDomain As %String = "Api Domain", appPath As %String = "/{namespace}/myApi", oasAppPath As %String = "/{namespace}/myApi/oas", charSet As %String = "UTF-8", traceable As %Boolean = 0, pReq As apiPub.service.message) As %Stream.GlobalCharacter [ WebMethod ]
 {
     If appPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> appPath param is required"))}
     If oasAppPath="" {Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "<400> oasAppPath param is required"))}
@@ -145,7 +145,7 @@ ClassMethod createIRISClassFromOASFile(oasFilePath As %String = "/irisdev/app/tm
 /// @apiPub[tag="api first"]
 /// @apiPub[response.outputType="text/plain"]
 /// @apiPub[path="/apifirst/fromjson"]
-/// @apiPub[params.oasContent.description="Open API Specification (OAS 3.0) JSON payload"]
+/// @apiPub[params.oasContent.description="Open API Specification (OAS 3.0) JSON payload. Ex: https://petstore3.swagger.io/api/v3/openapi.json"]
 /// @apiPub[params.apiClassName.description="Api classname (web methods)"]
 /// @apiPub[params.moduleClassName.description="Module classname (api configuration options)"]
 /// @apiPub[params.traceable.description="Enable http(req/resp) monitoring"]

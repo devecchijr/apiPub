@@ -473,59 +473,33 @@ ClassMethod verifyJWTSig(token As %String, sharedKey As %String, Output payload 
 	Quit tValid
 }
 
+/// allow overload
 ClassMethod ErrorHandler(pRequest As apiPub.service.message, pResponse As apiPub.service.message, pStatusException As %Exception.StatusException, Output pSC As %Status, Output pError As %DynamicObject)
 {
 	Set %response.ContentType = ..#CONTENTTYPEJSON
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
 	If $Find(tMessage,"<THROW>zXMLNew")>0,$Find(tMessage,"<404")>0 Set tMessage="<404> Invalid Object Reference For "_$Piece($Piece(tMessage,"^",2)," ",1)  
 	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
-	If $Find($zConvert(tMessage,"L"),"<204>")>0 {
-		Set tMessage = $Replace(tMessage,"<204>","")
-		Set %response.Status = ..#HTTP204NOCONTENT
-	} ElseIf $Find($zConvert(tMessage,"L"),"<304>")>0 {
-		Set %response.Status = ..#HTTP304NOTMODIFIED
-		Set tMessage = $Replace(tMessage,"<304>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<400>")>0 {
-		Set %response.Status = ..#HTTP400BADREQUEST
-		Set tMessage = $Replace(tMessage,"<400>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<401>")>0 {
-		Set %response.Status = ..#HTTP401UNAUTHORIZED
-		Set tMessage = $Replace(tMessage,"<401>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<403>")>0 {
-		Set %response.Status = ..#HTTP403FORBIDDEN
-		Set tMessage = $Replace(tMessage,"<403>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<404>")>0 {
-		Set %response.Status = ..#HTTP404NOTFOUND
-		Set tMessage = $Replace(tMessage,"<404>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<405>")>0 {
-		Set %response.Status = ..#HTTP405METHODNOTALLOWED
-		Set tMessage = $Replace(tMessage,"<405>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<406>")>0 {
-		Set %response.Status = ..#HTTP406NOTACCEPTABLE
-		Set tMessage = $Replace(tMessage,"<406>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<409>")>0 {
-		Set %response.Status = ..#HTTP409CONFLICT
-		Set tMessage = $Replace(tMessage,"<409>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<415>")>0 {
-		Set %response.Status = ..#HTTP415UNSUPPORTEDMEDIATYPE
-		Set tMessage = $Replace(tMessage,"<415>","")
-	} ElseIf $Find($zConvert(tMessage,"L"),"<423>")>0 {
-		Set %response.Status = ..#HTTP423LOCKED
-		Set tMessage = $Replace(tMessage,"<423>","")
-	} Else {
-		Set %response.Status = ..#HTTP500INTERNALSERVERERROR
+	Set tMessage = $Replace(tMessage,"XML input","JSON input")
+	Set tErrorC = 500
+	Set tErrorM = "Internal Server Error"
+	Set tErrorL = $Locate(tMessage,"<[0-9]{3}>")
+	If tErrorL>0 {
+		Set tErrorC = $Extract(tMessage,tErrorL+1,tErrorL+3)
+		Set tMessage = $Replace(tMessage,"<"_tErrorC_">","")
+		Set tErrorM = tMessage
 	}
 	If $Find(tMessage,":")>0 Set tMessage = $Piece(tMessage,":",2,*)
 	While $Find(tMessage,"  ")>0 {
 		Set tMessage = $Replace(tMessage,"  "," ")
 	}
 	If $Extract(tMessage,1,1)=" " Set tMessage = $Extract(tMessage,2,*)
-	Set tMessage = $Replace(tMessage,"XML input","JSON input")
 	Set pError={
 			"statusCode":($$$ISOK(pStatusException.AsStatus())),
 			"message":(tMessage),
 			"errorCode":(tErrorCode)
 	}
+	Set %response.Status = tErrorC_" "_$E(tMessage,1,46)
 	Do %response.SetHeader("iris-statuscode",$$$ISOK(pStatusException.AsStatus()))
 	Do %response.SetHeader("iris-statusmessage",tMessage)
 	Do %response.SetHeader("iris-errorCode",tErrorCode)
