@@ -479,15 +479,14 @@ ClassMethod ErrorHandler(pRequest As apiPub.service.message, pResponse As apiPub
 	Set %response.ContentType = ..#CONTENTTYPEJSON
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
 	If $Find(tMessage,"<THROW>zXMLNew")>0,$Find(tMessage,"<404")>0 Set tMessage="<404> Invalid Object Reference For "_$Piece($Piece(tMessage,"^",2)," ",1)  
-	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
-	Set tMessage = $Replace(tMessage,"XML input","JSON input")
 	Set tErrorC = 500
-	Set tErrorM = "Internal Server Error"
+	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
+	If tErrorCode>=6200,tErrorCode<=6400 Set tErrorC=400
+	Set tMessage = $Replace(tMessage,"XML input","JSON input")
 	Set tErrorL = $Locate(tMessage,"<[0-9]{3}>")
 	If tErrorL>0 {
 		Set tErrorC = $Extract(tMessage,tErrorL+1,tErrorL+3)
 		Set tMessage = $Replace(tMessage,"<"_tErrorC_">","")
-		Set tErrorM = tMessage
 	}
 	If $Find(tMessage,":")>0 Set tMessage = $Piece(tMessage,":",2,*)
 	While $Find(tMessage,"  ")>0 {
