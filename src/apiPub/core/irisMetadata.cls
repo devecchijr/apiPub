@@ -509,7 +509,6 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         }
                     } Else {
                         Do ..s(pJSON,"resultParam","",,pDelim)
-                        Do ..s(pJSON,"outputBodyParams",[],,pDelim)
                     }
                     If tResponseCharSet'="" Do ..s(pJSON,"responseCharset",tResponseCharSet,,pDelim)                 
                 } Else {
