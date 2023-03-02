@@ -12,10 +12,11 @@ ClassMethod t01OperationDefaults(Output defaults As %DynamicArray) As %Status [ 
 {
     Set defaults = [
         "01 - By default, the api path is the method name.",
-        "02 - The OAS header is set on XData block. It's not required.",
-        "03 - 200 is the the default code for successful responses and 500 (try it) for internal exceptions.",
-        "04 - If there is no complex input parameter (object or stream) the default verb is Get. Otherwise is Post.",
-        "05 - Status response type is always published as an output header property."
+        "02 - Application/json is the default Output Type",
+        "03 - The OAS header is set on XData block. It's not required.",
+        "04 - 200 is the the default code for successful responses and 500 (try it) for internal exceptions.",
+        "05 - If there is no complex input parameter (object or stream) the default verb is Get. Otherwise is Post.",
+        "06 - Status response type is always published as an output header property."
     ]
     Quit $$$OK
 }
@@ -47,14 +48,14 @@ ClassMethod t02Division(pUser As %String, val1 As %Numeric, val2 As %Numeric) As
 /// @apiPub[params.thirdPar.description="this is a numeric"]
 /// @apiPub[params.fourfhPar.description="this is a boolean"]
 /// @apiPub[response.description="array with apiPub operation definitions"]
-Method t03ManyTypes(firstPar As %String = "abc", ByRef secondPar As %DateTime = "2010-01-01 12:00", Output thirdPar As %Numeric, fourfhPar As %Boolean = 0, Output tSC As %Status) As %DynamicArray [ WebMethod ]
+Method t03ManyTypes(firstPar As %String = "abc", ByRef secondPar As %DateTime = "2010-01-01T12:00:00", Output thirdPar As %Numeric, fourfhPar As %Boolean = 0, Output tSC As %Status) As %DynamicArray [ WebMethod ]
 {
     Do ..t01OperationDefaults(.tResponse)
-    Do tResponse.%Push("06 - Both class and instance methods work")
-    Do tResponse.%Push("07 - Every input or output parameter is published")
-    Do tResponse.%Push("08 - Simple/primitive type input param by default is published as a query param")
-    Do tResponse.%Push("09 - Single or multiple responses matters (try it). For multiple responses, the name of each param is used as an output node.")
-    Do tResponse.%Push("10 - For multiple responses or simple types the default name node for method response is ""response""")
+    Do tResponse.%Push("07 - Both class and instance methods work")
+    Do tResponse.%Push("08 - Every input or output parameter is published")
+    Do tResponse.%Push("09 - Simple/primitive type input param by default is published as a query param")
+    Do tResponse.%Push("10 - Single or multiple responses matters (try it). For multiple responses, the name of each param is used as an output node.")
+    Do tResponse.%Push("11 - For multiple responses or simple types the default name node for method response is ""response""")
     Set thirdPar = 123
     Set tSC = $$$OK
     Quit tResponse
@@ -64,6 +65,7 @@ Method t03ManyTypes(firstPar As %String = "abc", ByRef secondPar As %DateTime = 
 /// @apiPub[path="/irisObject"]
 /// @apiPub[verb="put"]
 /// @apiPub[params.obj.description="sample object"]
+/// @apiPub[successfulCode="201"]
 /// Iris objects schemas are also published.
 Method t04ObjectAsInputAndOutput(code As %Integer, obj As apiPub.samples.demo.myObj) As apiPub.samples.demo.myObj [ WebMethod ]
 {
