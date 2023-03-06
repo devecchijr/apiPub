@@ -10,7 +10,7 @@ ClassMethod t00NoInOut() [ WebMethod ]
 {
 }
 
-/// Customization is the shaping tool of your API.
+/// Through Customization you can shape the user experience of your API.
 /// @apiPub[tag="no complex input params"]
 /// @apiPub[path="assumptions"]
 /// @apiPub[description="This is a complete description of our API"]
