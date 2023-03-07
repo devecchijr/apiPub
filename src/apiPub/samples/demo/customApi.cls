@@ -83,7 +83,10 @@ Method t04ObjectAsInputAndOutput(code As %Integer = 1, obj As apiPub.samples.dem
 /// @apiPub[tag="complex input params"]
 /// @apiPub[path="/dynamic"]
 /// @apiPub[params.obj.description="sample dynamic object"]
+/// @apiPub[params.obj.schema="Sch-MyObj"]
+/// @apiPub[params.obj.parse="true"]
 /// @apiPub[response.description="dynamic response"]
+/// @apiPub[statusCodes=[{"code":"400","description":"Bad Request"}]]
 /// You can relate OAS 3.0 schemas with your input param or response
 Method t05DynamicTypes(obj As %DynamicObject) As %DynamicObject [ WebMethod ]
 {
@@ -119,7 +122,7 @@ XData apiPub [ MimeType = application/json ]
 {
   "info":{
     "title":"apiPub Demo",
-    "description":"demonstration of how quick and easy it is to publish an API",
+    "description":"demonstration of how apiPub works",
     "version":"1.0.0",
     "termsOfService":"http://swagger.io/terms/",
     "contact":{
@@ -129,7 +132,104 @@ XData apiPub [ MimeType = application/json ]
       "name":"Apache 2.0",
       "url":"http://www.apache.org/licenses/LICENSE-2.0.html"
     }
-  }
+  },
+  "schemas": {
+    "Sch-MyObj": {
+        "type": "object",
+        "properties": {
+        "glossary": {
+            "$ref": "#/components/schemas/Sch-Glossary"
+        }
+        }
+    },
+    "Sch-Glossary": {
+        "type": "object",
+        "properties": {
+        "title": {
+            "type": "string",
+            "example": "example glossary"
+        },
+        "GlossDiv": {
+            "$ref": "#/components/schemas/Sch-GlossDiv"
+        }
+        }
+    },
+    "Sch-GlossDiv": {
+        "type": "object",
+        "properties": {
+        "title": {
+            "type": "string",
+            "example": "S"
+        },
+        "GlossList": {
+            "$ref": "#/components/schemas/Sch-GlossList"
+        }
+        }
+    },
+    "Sch-GlossList": {
+        "type": "object",
+        "properties": {
+        "GlossEntry": {
+            "$ref": "#/components/schemas/Sch-GlossEntry"
+        }
+        }
+    },
+    "Sch-GlossEntry": {
+        "type": "object",
+        "properties": {
+        "ID": {
+            "type": "string",
+            "example": "SGML"
+        },
+        "SortAs": {
+            "type": "string",
+            "example": "SGML"
+        },
+        "GlossTerm": {
+            "type": "string",
+            "example": "Standard Generalized Markup Language"
+        },
+        "Acronym": {
+            "type": "string",
+            "example": "SGML"
+        },
+        "Abbrev": {
+            "type": "string",
+            "example": "ISO 8879:1986"
+        },
+        "GlossDef": {
+            "$ref": "#/components/schemas/Sch-GlossDef"
+        },
+        "GlossSee": {
+            "type": "string",
+            "example": "markup"
+        }
+        }
+    },
+    "Sch-GlossDef": {
+        "type": "object",
+        "properties": {
+        "para": {
+            "type": "string",
+            "example": "A meta-markup language, used to create markup languages such as DocBook."
+        },
+        "GlossSeeAlso": {
+            "$ref": "#/components/schemas/Sch-GlossSeeAlso"
+        }
+        }
+    },
+    "Sch-GlossSeeAlso": {
+        "type": "array",
+        "items": {
+        "anyOf": [
+            {
+            "type": "string",
+            "example": "GML"
+            }
+        ]
+        }
+    }
+    }
 }
 }
 
