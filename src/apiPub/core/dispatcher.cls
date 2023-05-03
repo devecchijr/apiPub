@@ -138,7 +138,14 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 Set tLit = jsonReqObj.%GetIterator()
                                 While tLit.%GetNext(.lkey,.lvalue) {
                                     If '$IsObject(lvalue) Continue
-                                    Set tSC = ##Class(apiPub.core.converter).JSONToObj(lvalue,$Piece(value.%Get("paramType"),"|",1),.reqObj)
+                                    // input conversion 
+                                    If value.%Get("jsonAdapt")=1,value.%Get("xmlAdapt")=0 {
+                                        // TODO:JSONNew Method is not working 
+                                        Set reqObj = $ClassMethod($Piece(value.%Get("paramType"),"|",1),"%New")
+                                        Set tSC = reqObj.%JSONImport(lvalue)
+                                    } Else {
+                                        Set tSC = ##Class(apiPub.core.converter).JSONToObj(lvalue,$Piece(value.%Get("paramType"),"|",1),.reqObj)
+                                    }
                                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                     If tIsList["List" Do tList.InsertAt(reqObj,lkey+1)
                                     If tIsList["Array" Do tList.SetAt(reqObj,lkey+1)
@@ -148,7 +155,14 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                 If tParamType="apiPub.service.message" { //special type
                                     Set reqObj=pRequest
                                 } Else { //body object
-                                    Set tSC = ##Class(apiPub.core.converter).JSONToObj(jsonReqObj,$Piece(value.%Get("paramType"),"|",1),.reqObj)
+                                    // input conversion 
+                                    If value.%Get("jsonAdapt")=1,value.%Get("xmlAdapt")=0 {
+                                        // TODO:JSONNew Method is not working 
+                                        Set reqObj = $ClassMethod(tParamType,"%New")
+                                        Set tSC = reqObj.%JSONImport(jsonReqObj)
+                                    } Else {
+                                        Set tSC = ##Class(apiPub.core.converter).JSONToObj(jsonReqObj,$Piece(value.%Get("paramType"),"|",1),.reqObj)
+                                    }
                                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                 }
                                 Kill jsonReqObj
@@ -264,7 +278,7 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                             } Else {
                                 If tList'="" {
                                     Set tJSONList = []
-                                    Set tSC = ##Class(apiPub.core.converter).ObjArrayToJSONArray(tVal,.tJSONList,{"printResults":0})                      
+                                    Set tSC = ##Class(apiPub.core.converter).ObjArrayToJSONArray(tVal,.tJSONList,{"printResults":0,"adaptType":($Select((value.%Get("jsonAdapt")=1&&value.%Get("xmlAdapt")=0):"JSON",1:"XML"))})
                                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
                                     If tSingleRespBody=1 {
                                         Set tResult = tJSONList
@@ -272,8 +286,16 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                         Do tResult.%Set(tPName,tJSONList)
                                     }
                                 } Else {
-                                    Set tSC = ##Class(apiPub.core.converter).ObjToJSON(tVal,.tJsonObj,{"printResults":0})
-                                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                                    Set tJsonObj = {}
+                                    // output conversion
+                                    If value.%Get("jsonAdapt")=1,value.%Get("xmlAdapt")=0 {
+                                        Set tSC = tVal.%JSONExportToStream(.tStream)
+                                        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                                        Set tJsonObj = {}.%FromJSON(tStream)
+                                    } Else {
+                                        Set tSC = ##Class(apiPub.core.converter).ObjToJSON(tVal,.tJsonObj,{"printResults":0})
+                                        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                                    }
                                     If tSingleRespBody=1 {
                                         Set tResult = tJsonObj
                                     } Else {

@@ -447,28 +447,35 @@ ClassMethod ObjArrayToJSONArray(pObjArray As %Collection.AbstractIterator, Outpu
     Set tSC = $System.Status.OK()
     Try
 	{
+        Set tAdaptType = $Select(pParams.adaptType'="":pParams.adaptType,1:"XML")
         Set tClassName=""
         Set pJSONArray = []
         Set tXsdInfo={}
         For i=1: 1: pObjArray.Count() {
-            If (pObjArray.GetAt(i).%PackageName()_"."_pObjArray.GetAt(i).%ClassName())'=tClassName {
-                Set tClassName=pObjArray.GetAt(i).%PackageName()_"."_pObjArray.GetAt(i).%ClassName()
-                Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSDInfo(tClassName,.tXsdInfo,{"printResults":0})
+            If tAdaptType = "XML" {
+                If (pObjArray.GetAt(i).%PackageName()_"."_pObjArray.GetAt(i).%ClassName())'=tClassName {
+                    Set tClassName=pObjArray.GetAt(i).%PackageName()_"."_pObjArray.GetAt(i).%ClassName()
+                    Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSDInfo(tClassName,.tXsdInfo,{"printResults":0})
+                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                }
+                Set tWt=##class(%XML.Writer).%New()
+                Set tWt.Indent=1
+                Do tWt.OutputToStream(.tXML)
+                Do tWt.RootObject(pObjArray.GetAt(i))
+                Set pParams.noNamedRoot = "@null"
+                Set pParams.noNamedElement = "@null"
+                Set tSC = ..XMLToJSON(tXML,tXsdInfo,.tJsonObj,pParams,)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                If tJsonObj.%Size()=1 {
+                    Set tIt = tJsonObj.%GetIterator()
+                    Do tIt.%GetNext(.jkey,.jvalue)
+                }
+                Do pJSONArray.%Push(##class(%Library.DynamicObject).%New().%FromJSON(jvalue.%ToJSON()))
+            } Else {
+                Set tSC = pObjArray.GetAt(i).%JSONExportToStream(.tStream)
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+                Do pJSONArray.%Push({}.%FromJSON(tStream))
             }
-            Set tWt=##class(%XML.Writer).%New()
-            Set tWt.Indent=1
-            Do tWt.OutputToStream(.tXML)
-            Do tWt.RootObject(pObjArray.GetAt(i))
-            Set pParams.noNamedRoot = "@null"
-            Set pParams.noNamedElement = "@null"
-            Set tSC = ..XMLToJSON(tXML,tXsdInfo,.tJsonObj,pParams,)
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            If tJsonObj.%Size()=1 {
-                Set tIt = tJsonObj.%GetIterator()
-                Do tIt.%GetNext(.jkey,.jvalue)
-            }
-            Do pJSONArray.%Push(##class(%Library.DynamicObject).%New().%FromJSON(jvalue.%ToJSON()))
         }
     }
 	Catch(e)

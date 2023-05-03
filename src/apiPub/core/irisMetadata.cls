@@ -1,6 +1,43 @@
 Class apiPub.core.irisMetadata Extends apiPub.core.jsonBuilder
 {
 
+/// To be finished
+ClassMethod SchemaFromJSONAdaptor(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject) As %Status
+{
+    Set tSC = $System.Status.OK()
+    Try
+	{
+        If '$Data(pParams) Set pParams={}
+        Set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(pClassName)
+        If '$isobject(classDefinition) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "invalid classname: "_pClassName))
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
+        Set pPrintSchema = $Select(pParams.printSchema'="":pParams.printSchema,1:0)
+        Set tSC = ##class(%JSON.Generator).GenerateMapping(pClassName,.jsonmap)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        Set tIdx=$Order(jsonmap($lb(),0))
+        While tIdx'="" {
+            Set tPropList=jsonmap($lb(),tIdx)
+            Set propDefinition=##class(%Dictionary.PropertyDefinition).%OpenId(pClassName_"||"_$List(tPropList,1))
+            Set tInOut=$List(tPropList,3)          
+            Set tPropName=$List(tPropList,4)
+            Set tType=$List(tPropList,9)
+            Set tGroupType=$List(tPropList,10)
+            Set tRefType=$Case($List(tPropList,7),"1":"OBJECT","2":"ID","3":"OID","4":"GUID",:"")
+            Set tClassName=$List(tPropList,11)
+            Set tPropDesc=propDefinition.Description
+            Set tMinLen = propDefinition.Parameters.GetAt("MINLEN")
+            Set tMaxLen = propDefinition.Parameters.GetAt("MAXLEN")
+            w tPropName," ",tInOut," ",tType," ",tRefType," ",tGroupType," ",tClassName," ",tMinLen," ",tMaxLen," desc>>",tPropDesc,!
+            Set tIdx=$Order(jsonmap($lb(),tIdx))
+        }
+    }
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
 ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
@@ -342,9 +379,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         }
                         Set tParamAtts=$Extract(tParamAtts,1,*-1)
                         Set tPMType = primitiveTypes.%Get($S($Length(tParamType,".")>1:"%",1:"")_$ZConvert($Piece(tParamType,".",*),"L"))
-                        Set tXmlAdaptor=0
+                        Set (tXmlAdaptor,tJSONAdaptor)=0
                         If tPMType="" {
-                            Set tSC = ..GetClassDefInfo(tParamType,,.tXmlAdaptor)
+                            Set tSC = ..GetClassDefInfo(tParamType,,.tXmlAdaptor,,,.tJSONAdaptor)
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         }
                         Set tParam = tParamName
@@ -368,7 +405,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             "pmJDFormat":($Piece(tPMType,"|",3)),
                             "iConvFunction":($Piece(tPMType,"|",4)),
                             "oConvFunction":($Piece(tPMType,"|",5)),
-                            "complexType":((tXmlAdaptor=1)&&(tParamType'="apiPub.service.message")),
+                            "xmlAdapt":(tXmlAdaptor=1),
+                            "jsonAdapt":(tJSONAdaptor=1),
+                            "complexType":((tXmlAdaptor=1||tJSONAdaptor=1)&&(tParamType'="apiPub.service.message")),
                             "outputOnly":(tParamInOut="*"),
                             "byRef":(tParamInOut="&"),
                             "params":(tParamAtts),
@@ -407,7 +446,7 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                 }                            
                             }
                         }
-                        If tElType'="",tXmlAdaptor=0 {
+                        If tElType'="",tXmlAdaptor=0,tJSONAdaptor=0 {
                             Set tPMType = primitiveTypes.%Get($S($Length(tElType,".")>1:"%",1:"")_$ZConvert($Piece(tElType,".",*),"L"))
                             Do tParamObj.%Set("paramType",tElType_"|"_tParamType)
                             Do tParamObj.%Set("pmJType",$Piece(tPMType,"|",1))
@@ -417,9 +456,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             Do tParamObj.%Set("oConvFunction",$Piece(tPMType,"|",5))
                             Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tElType)
                             If $IsObject(tClassDef) {
-                                Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor)
+                                Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor,,,.tJSONAdaptor)
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                                Do tParamObj.%Set("complexType",(tXmlAdaptor=1))
+                                Do tParamObj.%Set("complexType",(tXmlAdaptor=1||tJSONAdaptor=1))
+                                Do tParamObj.%Set("xmlAdapt",tXmlAdaptor)
+                                Do tParamObj.%Set("jsonAdapt",tJSONAdaptor)
                             }
                         }
                         If (tParamObj.%Get("complexType")),(tParamInOut="*") Do ..s(pJSON,"outputBodyParams[+]",i-1,,pDelim)
@@ -451,20 +492,20 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                         If $Length(tType,".")=1,$Extract(tType,1,1)="%" Set tPMClass = "%Library."_$Tr($Extract($Piece(tType,".",*),1,*),"%","")
                         If tPMType="",$Length(tType,".")=1,$Extract(tType,1,1)'="%" Set tPMClass = $Piece(tCD.Name,".",1,*-1)_"."_$Tr($Extract($Piece(tType,".",*),1,*),"%","")
                         Set tParams = tMD.ReturnTypeParams
-                        Set tXmlAdaptor = 0
+                        Set (tXmlAdaptor,tJSONAdaptor) = 0
                         Set tClassDef=""
                         If tPMType="" Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tPMClass)
                         If $IsObject(tClassDef) {
-                            Set tSC = ..GetClassDefInfo(tPMClass,,.tXmlAdaptor)
+                            Set tSC = ..GetClassDefInfo(tPMClass,,.tXmlAdaptor,,,.tJSONAdaptor)
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         }
                         Set tElType = $Tr($Piece($Piece(tParams,"ELEMENTTYPE=",2),",",1),"""","")
-                        If tElType'="",tXmlAdaptor=0 {
+                        If tElType'="",tXmlAdaptor=0,tJSONAdaptor=0 {
                             Set tPMType = primitiveTypes.%Get($S($Length(tElType,".")>1:"%",1:"")_$ZConvert($Piece(tElType,".",*),"L"))
                             Set tPMClass=tElType_"|"_tPMClass
                             Set tClassDef=##class(%Dictionary.ClassDefinition).%OpenId(tElType)
                             If $IsObject(tClassDef) {
-                                Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor)
+                                Set tSC = ..GetClassDefInfo(tElType,,.tXmlAdaptor,,,.tJSONAdaptor)
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             }
                         }
@@ -477,7 +518,9 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                             "pmJDFormat":($Piece(tPMType,"|",3)),
                             "iConvFunction":($Piece(tPMType,"|",4)),
                             "oConvFunction":($Piece(tPMType,"|",5)),
-                            "complexType":(tXmlAdaptor=1),
+                            "xmlAdapt":(tXmlAdaptor=1),
+                            "jsonAdapt":(tJSONAdaptor=1),
+                            "complexType":(tXmlAdaptor=1||tJSONAdaptor=1),
                             "outputOnly":1,
                             "byRef":0,
                             "params":(tParams),
@@ -578,13 +621,13 @@ ClassMethod IsSubClassOf(aClassName As %String = "", superClass As %String = "")
     Quit 0
 }
 
-ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, level = 0) As %Status
+ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, level = 0, Output isJSONAdaptor) As %Status
 {
 	Set tSC = $System.Status.OK()
     Try
 	{
         If level=0 {
-            Set (isXMLAdaptor,isBusinessService)=0
+            Set (isXMLAdaptor,isJSONAdaptor,isBusinessService)=0
         }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
@@ -592,13 +635,14 @@ ClassMethod GetClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
             If +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")>timeChanged Set timeChanged=+$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
+                If isJSONAdaptor=0,classDefinition.Super["JSON.Adaptor" Set isJSONAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
                 for sup=1:1:$l(classDefinition.Super,",") {  continue:$p(classDefinition.Super,",",sup)=""
                     Set tSuper = $p(classDefinition.Super,",",sup)
                     If $Find(tSuper,"%")=0,$Length(tSuper,".")=1,$Length(aClassName,".")>1 {
                         Set tSuper = $Piece(aClassName,".",1,*-1)_"."_tSuper
                     }
-                    Set tSC = ..GetClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,level+1)
+                    Set tSC = ..GetClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,level+1,.isJSONAdaptor)
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 }
             }

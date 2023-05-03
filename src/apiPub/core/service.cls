@@ -480,8 +480,10 @@ ClassMethod ErrorHandler(pRequest As apiPub.service.message, pResponse As apiPub
 	Set tMessage = $Select($$$ISERR(pStatusException.AsStatus()):$System.Status.GetOneErrorText(pStatusException.AsStatus()),1:"OK")
 	Set tErrorC = 500
 	Set tErrorCode = +$System.Status.GetErrorCodes(pStatusException.AsStatus())
-	If tErrorCode>=6200,tErrorCode<=6400 {
+	If $Find("6237 6251 6254 6255",tErrorCode) > 0 {
 		Set tMessage = $Replace(tMessage,"XML","JSON")
+	}
+	If tErrorCode>=6200,tErrorCode<=6400 {
 		Set tErrorC=400
 	}
 	Set tErrorL = $Locate(tMessage,"<[0-9]{3}>")

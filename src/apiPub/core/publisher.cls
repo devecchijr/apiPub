@@ -584,7 +584,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
         Set pMapTypes = pInternal.mapTypes
         Set pRequiredKeys = pInternal.requiredKeys
 		If pParentType="" {
-            Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo(pClassName,.tTimeChanged)
+            Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo(pClassName,.tTimeChanged,.tXMLAdapt,,,.tJsonAdapt)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             //Cached OAS Schemas
             Set tCachedOAS=##class(apiPub.service.cache).CacheIdxOpen(pClassName_"||sc"_pNestedMode)
@@ -593,16 +593,21 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
                 Set tCachedOAS.Key = pClassName_"||sc"_pNestedMode
             }
             If (tCachedOAS.DateTimeCtl="")||(tCachedOAS.DateTimeCtl'=tTimeChanged) {
-                Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
-                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 Set pSchema = {}
-                Set tMapTypes = ##class(apiPub.core.typeMapper).GetXSDMapTypes()
-                If pJSON.%Size()>0{
-                    Set prop = pJSON.%GetIterator()
-                    While prop.%GetNext(.key,.value) {
-                        If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
-                            Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
-                            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                 //TBF: schemaless json for now
+                If tJsonAdapt=1,tXMLAdapt=0 {
+                    Do ..s(pSchema,$Piece(pClassName,".",*)_".type","object")
+                } Else {
+                    Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
+                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                    Set tMapTypes = ##class(apiPub.core.typeMapper).GetXSDMapTypes()
+                    If pJSON.%Size()>0{
+                        Set prop = pJSON.%GetIterator()
+                        While prop.%GetNext(.key,.value) {
+                            If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
+                                Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
+                                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                            }
                         }
                     }
                 }
