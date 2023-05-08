@@ -1,15 +1,23 @@
 Class apiPub.core.irisMetadata Extends apiPub.core.jsonBuilder
 {
 
-/// To be finished
-ClassMethod SchemaFromJSONAdaptor(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject) As %Status
+ClassMethod JSONAdaptorSchema(pClassName As %String, Output pJSON As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
     Set tSC = $System.Status.OK()
-    Try
+    Try 
 	{
         If '$Data(pParams) Set pParams={}
+        If '$Data(pInternal) {
+            k pJSON
+            Set pTypeMap = ##class(apiPub.core.typeMapper).GetParamTypes()
+            Set pInternal={"level":0,"origClass":(pClassName),"typeMap":(pTypeMap)}
+        }
+        If '$Data(pJSON) Set pJSON={}
         Set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(pClassName)
         If '$isobject(classDefinition) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "invalid classname: "_pClassName))
+        Set pInputOrOutput = $Select(pParams.inputOrOutput'="":pParams.inputOrOutput,1:"")
+        Set pOrigClass = pInternal.%Get("origClass")
+        Set pTypeMap = pInternal.%Get("typeMap")
         Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:1)
         Set pPrintSchema = $Select(pParams.printSchema'="":pParams.printSchema,1:0)
         Set tSC = ##class(%JSON.Generator).GenerateMapping(pClassName,.jsonmap)
@@ -20,16 +28,44 @@ ClassMethod SchemaFromJSONAdaptor(pClassName As %String, Output pJSON As %Librar
             Set propDefinition=##class(%Dictionary.PropertyDefinition).%OpenId(pClassName_"||"_$List(tPropList,1))
             Set tInOut=$List(tPropList,3)          
             Set tPropName=$List(tPropList,4)
-            Set tType=$List(tPropList,9)
+            Set tType=$List(tPropList,9)_$ZConvert($Case($List(tPropList,7),"1":"OBJECT","2":"ID","3":"OID","4":"GUID",:""),"L")
+            If $find("|id|oid|guid|","|"_tType_"|")>0 Set tType="string"
             Set tGroupType=$List(tPropList,10)
-            Set tRefType=$Case($List(tPropList,7),"1":"OBJECT","2":"ID","3":"OID","4":"GUID",:"")
             Set tClassName=$List(tPropList,11)
+            Set tStringJSONType=$Replace($Replace($ZConvert(tClassName,"L"),"library.",""),"stream.","")
+            Set tTypeMap = ..g(pTypeMap,tStringJSONType)
             Set tPropDesc=propDefinition.Description
             Set tMinLen = propDefinition.Parameters.GetAt("MINLEN")
             Set tMaxLen = propDefinition.Parameters.GetAt("MAXLEN")
-            w tPropName," ",tInOut," ",tType," ",tRefType," ",tGroupType," ",tClassName," ",tMinLen," ",tMaxLen," desc>>",tPropDesc,!
+            Set tValueList = propDefinition.Parameters.GetAt("VALUELIST")
+            Set tEnum=""
+            If tValueList'="" {
+                Set tEnum = []
+                For i = 1:1:$L(tValueList,",") {
+                    If $Piece(tValueList,",",i)'="" Do ..s(tEnum,"+",$Select(tType="string":$Piece(tValueList,",",i),1:+$Piece(tValueList,",",i)))
+                }
+            }
+            If (pInputOrOutput="")||(tInOut="inout")||((pInputOrOutput="I")&&(tInOut="inputonly"))||((pInputOrOutput="O")&&(tInOut="outputonly")) {
+                Do ..s(pJSON,pClassName_"^"_tPropName_"^type",tType,,"^")
+                If tGroupType'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^groupType",tGroupType,,"^")
+                If tClassName'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^className",tClassName,,"^")
+                If tMinLen'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^minLen",tMinLen,,"^")
+                If tMaxLen'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^maxLen",tMaxLen,,"^")
+                If tPropDesc'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^desc",tPropDesc,,"^")
+                If tTypeMap'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^typeMap",tTypeMap,,"^")
+                If tEnum'="" Do ..s(pJSON,pClassName_"^"_tPropName_"^enum",tEnum,,"^")
+            }
+            If tType="object",tClassName'="",..g(pJSON,tClassName,"^")="" {
+                Set tSC = ..JSONAdaptorSchema(tClassName,.pJSON,pParams,{"level":(pInternal.level+1),"origClass":(pOrigClass),"typeMap":(pTypeMap)})
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            }
             Set tIdx=$Order(jsonmap($lb(),tIdx))
         }
+        If pInternal.level=0,pPrintResults {
+            Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+            Do tFormatter.FormatToString(pJSON.%ToJSON(),.jsonString)
+            Write jsonString
+        }    
     }
 	Catch(e)
 	{

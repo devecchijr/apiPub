@@ -270,7 +270,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
                         } Else {
-                            Set tSC = ..GetOpenAPISchema($Piece(pvalue.%Get("paramType"),"|",1),.jsonResp,{"printResults":0,"nestedMode":(pNestedMode)})
+                            Set tSC = ..GetOpenAPISchema($Piece(pvalue.%Get("paramType"),"|",1),.jsonResp,{"printResults":0,"nestedMode":(pNestedMode),"inputOrOutput":""})
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             If (tSC),jsonResp.%Size()=0 {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
@@ -421,7 +421,7 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
                             }
                         } ElseIf pvalue.%Get("customObj")="" {
-                            Set tSC = ..GetOpenAPISchema($Piece(pvalue.%Get("paramType"),"|",1),.jsonResp,{"printResults":0,"nestedMode":(pNestedMode)})
+                            Set tSC = ..GetOpenAPISchema($Piece(pvalue.%Get("paramType"),"|",1),.jsonResp,{"printResults":0,"nestedMode":(pNestedMode),"inputOrOutput":""})
                             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             If (tSC),jsonResp.%Size()=0 {
                                 Set tParamType = $Select(tParamType="DynamicArray":"array", 1:"object")
@@ -559,7 +559,96 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
     Quit tSC
 }
 
-ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+ClassMethod GetOASchemaFromJSONAdapt(pClassName As %String, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try
+	{
+        //If not Defined The Params Set the Default Values
+        If '$Data(pParams) Set pParams={}
+        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
+        Set pInputOrOutput = $Select(pParams.inputOrOutput'="":pParams.inputOrOutput,1:"")
+        Set pNestedMode = $Select(pParams.nestedMode'="":pParams.nestedMode,1:0)
+        
+        //Internal Params
+        If '$Data(pParams) Set pParams={}
+        If '$Data(pInternal) {
+            k pSchema
+            Set pInternal={"level":"","origClass":(pClassName),"metaSchema":"","json":{},"parentKey":"","nestedParentKey":""}
+        }
+        If '$Data(pSchema) Set pSchema={}
+        Set pMetaSchema = pInternal.metaSchema
+        Set pJSON = pInternal.json
+        Set pLevel = pInternal.level
+        Set pParentKey= pInternal.parentKey
+        Set pNestedParentKey= pInternal.nestedParentKey
+        If pInternal.level="" {
+            Set tSC=##class(apiPub.core.irisMetadata).JSONAdaptorSchema(pClassName,.tMetaSchema,{"printResults":0,"inputOrOutput":(pInputOrOutput)})
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            If tMetaSchema.%Size()>0 {
+                Set tIt = tMetaSchema.%GetIterator()
+                Do tIt.%GetNext(.key,.value)
+                Set tSC=..GetOASchemaFromJSONAdapt(key,.pSchema,pParams,{"level":0,"json":(value),"origClass":(pClassName),"metaSchema":(tMetaSchema),"parentKey":($Piece(pClassName,".",*)),"nestedParentKey":(pClassName)})
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}               
+            }
+        }
+        If pLevel="",pPrintResults {
+            Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+            Do tFormatter.FormatToString(pSchema.%ToJSON(),.jsonString)
+            Write jsonString
+        } 
+        If pLevel'="",..g(pMetaSchema,"@circRef"_pDelim_pClassName,pDelim)=""{
+            Do ..s(pMetaSchema,"@circRef"_pDelim_pClassName,pNestedParentKey,,pDelim)
+            Do ..r(pSchema,$Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"$ref",pDelim)
+            Do ..s(pSchema,$Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"type","object",,pDelim)
+            While ..i(pJSON,"",.idx,.val,.it) {
+                Set tKey = $Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"properties"_pDelim_idx
+                Set tTypeMap = ..g(val,"typeMap")
+                Set tDesc = ..g(val,"desc")
+                If $Find(..g(val,"groupType"),"ListCollection")>0 {
+                    Do ..s(pSchema,tKey_pDelim_"type","array",,pDelim)
+                    Set tKey = tKey_pDelim_"items"
+                }
+                If $Find(..g(val,"groupType"),"ArrayCollection")>0 {
+                    Do ..s(pSchema,tKey_pDelim_"type","object",,pDelim)
+                    Set tKey = tKey_pDelim_"properties"_pDelim_"ArrKey"
+                }
+                If tDesc'="" Do ..s(pSchema,tKey_pDelim_"description",tDesc,,pDelim)
+                If (tTypeMap'="")||(..g(val,"type")="string") {
+                    //Primitive
+                    Set tType = $Piece(tTypeMap,"|",2)
+                    If tType="" Set tType=..g(val,"type")               
+                    Set tFormat = $Piece(tTypeMap,"|",3)
+                    If tType="integer",tFormat="" Set tFormat="int64"
+                    Do ..s(pSchema,tKey_pDelim_"type",tType,,pDelim)
+                    If ..g(val,"enum")'="" Do ..s(pSchema,tKey_pDelim_"enum",..g(val,"enum"),,pDelim)
+                    If tFormat'="" Do ..s(pSchema,tKey_pDelim_"format",tFormat,,pDelim)
+                    If ..g(val,"className")="%Library.Time" {
+                        Do ..s(pSchema,tKey_pDelim_"example","12:00:00Z",,pDelim)
+                    }
+                } Else {
+                    //Object Ref
+                    If pNestedMode=1,..g(pMetaSchema,"@circRef"_pDelim_..g(val,"className"),pDelim)'="" {
+                        Set tRefPath = $Replace(..g(pMetaSchema,"@circRef"_pDelim_..g(val,"className"),pDelim),"^","/")
+                    } Else {
+                        Set tRefPath = $Select(pNestedMode'=1:$Piece(..g(val,"className"),".",*),1:..g(val,"className"))
+                    }
+                    Do ..s(pSchema,tKey_pDelim_$Select($Find(..g(val,"groupType"),"ListCollection")>0:"allOf"_pDelim_"0"_pDelim,1:"")_"$ref","#/components/schemas/"_tRefPath,,pDelim)
+                    Set tSC=..GetOASchemaFromJSONAdapt(..g(val,"className"),.pSchema,pParams,{"level":(pLevel+1),"json":(..g(pMetaSchema,..g(val,"className"),pDelim)),"origClass":(pClassName),"metaSchema":(pMetaSchema),"parentKey":($Piece(..g(val,"className"),".",*)),"nestedParentKey":(tKey)})
+                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}               
+                }
+            }
+        }
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod GetOASchemaFromXMLAdapt(pClassName As %String, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
 {
 	Set tSC = $System.Status.OK()
 	Try
@@ -584,46 +673,25 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
         Set pMapTypes = pInternal.mapTypes
         Set pRequiredKeys = pInternal.requiredKeys
 		If pParentType="" {
-            Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo(pClassName,.tTimeChanged,.tXMLAdapt,,,.tJsonAdapt)
+            Set pSchema = {}
+            Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            //Cached OAS Schemas
-            Set tCachedOAS=##class(apiPub.service.cache).CacheIdxOpen(pClassName_"||sc"_pNestedMode)
-            If '$IsObject(tCachedOAS) {
-                Set tCachedOAS=##class(apiPub.service.cache).%New()
-                Set tCachedOAS.Key = pClassName_"||sc"_pNestedMode
-            }
-            If (tCachedOAS.DateTimeCtl="")||(tCachedOAS.DateTimeCtl'=tTimeChanged) {
-                Set pSchema = {}
-                 //TBF: schemaless json for now
-                If tJsonAdapt=1,tXMLAdapt=0 {
-                    Do ..s(pSchema,$Piece(pClassName,".",*)_".type","object")
-                } Else {
-                    Set tSC = ##class(apiPub.core.irisMetadata).ClassNameToXSD(pClassName,.pJSON,{"printResults":0})
-                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                    Set tMapTypes = ##class(apiPub.core.typeMapper).GetXSDMapTypes()
-                    If pJSON.%Size()>0{
-                        Set prop = pJSON.%GetIterator()
-                        While prop.%GetNext(.key,.value) {
-                            If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
-                                Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
-                                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-                            }
-                        }
+            Set tMapTypes = ##class(apiPub.core.typeMapper).GetXSDMapTypes()
+            If pJSON.%Size()>0{
+                Set prop = pJSON.%GetIterator()
+                While prop.%GetNext(.key,.value) {
+                    If $IsObject(value),value.%Get("proc")="",key'["ArrayOf" {
+                        Set tSC = ..GetOASchemaFromXMLAdapt(pClassName,.pSchema,pParams,{"parentKey":(key),"nestedParentKey":(key),"parentType":(key),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pJSON),"mapTypes":(tMapTypes),"json":(value),"requiredKeys":(pRequiredKeys)})
+                        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                     }
                 }
-                //nestedMode use complete className to avoid name conflict
-                If pNestedMode=1{
-                    Set prop = pSchema.%GetIterator()
-                    Do prop.%GetNext(.key,.value)
-                    Set pSchema={}
-                    Do ..s(pSchema,pClassName,value,,pDelim)
-                }
-                Set tCachedOAS.DateTimeCtl=tTimeChanged
-                Do pSchema.%ToJSON(tCachedOAS.Content)
-                Set tSC = tCachedOAS.%Save()
-                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-            } Else {
-                Set pSchema = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedOAS.Content)
+            }
+            //nestedMode use complete className to avoid name conflict
+            If pNestedMode=1{
+                Set prop = pSchema.%GetIterator()
+                Do prop.%GetNext(.key,.value)
+                Set pSchema={}
+                Do ..s(pSchema,pClassName,value,,pDelim)
             }
             If pPrintResults  {
                 Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
@@ -639,9 +707,9 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
                 Set tType = pOriginalJSON.%Get(tBasedOn).%Get("type")
                 If tType="" {
                     If (pNestedMode) {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn"))),"requiredKeys":(pRequiredKeys)})
+                        Set tSC = ..GetOASchemaFromXMLAdapt(pClassName,.pSchema,pParams,{"parentKey":(pParentKey),"nestedParentKey":(pNestedParentKey), "parentType":(pParentType),"level":(pLevel),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(pJSON.%Get("basedOn"))),"requiredKeys":(pRequiredKeys)})
                     } Else {
-                        Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn)),"requiredKeys":(pRequiredKeys)})
+                        Set tSC = ..GetOASchemaFromXMLAdapt(pClassName,.pSchema,pParams,{"parentKey":(tBasedOn),"nestedParentKey":(tBasedOn), "parentType":(tBasedOn),"level":(1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(pOriginalJSON.%Get(tBasedOn)),"requiredKeys":(pRequiredKeys)})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Do ..s(pSchema,pParentKey_pDelim_"allOf"_pDelim_"0"_pDelim_"$ref","#/components/schemas/"_tBasedOn,,pDelim)  
                         Set pParentKey=pParentKey_pDelim_"allOf"_pDelim_"1"
@@ -696,7 +764,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
                                 If tNested=0 Do ..s(pSchema,tKey_pDelim_"allOf[0]"_pDelim_"$ref","#/components/schemas/"_tType,,pDelim)
                                 If value.%Get("documentation")'="" Do ..s(pSchema,tKey_pDelim_"description",value.%Get("documentation"),,pDelim)
                                 If value.%Get("example")'="" Do ..s(pSchema,tKey_pDelim_"example",value.%Get("example"),,pDelim)
-                                Set tSC = ..GetOpenAPISchema(pClassName,.pSchema,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType),"requiredKeys":(pRequiredKeys)})
+                                Set tSC = ..GetOASchemaFromXMLAdapt(pClassName,.pSchema,pParams,{"parentKey":($Select((tNested=1):tKey,1:tType)),"nestedParentKey":(tNestedKey), "parentType":(tType),"level":(pLevel+1),"circRefCtrl":(pCircRefCtrl),"originalJSON":(pOriginalJSON),"mapTypes":(pMapTypes),"json":(tObjType),"requiredKeys":(pRequiredKeys)})
                                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                             } Else {
                                 Set tJSONType = $Piece(pMapTypes.%Get($ZConvert(tType,"L")),"|",2)
@@ -775,6 +843,56 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
                 }
 			}
 		}
+	}
+	Catch(e)
+	{
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
+ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.DynamicObject, pParams As %Library.DynamicObject, pInternal As %Library.DynamicObject) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try
+	{
+        //If not Defined The Params Set the Default Values
+        If '$Data(pParams) Set pParams={}
+        Set pDelim = $Select(pParams.keyDelimiter'="":pParams.keyDelimiter,1:"^") 
+        Set pPrintResults = $Select(pParams.printResults'="":pParams.printResults,1:0)
+        Do ..s(pParams,"printResults",0)
+        Set pNestedMode = $Select(pParams.nestedMode'="":pParams.nestedMode,1:0)
+        Set pAttributePrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
+        Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
+        Set pInputOrOutput = $Select(pParams.inputOrOutput'="":pParams.inputOrOutput,1:"")
+        Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo(pClassName,.tTimeChanged,.tXMLAdapt,,,.tJsonAdapt)
+        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        //Cached OAS Schemas
+        Set tCachedOAS=##class(apiPub.service.cache).CacheIdxOpen(pClassName_"||sc"_pNestedMode_$Select(pInputOrOutput'="":"||"_pInputOrOutput,1:""))
+        If '$IsObject(tCachedOAS) {
+            Set tCachedOAS=##class(apiPub.service.cache).%New()
+            Set tCachedOAS.Key = pClassName_"||sc"_pNestedMode_$Select(pInputOrOutput'="":"||"_pInputOrOutput,1:"")
+        }
+        If (tCachedOAS.DateTimeCtl="")||(tCachedOAS.DateTimeCtl'=tTimeChanged) {
+            If tJsonAdapt=1,tXMLAdapt=0 {
+                Set tSC = ..GetOASchemaFromJSONAdapt(pClassName,.pSchema,pParams)
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            } Else {
+                Set tSC = ..GetOASchemaFromXMLAdapt(pClassName,.pSchema,pParams)
+                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            }
+            Set tCachedOAS.DateTimeCtl=tTimeChanged
+            Do pSchema.%ToJSON(tCachedOAS.Content)
+            Set tSC = tCachedOAS.%Save()
+            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+        } Else {
+            Set pSchema = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedOAS.Content)
+        }
+        If pPrintResults  {
+            Set tFormatter = ##class(%JSON.Formatter).%New(),jsonString=""
+            Do tFormatter.FormatToString(pSchema.%ToJSON(),.jsonString)
+            Write jsonString,!
+        }
 	}
 	Catch(e)
 	{
