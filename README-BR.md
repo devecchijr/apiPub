@@ -137,7 +137,7 @@ http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/crud/_sp
 Se você já possui métodos web publicados (WebServices), você pode testar a sua publicação com Rest/JSON com OAS 3.0.
 ![](docResources/soapToOASRest.png)
 
-Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %XML.Adaptor. Desta maneira métodos web (Ex: SOAP) já construídos se tornam automaticamente compatíveis.
+Ao publicar métodos com tipos complexos é necessário que a classe do objeto seja uma subclasse de %JSON.Adaptor ou %XML.Adaptor. Desta maneira métodos web (Ex: SOAP) já construídos se tornam automaticamente compatíveis.
 
 ![](docResources/XMLAdaptorCompat.png)
 

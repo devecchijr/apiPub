@@ -139,7 +139,7 @@ http://localhost:52773/swagger-ui/index.html?url=http://localhost:52773/crud/_sp
 If you already have any [WebMethod] implemented, you can try this tool with the same code.
 ![](docResources/soapToOASRest.png)
 
-When publishing methods with complex types, the object class must be a subclass of %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
+When publishing methods with complex types, the object class must be a subclass of %JSON.Adaptor or %XML.Adaptor. This way, SOAP web methods already built automatically become compatible.
 
 ![](docResources/XMLAdaptorCompat.png)
 
