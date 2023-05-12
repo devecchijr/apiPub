@@ -11,11 +11,19 @@ In order to **improve this experience**, specification standards, such as the [O
 
 This personal [open source](https://en.wikipedia.org/wiki/Open_source) project has the main intention to automatically **publish RESTful API's** built with [Intersystems IRIS technology](https://www.intersystems.com/try-intersystems-iris-for-free/), in the simplest and fastest way possible, using the [Open API Specification](https://swagger.io/specification/) (OAS 3.0) standard.
 
+Iris apiPub uses the IRIS method specification, and automatically publishes it as a Rest API, allowing customization to make it as friendly as possible for the end user.
+
 It allows the user to focus mainly on the **implementation** and business rules of API’s (Web Methods), abstracting and automating other aspects related to **documentation, exposure, dispatching and monitoring** of services.
 
 This project also includes a full IRIS sample class ([apiPub.samples.api](/src/apiPub/samples/api.cls)), based on the official [Swagger Petstore sample](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1).
 
 ![](docResources/PetStore.gif)
+
+## How an IRIS method is published as a Rest API:
+
+The following table shows how all the method parameters types are mapped and project them to a Rest API:
+
+![](docResources/projectionMap.png)
 
 ## zpm Installation
 ```

@@ -11,12 +11,18 @@ Visando **melhorar esta experiência**, padrões de especificação, como o [Ope
 
 IRIS ApiPub é um projeto [Open Source](https://en.wikipedia.org/wiki/Open_source), de iniciativa pessoal, que tem como principal objetivo **publicar** automaticamente **API's RESTful** criadas com a tecnologia [Intersystems IRIS](https://www.intersystems.com/try-intersystems-iris-for-free/), da forma mais simples e rápida possível, utilizando o padrão [Open API Specification](https://swagger.io/specification/) (OAS) versão 3.0.  
 
+IRIS apiPub se utiliza da especificação de um método IRIS, e o publica automaticamente como uma API Rest, permitindo a customização para deixá-la o mais amigável possível para o usuário final.
+
 Ele permite que o usuário foque principalmente na **implementação** das API’s (Web Methods), automatizando os demais aspectos relacionados a **documentação, exposição, execução e monitoramento** dos serviços.
 
 Este projeto também inclui uma implementação de exemplo completa ([apiPub.samples.api](/src/apiPub/samples/api.cls)) do *sample* [Swagger Petstore](https://app.swaggerhub.com/apis/Colon-Org/Swagger-PetStore-3.0/1.1), utilizado como *sample* oficial do [swagger](https://swagger.io/). 
 
 ![](docResources/PetStore.gif)
+## Como um método IRIS é publicado como uma API Rest:
 
+A tabela a seguir mostra como todos os tipos de parâmetros de método são mapeados e projetados para uma API Rest:
+
+![](docResources/projectionMap.png)
 ## Instalação usando o [zpm](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
 ```
 zpm "install iris-apipub"
