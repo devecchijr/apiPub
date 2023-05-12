@@ -874,7 +874,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
             Set tCachedOAS.Key = pClassName_"||sc"_pNestedMode_$Select(pInputOrOutput'="":"||"_pInputOrOutput,1:"")
         }
         If (tCachedOAS.DateTimeCtl="")||(tCachedOAS.DateTimeCtl'=tTimeChanged) {
-            If tJsonAdapt=1,tXMLAdapt=0 {
+            If tJsonAdapt=1 {
                 Set tSC = ..GetOASchemaFromJSONAdapt(pClassName,.pSchema,pParams)
                 If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             } Else {
