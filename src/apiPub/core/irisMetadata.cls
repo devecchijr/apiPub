@@ -476,11 +476,11 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                                     Do tParamObj.%Set("customSchemaName",tKey)
                                     Do tParamObj.%Set("parse",tParse)
                                 }
-                                If tParamObj.%Get("customSchemaName")="",tParamType="%Library.DynamicArray",("*&"'[tParamInOut)||(tParamInOut="") {
-                                    Do tParamObj.%Set("complexType",0)
-                                    Set tElType="%String"
-                                }                            
                             }
+                        }
+                        If tParamObj.%Get("customSchemaName")="",tParamType="%Library.DynamicArray",("*&"'[tParamInOut)||(tParamInOut="") {
+                            Do tParamObj.%Set("complexType",0)
+                            Set tElType="%String"                            
                         }
                         If tElType'="",tXmlAdaptor=0,tJSONAdaptor=0 {
                             Set tPMType = primitiveTypes.%Get($S($Length(tElType,".")>1:"%",1:"")_$ZConvert($Piece(tElType,".",*),"L"))
