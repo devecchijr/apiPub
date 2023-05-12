@@ -21,7 +21,7 @@ This project also includes a full IRIS sample class ([apiPub.samples.api](/src/a
 
 ## How an IRIS method is published as a Rest API:
 
-The following table shows how all the method parameters types are mapped and project them to a Rest API:
+The following table shows how all the method parameters types are mapped and projected to a Rest API:
 
 ![](docResources/projectionMap.png)
 
