@@ -729,12 +729,12 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
     While (..i(tProductionMethods,"",.idx,.val,.it)) {
         Set tSC = ..getClassDefInfo(..g(val,"class"),,,.isBusinessService,.isBusinessProcess,.isBusinessOperation)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
-        Set tSC = ..getClassDefInfo(..g(val,"inputType"),,.inputIsXMLAdaptor)
+        Set tSC = ..getClassDefInfo(..g(val,"inputType"),,.inputIsXMLAdaptor,,,,,.inputIsJSONAdaptor)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
-        Set tSC = ..getClassDefInfo(..g(val,"outputType"),,.outputIsXMLAdaptor)
+        Set tSC = ..getClassDefInfo(..g(val,"outputType"),,.outputIsXMLAdaptor,,,,,.outputIsJSONAdaptor)
         If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
         Set tMethodName = ..g(val,"method")_..normalizeCompName($Piece(..g(val,"component"),".",*-1,*))
-        If inputIsXMLAdaptor=1,isBusinessService=0,$Piece(..g(val,"inputType"),".",1)'="apiPub" {
+        If (inputIsXMLAdaptor=1||inputIsJSONAdaptor=1),isBusinessService=0,$Piece(..g(val,"inputType"),".",1,2)'="apiPub.service" {
             If ((..g(tAPIClass,"Method")="") || (..find(..g(tAPIClass,"Method"),"$ZCVT(..g(value,""_name""),""L"")=$ZCVT("""_tMethodName_""",""L"")")=-1)) {
                 Set tImpSync = tEsc_"    Set tSC = ..SendRequestSync("""_..g(val,"component")_""",pRequest,.tResponse)"_
                             tEsc_"    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)"_
@@ -753,7 +753,7 @@ ClassMethod publishApiFromProd(componentName As %String = "*", apiTitle As %Stri
                                 }
                             )
                         ),
-                        "FormalSpec":("pRequest:"_..g(val,"inputType")_$Select(outputIsXMLAdaptor=1:",*tSC:%Status",1:"")),
+                        "FormalSpec":("pRequest:"_..g(val,"inputType")_$Select((outputIsXMLAdaptor=1||outputIsJSONAdaptor=1):",*tSC:%Status",1:"")),
                         "ReturnType":($Select(outputIsXMLAdaptor=1:..g(val,"outputType"),1:"%Status")),
                         "WebMethod":"1",
                         "Implementation":($Select(outputIsXMLAdaptor=1:tImpSync,1:tImpAsync))
@@ -1109,13 +1109,13 @@ ClassMethod createApiWebApp(appPath As %String, oasAppPath As %String, moduleCla
 	Quit tSC
 }
 
-ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, Output isBusinessProcess, Output isBusinessOperation, Output isSOAPService, level = 0) As %Status
+ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Output isXMLAdaptor, Output isBusinessService, Output isBusinessProcess, Output isBusinessOperation, Output isSOAPService, Output isJSONAdaptor, level = 0) As %Status
 {
 	Set tSC = $System.Status.OK()
     Try
 	{
         If level=0 {
-            Set (isXMLAdaptor,isBusinessService,isBusinessProcess,isBusinessOperation,isSOAPService)=0
+            Set (isXMLAdaptor,isJSONAdaptor,isBusinessService,isBusinessProcess,isBusinessOperation,isSOAPService)=0
         }
         set classDefinition=##class(%Dictionary.ClassDefinition).%OpenId(aClassName)
         if ($isobject(classDefinition)) {
@@ -1123,6 +1123,7 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
             If +$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")>timeChanged Set timeChanged=+$TR($ZDatetime(classDefinition.TimeChanged,8,9)," :","")
             if classDefinition.Super'="" {
                 If isXMLAdaptor=0,classDefinition.Super["XML.Adaptor" Set isXMLAdaptor=1
+                If isJSONAdaptor=0,classDefinition.Super["JSON.Adaptor" Set isJSONAdaptor=1
                 If isBusinessService=0,classDefinition.Super["Ens.BusinessService" Set isBusinessService=1
                 If isBusinessProcess=0,classDefinition.Super["Ens.BusinessProcess" Set isBusinessProcess=1
                 If isBusinessOperation=0,classDefinition.Super["Ens.BusinessOperation" Set isBusinessOperation=1
@@ -1132,7 +1133,7 @@ ClassMethod getClassDefInfo(aClassName As %String = "", ByRef timeChanged, Outpu
                     If $Find(tSuper,"%")=0,$Length(tSuper,".")=1,$Length(aClassName,".")>1 {
                         Set tSuper = $Piece(aClassName,".",1,*-1)_"."_tSuper
                     }
-                    Set tSC = ..getClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,.isBusinessProcess,.isBusinessOperation,.isSOAPService,level+1)
+                    Set tSC = ..getClassDefInfo(tSuper,.timeChanged,.isXMLAdaptor,.isBusinessService,.isBusinessProcess,.isBusinessOperation,.isSOAPService,.isJSONAdaptor,level+1)
                     If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                 }
             }
