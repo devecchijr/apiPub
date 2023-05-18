@@ -600,6 +600,7 @@ ClassMethod GetOASchemaFromJSONAdapt(pClassName As %String, Output pSchema As %L
         } 
         If pLevel'="",..g(pMetaSchema,"@circRef"_pDelim_pClassName,pDelim)=""{
             Do ..s(pMetaSchema,"@circRef"_pDelim_pClassName,pNestedParentKey,,pDelim)
+            Do ..r(pSchema,$Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"allOf",pDelim)
             Do ..r(pSchema,$Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"$ref",pDelim)
             Do ..s(pSchema,$Select(pNestedMode'=1:pParentKey,1:pNestedParentKey)_pDelim_"type","object",,pDelim)
             While ..i(pJSON,"",.idx,.val,.it) {
