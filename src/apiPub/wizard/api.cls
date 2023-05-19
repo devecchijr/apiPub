@@ -1014,6 +1014,22 @@ ClassMethod getProductionMethods(interopComponents As %DynamicObject, componentN
                         }
                     }
                 }
+                Set xdataID=..g(val,"_ClassName")_"||BPL"
+                Set tXDataBPL=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
+                If $IsObject(tXDataBPL) {
+                    Set tSC = ##class(apiPub.core.converter).XMLToJSON(tXDataBPL.Data,{"list":{},"types":{},"circularRef":{}},.tJSONXDataBPL,{"printResults":0})  
+                    If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)
+                    If ..g(tJSONXDataBPL,"process._request")'="" {
+                        Do ..s(interopMethods,"+",{
+                            "component":(..g(val,"_Name")),
+                            "class":(..g(val,"_ClassName")),
+                            "method":("BPL"),
+                            "inputType":(..g(tJSONXDataBPL,"process._request")),
+                            "outputType":(..g(tJSONXDataBPL,"process._response"))
+                        })
+                    }
+                }
+
             }
         }
     }
@@ -1272,12 +1288,12 @@ ClassMethod getAPIPackage(apiClassName As %String, isSOAPService As %Boolean, mo
                 Set apiClass =  {
                             "_name":(apiClassName),
                             "ProcedureBlock":1,
-                            "Super":("apiPub.core.jsonBuilder"_$Select(interopApi=1:",Ens.BusinessService",1:"")),
                             "TimeChanged":($Now()),
                             "TimeCreated":($Now()),
                             "Method": [],
                             "XData": [(tXDataObj)]
                 }
+                If interopApi=1 Do ..s(apiClass,"Super","Ens.BusinessService")
                 Do ..s(apiPackage,"Export.Class.+",apiClass)
                 Do ..s(apiXData,"info",tInfo)
             } Else {
