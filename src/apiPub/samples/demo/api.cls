@@ -43,7 +43,7 @@ ClassMethod t03Division(pUser As %String, val1 As %Numeric, val2 As %Numeric) As
 }
 
 /// Iris objects schemas are also published.
-Method t04ObjectAsInputAndOutput(code As %Integer = 1, obj As apiPub.samples.demo.myObj) As apiPub.samples.demo.myObj [ WebMethod ]
+Method t04ObjectAsInputAndOutput(code As %Integer = 1, obj As apiPub.samples.demo.product) As apiPub.samples.demo.product [ WebMethod ]
 {
     Quit obj
 }
@@ -55,7 +55,7 @@ Method t05DynamicTypes(obj As %DynamicObject) As %DynamicObject [ WebMethod ]
 }
 
 /// One Input, Multiple outputs (under nodes)
-Method t06ManyOutputs(ByRef obj As apiPub.samples.demo.myObj) As %ListOfObjects(ELEMENTTYPE="apiPub.samples.demo.myObj") [ WebMethod ]
+Method t06ManyOutputs(ByRef obj As apiPub.samples.demo.product) As %ListOfObjects(ELEMENTTYPE="apiPub.samples.demo.myObj") [ WebMethod ]
 {
     Set tResponse = ##class(%ListOfObjects).%New()
     Do tResponse.Insert(obj)
@@ -64,7 +64,7 @@ Method t06ManyOutputs(ByRef obj As apiPub.samples.demo.myObj) As %ListOfObjects(
 }
 
 /// Multiple Inputs and Outputs (under nodes)
-Method t07ManyComplexInOut(obj1 As apiPub.samples.demo.myObj, ByRef obj2 As apiPub.samples.demo.myObj) As apiPub.samples.demo.myObj [ WebMethod ]
+Method t07ManyComplexInOut(obj1 As apiPub.samples.demo.product, ByRef obj2 As apiPub.samples.demo.product) As apiPub.samples.demo.product [ WebMethod ]
 {
     Quit obj1
 }
