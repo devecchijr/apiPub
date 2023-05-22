@@ -6,6 +6,9 @@ Property currencyAPIKey As %String;
 Parameter SETTINGS = "currencyAPIKey:Basic,";
 
 /// product update
+/// @apiPub[tag="product"]
+/// @apiPub[verb="post"]
+/// @apiPub[path="product"]
 ClassMethod updateProduct(pProduct As apiPub.samples.demo.product, Output tSC As %Status) As apiPub.samples.demo.product [ WebMethod ]
 {
     Set tSC = $$$OK
@@ -23,6 +26,9 @@ ClassMethod updateProduct(pProduct As apiPub.samples.demo.product, Output tSC As
 }
 
 /// get a product by code
+/// @apiPub[tag="product"]
+/// @apiPub[path="product/{productCode}"]
+/// @apiPub[params.pProdCode.name="productCode"]
 ClassMethod getProduct(pProdCode As %String) As apiPub.samples.demo.product [ WebMethod ]
 {
     Set tProd = ##class(apiPub.samples.demo.product).codeIdxOpen(pProdCode)
@@ -33,6 +39,10 @@ ClassMethod getProduct(pProdCode As %String) As apiPub.samples.demo.product [ We
 }
 
 /// product deletion
+/// @apiPub[tag="product"]
+/// @apiPub[verb="delete"]
+/// @apiPub[path="product/{productCode}"]
+/// @apiPub[params.pProdCode.name="productCode"]
 ClassMethod deleteProduct(pProdCode As %String) As %Status [ WebMethod ]
 {
     Set tProd = ..getProduct(pProdCode)
@@ -40,6 +50,9 @@ ClassMethod deleteProduct(pProdCode As %String) As %Status [ WebMethod ]
 }
 
 /// composite process (get a list of products with current price)
+/// @apiPub[tag="product"]
+/// @apiPub[verb="put"]
+/// @apiPub[path="product/list"]
 Method compositeProcess(pRequest As apiPub.samples.demo.productFilter, Output tSC As %Status) As apiPub.samples.demo.productList [ WebMethod ]
 {
     Set tSC = ..SendRequestSync("compositeProcess",pRequest,.tResponse)
@@ -47,6 +60,7 @@ Method compositeProcess(pRequest As apiPub.samples.demo.productFilter, Output tS
     Quit tResponse
 }
 
+/// @apiPub[tag="outbound test"]
 Method testCurrency(currencies As %String = "BRL,EUR") As %DynamicObject [ WebMethod ]
 {
     If $Get(^currencyApiKey,"")="" Set ^currencyApiKey = ..currencyAPIKey
@@ -65,6 +79,8 @@ Method testCurrency(currencies As %String = "BRL,EUR") As %DynamicObject [ WebMe
     Quit {}.%FromJSON(tResponse.Body)
 }
 
+/// @apiPub[tag="outbound test"]
+/// @apiPub[path="testSQL"]
 Method testFromSQL(pRequest As apiPub.samples.demo.productFilter, Output pResponse As apiPub.samples.demo.productList) As %Status [ WebMethod ]
 {
   Quit ..SendRequestSync("fromSql", pRequest, .pResponse)
