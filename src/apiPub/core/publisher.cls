@@ -866,6 +866,7 @@ ClassMethod GetOpenAPISchema(pClassName As %String, Output pSchema As %Library.D
         Set pAttributePrefix = $Select(pParams.attributePrefix'="":pParams.attributePrefix,1:"_")
         Set pCharsKey = $Select(pParams.charsKey'="":pParams.charsKey,1:"$value")
         Set pInputOrOutput = $Select(pParams.inputOrOutput'="":pParams.inputOrOutput,1:"")
+        Set tTimeChanged = ""
         Set tSC = ##class(apiPub.core.irisMetadata).GetClassDefInfo(pClassName,.tTimeChanged,.tXMLAdapt,,,.tJsonAdapt)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
         //Cached OAS Schemas
