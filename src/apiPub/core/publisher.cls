@@ -90,8 +90,19 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
         If mInfo.%Get("customSchemas")'="" {
             Do ..s(tSchemaDef,"components.schemas",mInfo.%Get("customSchemas"),,".")
         }
-        Set tMet = mInfo.%Get("methods").%GetIterator()
-        While tMet.%GetNext(.key,.value) {
+        //retro compatibility
+        If mInfo.%Get("methodsOrder")="" {
+            Do ..s(mInfo,"methodsOrder",[],,pDelim)
+            Set tMet = mInfo.%Get("methods").%GetIterator()
+            While tMet.%GetNext(.okey,.ovalue) {
+                Do ..s(mInfo,"methodsOrder"_pDelim_"+",okey,,pDelim)
+            }
+        }
+        Set tMedO = mInfo.%Get("methodsOrder").%GetIterator()
+        While tMedO.%GetNext(.okey,.ovalue) {
+            If ovalue="" continue
+            Set key = ovalue
+            Set value = mInfo.%Get("methods").%Get(key)
             Set (tTagDescription,tTagDocsDescription,tTagDocsUrl)=""
             If (pClassMethodOnly),'(value.%Get("classMethod")) Continue
             Set tOperationId = ..g(value,"customParams.operationId")
