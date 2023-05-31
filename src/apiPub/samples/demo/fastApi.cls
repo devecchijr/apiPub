@@ -3,8 +3,8 @@ Class apiPub.samples.demo.fastApi Extends Ens.BusinessService [ ProcedureBlock ]
 {
 
 /// creates or updates a product 
-/// @apiPub[tag="IRIS Objects (CRUD)"]
 /// @apiPub[path="product"]
+/// @apiPub[tag="IRIS Objects (CRUD)"]
 ClassMethod insertOrUpdateProduct(pProduct As apiPub.samples.demo.product, Output tSC As %Status) As apiPub.samples.demo.product [ WebMethod ]
 {
     Set tSC = $$$OK
@@ -47,16 +47,16 @@ ClassMethod deleteProduct(code As %String) As %Status [ WebMethod ]
 /// @apiPub[params.minStock.description="minimum stock quantity"]
 ClassMethod productsByStk(minStock As %Integer) As %ListOfObjects(ELEMENTTYPE="apiPub.samples.demo.product") [ WebMethod ]
 {
-  If minStock="" Set minStock = 0
-	Set sql = "SELECT ID FROM apiPub_samples_demo.product WHERE stockQty >= "_minStock
-  Set stat = ##class(%SQL.Statement).%New()
-	Set Status = stat.%Prepare(sql)
-	Set rset = stat.%Execute()
-  Set ret = ##class(%ListOfObjects).%New()
-	While rset.%Next() {
+    If minStock="" Set minStock = 0
+    Set sql = "SELECT ID FROM apiPub_samples_demo.product WHERE stockQty >= "_minStock
+    Set stat = ##class(%SQL.Statement).%New()
+    Set Status = stat.%Prepare(sql)
+    Set rset = stat.%Execute()
+    Set ret = ##class(%ListOfObjects).%New()
+    While rset.%Next() {
         Do ret.Insert(##class(apiPub.samples.demo.product).%OpenId(rset.ID))
-	}
-  Return ret
+    }
+    Return ret
 }
 
 /// shows products by range of price 
@@ -66,23 +66,23 @@ ClassMethod productsByStk(minStock As %Integer) As %ListOfObjects(ELEMENTTYPE="a
 /// @apiPub[response.schema="itemsByPrice"]
 ClassMethod productsByPriceRange(minPrice As %Numeric = 0.01, maxPrice As %Numeric = 99999999999.99) As %DynamicObject [ WebMethod ]
 {
-  Set list = []
-  If minPrice="" Set minPrice = 0
-  If maxPrice="" Set maxPrice = 99999999999
-	Set sql = "SELECT ID FROM apiPub_samples_demo.product WHERE price between "_minPrice_" and "_maxPrice
-  Set stat = ##class(%SQL.Statement).%New()
-	Set Status = stat.%Prepare(sql)
-	Set rset = stat.%Execute()
-  Set ret = ##class(%ListOfObjects).%New()
-	While rset.%Next() {
+    Set list = []
+    If minPrice="" Set minPrice = 0
+    If maxPrice="" Set maxPrice = 99999999999
+    Set sql = "SELECT ID FROM apiPub_samples_demo.product WHERE price between "_minPrice_" and "_maxPrice
+    Set stat = ##class(%SQL.Statement).%New()
+    Set Status = stat.%Prepare(sql)
+    Set rset = stat.%Execute()
+    Set ret = ##class(%ListOfObjects).%New()
+    While rset.%Next() {
         Set item = ##class(apiPub.samples.demo.product).%OpenId(rset.ID)
         Do list.%Push({
-          "code":(item.code),
-          "description":(item.description),
-          "price":(item.price)
+            "code":(item.code),
+            "description":(item.description),
+            "price":(item.price)
         })
-	}
-  Return list
+    }
+    Return list
 }
 
 /// gets a list of products with current price using a filter
@@ -111,6 +111,21 @@ ClassMethod division(user As %String, dividend As %Numeric, divider As %Numeric)
   Quit "Hello "_user_"! The division result is: "_(dividend/divider)
 }
 
+/// uploads a file (binary) or image (stream) 
+/// @apiPub[tag="Helper (Streams)"]
+/// @apiPub[path="/file/{keyName}"]
+/// @apiPub[params.payload.inputType="application/octet-stream"]
+/// @apiPub[charset="ISO-8859-1"]
+ClassMethod saveFile(payload As %Stream.GlobalBinary, keyName As %String) As %Status [ WebMethod ]
+{
+    Set tFileName = ##class(%SYSTEM.Util).DataDirectory()_keyName
+    Set timg=##class(%Stream.FileBinary).%New()
+    Set tSC=timg.LinkToFile(tFileName)
+    Do timg.CopyFrom(payload)
+    Do timg.%Save()
+    Quit $$$OK
+}
+
 /// gets a file (binary) or image (stream)
 /// @apiPub[tag="Helper (Streams)"]
 /// @apiPub[path="/file/{keyName}"]
@@ -137,21 +152,6 @@ ClassMethod showImage(keyName As %String, httpReq As apiPub.service.message) As 
     Set tOutput=##class(%Stream.GlobalCharacter).%New()
     Do tOutput.Write("<img alt="""" src=""http://"_httpReq.GetHeaders("HTTP_HOST")_$Piece(httpReq.GetHeaders("REQUEST_URI"),"/",1,2)_"/file/"_keyName_"""/>")
     Quit tOutput
-}
-
-/// uploads a file (binary) or image (stream) 
-/// @apiPub[tag="Helper (Streams)"]
-/// @apiPub[path="/file/{keyName}"]
-/// @apiPub[params.payload.inputType="application/octet-stream"]
-/// @apiPub[charset="ISO-8859-1"]
-ClassMethod saveFile(payload As %Stream.GlobalBinary, keyName As %String) As %Status [ WebMethod ]
-{
-    Set tFileName = ##class(%SYSTEM.Util).DataDirectory()_keyName
-    Set timg=##class(%Stream.FileBinary).%New()
-    Set tSC=timg.LinkToFile(tFileName)
-    Do timg.CopyFrom(payload)
-    Do timg.%Save()
-    Quit $$$OK
 }
 
 /// Copy all properties to another object
