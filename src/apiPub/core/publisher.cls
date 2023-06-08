@@ -324,18 +324,18 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                 //nestedMode use complete className to avoid name conflict
                                 If (tParamType=skey)||($Piece(pvalue.%Get("paramType"),"|",1)=skey) {
                                     If (tSingleOutputObj) {
-                                        Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
-                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
+                                        Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
+                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
                                     } Else {
-                                        Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
-                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^allOf^0^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
+                                        Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
+                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^allOf^0^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
                                         If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"responses^*"_value.%Get("successfulCode")_"^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^xml^name",pvalue.%Get("paramName"),,"^")
                                     }
                                 }
                                 If ..g(tSchemaDef,"components^schemas^"_skey,"^")="" Do ..s(tSchemaDef,"components^schemas^"_skey,svalue,,"^")
-                                If (tParamType=skey),(tIsArray) {
-                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_skey_"^type","array",,"^")
-                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_skey_"^items^$ref","#/components/schemas/"_skey,,"^")
+                                If (tParamType=skey)||($Piece(pvalue.%Get("paramType"),"|",1)=skey),(tIsArray) {
+                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*)_"^type","array",,"^")
+                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*)_"^items^$ref","#/components/schemas/"_skey,,"^")
                                 }
                             }
                         }
@@ -503,14 +503,14 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                         Do ..s(tSchemaDef,tPathKey_"requestBody^required",tParamRequired,"boolean","^")
                                     }
                                     If (tSingleInputObj) {
-                                        Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
-                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
+                                        Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/json^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
+                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/xml^schema^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
                                         Do ..s(tSchemaDef,tPathKey_"requestBody^description","Body Request Content",,"^")
                                         If tCustomFlatParams.%Get("description")'="" Do ..s(tSchemaDef,tPathKey_"requestBody^description",tCustomFlatParams.%Get("description"),,"^")
                                         If tCustomFlatParams.%Get("required")'="" Do ..s(tSchemaDef,tPathKey_"requestBody^required",tCustomFlatParams.%Get("required"),"boolean","^")
                                     } Else {
-                                        Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
-                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf",1:"")_skey,,"^")
+                                        Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
+                                        If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^$ref","#/components/schemas/"_$Select((tIsArray):"arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*),1:skey),,"^")
                                         If tCustomFlatParams.%Get("description")'="" {
                                             Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/json^schema^properties^"_pvalue.%Get("paramName")_"^description",tCustomFlatParams.%Get("description"),,"^")
                                             If (pIncludeXML) Do ..s(tSchemaDef,tPathKey_"requestBody^content^application/xml^schema^properties^"_pvalue.%Get("paramName")_"^description",tCustomFlatParams.%Get("description"),,"^")
@@ -522,9 +522,9 @@ ClassMethod GetOASFromClass(pClassName As %String, Output pJSON As %Library.Dyna
                                     }
                                 }
                                 If ..g(tSchemaDef,"components^schemas^"_skey,"^")="" Do ..s(tSchemaDef,"components^schemas^"_skey,svalue,,"^")
-                                If (tParamType=skey),(tIsArray) {
-                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_skey_"^type","array",,"^")
-                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_skey_"^items^$ref","#/components/schemas/"_skey,,"^")
+                                If (tParamType=skey)||($Piece(pvalue.%Get("paramType"),"|",1)=skey),(tIsArray) {
+                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*)_"^type","array",,"^")
+                                    Do ..s(tSchemaDef,"components^schemas^arrayOf"_$ZCVT($E(skey,1),"U")_$E(skey,2,*)_"^items^$ref","#/components/schemas/"_skey,,"^")
                                 }
                             }
                         }
