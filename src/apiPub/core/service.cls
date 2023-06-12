@@ -504,7 +504,7 @@ ClassMethod ErrorHandler(pRequest As apiPub.service.message, pResponse As apiPub
 	Set %response.Status = tErrorC_" "_$E(tMessage,1,46)
 	Do %response.SetHeader("iris-statuscode",$$$ISOK(pStatusException.AsStatus()))
 	Do %response.SetHeader("iris-statusmessage",tMessage)
-	Do %response.SetHeader("iris-errorCode",tErrorCode)
+	Do %response.SetHeader("iris-errorcode",tErrorCode)
 	Write pError.%ToJSON()
 	Set pSC = $$$OK
 }
