@@ -13,9 +13,11 @@ XData ProductionDefinition
   <Item Name="apiPub.tracer.bo" Category="" ClassName="apiPub.tracer.bo" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
   </Item>
   <Item Name="fromSql" Category="composite services" ClassName="apiPub.samples.demo.bo.fromSql" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-    <Setting Target="Adapter" Name="DSN">IRIS</Setting>
+    <Setting Target="Adapter" Name="DSN"></Setting>
     <Setting Target="Adapter" Name="JGService">JGService</Setting>
     <Setting Target="Adapter" Name="Credentials">SYSTEM</Setting>
+    <Setting Target="Adapter" Name="JDBCClasspath">jdbc:IRIS://localhost:1972/IRISAPP</Setting>
+    <Setting Target="Adapter" Name="JDBCDriver">com.intersystems.jdbc.IRISDriver</Setting>
   </Item>
   <Item Name="JGService" Category="" ClassName="EnsLib.JavaGateway.Service" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Host" Name="Port">44444</Setting>
