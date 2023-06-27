@@ -19,6 +19,9 @@ This project also includes a full IRIS sample class ([apiPub.samples.api](/src/a
 
 ![](docResources/PetStore.gif)
 
+### Demo Video:
+[![Fast Api Development](https://img.youtube.com/vi/IdJ1PqmhH3c/0.jpg)](http://www.youtube.com/watch?v=IdJ1PqmhH3c "Fast Api Development")
+
 ## How an IRIS method is published as a Rest API:
 
 The following table shows how all the method parameters types are mapped and projected to a Rest API:
