@@ -233,7 +233,7 @@ ClassMethod DirectMethodCall(pRequest As apiPub.service.message, Output pRespons
     Quit tSC
 }
 
-ClassMethod ToHttpCall(pRequest As apiPub.service.message, pRequestParams As %Library.DynamicObject, Output pResponse As apiPub.service.message) As %Status
+ClassMethod ToHttpCall(pRequest As apiPub.service.message, pRequestParams As %Library.DynamicObject, Output pResponse As apiPub.service.message, pTimeout As %Integer) As %Status
 {
     Set tSC = $$$OK 
     Try {
@@ -247,6 +247,7 @@ ClassMethod ToHttpCall(pRequest As apiPub.service.message, pRequestParams As %Li
 		}
         Set tSC = ..MsgRequestToHttpRequest(pRequest,pRequestParams,.tHttpRequest,.tURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
+		If $Data(pTimeout) Set tHttpRequest.Timeout = pTimeout
         Set tSC = $Method(tHttpRequest,pRequest.HttpVerb,tURL)
         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
         Set tSC = ..HttpResponseToMsgResponse(tURL,tHttpRequest,pRequest,.pResponse)
