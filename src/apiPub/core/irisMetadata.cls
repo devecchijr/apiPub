@@ -983,6 +983,9 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                                 Set tMetaKey = $Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^element",""),"^attribute",""),"^sequence",""),"^complexContent",""),"^simpleContent",""),"^extension","")_pDelim_tValue
                                 Set tKey = tKey_pDelim_tValue
                             }
+                            If pLevel > 1,tAtt="base" {
+                                Set tMetaKey = $Replace($Replace($Replace($Replace($Replace($Replace($Replace($Replace(tKey,"^element",""),"^attribute",""),"^sequence",""),"^complexContent",""),"^simpleContent",""),"^extension",""),"^simpleType",""),"^restriction","")
+                            }
                             Set tAtt=pNode.NextAttributeName(tAtt)
                         }
                         Set tAtt=pNode.FirstAttributeName()
@@ -991,7 +994,7 @@ ClassMethod XSDToJSON(pXmlStream As %AbstractStream, Output pJSON As %Library.Dy
                                 Set tValue = pNode.GetAttributeValue(tAtt)
                                 If tMetaKey'="" {
                                     Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_tAtt,$Piece(tValue,":",*),,pDelim)
-                                    If tAtt = "type",$find(tValue,":")>0 {
+                                    If ((tAtt = "type")||(tAtt = "base")),$find(tValue,":")>0 {
                                         If tKey["^attribute^" Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_"attribute",1,"boolean",pDelim)
                                         Set tSC = ..s(pInternal.xmlJSON,tMetaKey_pDelim_"namespace",$Piece(tValue,":",1),,pDelim)
                                     }
