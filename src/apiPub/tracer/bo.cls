@@ -42,6 +42,7 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
             If ..BasicAuthCredentials'="" {
                 Set tCred = ##class(Ens.Config.Credentials).%OpenId(..BasicAuthCredentials)
                 If $IsObject(tCred) {
+                    Set:pRequest.Headers="" pRequest.Headers = "{}"
                     Set tReq = {}.%FromJSON(pRequest.Headers)
                     Do ##class(apiPub.core.jsonBuilder).s(tReq,"Authorization","Basic "_$SYSTEM.Encryption.Base64Encode(tCred.GetValue(..BasicAuthCredentials,"Username")_":"_tCred.PasswordGet()))
                     Set pRequest.Headers=tReq.%ToJSON()
