@@ -26,6 +26,10 @@ A tabela a seguir mostra como todos os tipos de parâmetros de método são mape
 
 ![](docResources/projectionMap.png)
 ## Instalação usando o [zpm](https://openexchange.intersystems.com/package/ObjectScript-Package-Manager)
+Importante: É obrigatória a escolha do namespace que se deseja utilizar antes da instalação. 
+```
+zn "{namespace}"
+```
 ```
 zpm "install iris-apipub"
 ```

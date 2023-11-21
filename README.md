@@ -29,6 +29,12 @@ The following table shows how all the method parameters types are mapped and pro
 ![](docResources/projectionMap.png)
 
 ## zpm Installation
+
+Important: It's mandatory to switch to the namespace you want to use before installation. 
+```
+zn "{namespace}"
+```
+
 ```
 zpm "install iris-apipub"
 ```
