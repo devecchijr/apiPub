@@ -50,29 +50,12 @@ Parameter APIDomain = "apiPub";
 /// 1 for basic or 2 for bearer token
 Parameter AuthMethod = 1;
 
-/// Secret key for Bearer JWT Authorization 
-Parameter AuthSecretKey = "secret_this_should_be_longer";
+/// If AuthMethod = 2, default (validateAuthorization) method validates using this Oauth Client Id
+/// You can overload this method also
+Parameter OAuthClient;
 
-/// Issuer for JWT Authorization payload
-Parameter AuthTokenIssuer = "issuer";
-
-/// Audience for JWT Authorization payload
-Parameter AuthTokenAudience = "audience";
-
-/// Seconds for JWT expiration (1 hour = 3600 sec)
-Parameter AuthTokenExpirationTime = 3600;
-
-/// Encription Salt for Custom Pwd validation
-Parameter EncryptSalt = "salt";
-
-/// Encription BitLen for Custom Pwd validation
-Parameter EncryptBitLen = 256;
-
-/// Encription KeyLen for Custom Pwd validation
-Parameter EncryptKeyLen = 32;
-
-/// Encription Iterations for Custom Pwd validation
-Parameter EncryptIterations = 1000;
+/// Show bearer token if traceable = 1 and AuthMethod = 2
+Parameter DecodeBearerToken = 0;
 
 /// Middleware Request Handler
 ClassMethod RequestHandler(pRequest As apiPub.service.message, pStatus As %Status) As %Status
@@ -387,91 +370,15 @@ ClassMethod MsgResponseToHttpResponse(pResponse As apiPub.service.message) As %S
 	Quit tSC
 }
 
-/// validade all apis with a bearer token (ApiPub) but protected="false" or "public"="true"
-ClassMethod validateAuthorization(pRequest As apiPub.service.message, Output payload, Output header) As apiPub.service.message
+/// overload this method to validade the bearer token (ex: Oath 2.0)
+/// validade all apis with a bearer token (ApiPub) if protected param not 0
+ClassMethod validateAuthorization(pRequest As apiPub.service.message) As apiPub.service.message
 {
-    Set tBearer = $Piece(pRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
-    If '(..verifyJWTSig(tBearer,,.payload,.header)) {
+	Set tBearer = $Piece(pRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
+	If ..#OAuthClient'="",'(##class(%SYS.OAuth2.Validation).ValidateJWT(..#OAuthClient, tBearer, "", "", .tJsonObj,.tSecurityParams, .tValidateStatus)) {
         Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
     }
-    If payload.%Get("exp")-$ZDATETIME($NOW(),-2)<0 Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
     Quit pRequest
-}
-
-/// Validate Encripted client Password with server password
-/// This method uses PBKDF2 algoritm
-/// 
-/// example client Javascript implementation:   
-/// 
-/// import  * as CryptoJS from "crypto-js";
-/// 
-/// const criptoPBKDF2 = CryptoJS.PBKDF2(password, 'salt', { keySize: 256 / 32, iterations: 1001, hasher: CryptoJS.algo.SHA256 });
-/// const criptoPwdB64 = criptoPBKDF2.toString(CryptoJS.enc.Base64)
-ClassMethod validatePassword(encriptedClientPwd As %String, serverPwd) As %Boolean
-{
-   Set tEncriptedPwd = $SYSTEM.Encryption.Base64Encode(##class(%SYSTEM.Encryption).PBKDF2(serverPwd,..#EncryptIterations,..#EncryptSalt,..#EncryptKeyLen,..#EncryptBitLen))
-   Quit tEncriptedPwd=encriptedClientPwd
-}
-
-/// Issue a Web Token. CustomPayload is not required
-ClassMethod getJWT(customPayload As %Library.DynamicObject, sharedKey As %String, header As %Library.DynamicObject) As %String
-{
-    If '$Data(customPayload) Set customPayload={}
-    If '$Data(header) {
-        Set header={
-            "alg": "HS256",
-            "typ": "JWT"
-        }
-    }
-	If ('$Data(sharedKey))||(sharedKey="") {
-		Set sharedKey=..#AuthSecretKey
-	}
-	//standard properties
-    Set stdPayload = {
-        "iss":(..#AuthTokenIssuer),
-        "aud":(..#AuthTokenAudience),
-        "iat": ($ZDATETIME($NOW(),-2)),
-        "exp": ($ZDATETIME($NOW(),-2)+..#AuthTokenExpirationTime)
-    }
-	//merge custom and standard payload properties
-	Set tSC = ..JSONAppend(customPayload,stdPayload)
-    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-    If '$Data(sharedKey) Set sharedKey=""
-    Set tHeader=header.%ToJSON()
-    Set tHeader=$zcvt(tHeader,"O","UTF8")
-    Set b64header=$$$BASE64URLENCODE(tHeader)
-    Set sharedKey=$$$BASE64URLDECODE(sharedKey)
-	Set tBody=stdPayload.%ToJSON()
-	Set tBody=$zcvt(tBody,"O","UTF8")
-	Set b64body=$$$BASE64URLENCODE(tBody)
-    Set sig=$SYSTEM.Encryption.HMACSHA(256,b64header_"."_b64body,sharedKey)
-    Set b64sig=$$$BASE64URLENCODE(sig)
-    Quit b64header_"."_b64body_"."_b64sig
-}
-
-/// check if it's a valid token signature
-ClassMethod verifyJWTSig(token As %String, sharedKey As %String, Output payload As %Library.DynamicObject, Output header As %Library.DynamicObject) As %Boolean
-{
-	Set tValid = 0
-	Try
-	{
-		If ('$Data(sharedKey))||(sharedKey="") {
-			Set sharedKey=$$$BASE64URLDECODE(..#AuthSecretKey)
-		} Else {
-			Set sharedKey=$$$BASE64URLDECODE(sharedKey)
-		}
-		If $LENGTH(token,".")'=3 Return 0
-		Set b64header = $Piece(token,".",1)
-		Set header = {}.%FromJSON($$$BASE64URLDECODE(b64header))
-		Set b64body = $Piece(token,".",2)
-		Set payload = {}.%FromJSON($$$BASE64URLDECODE(b64body))
-		Set sig=$SYSTEM.Encryption.HMACSHA(256,b64header_"."_b64body,sharedKey)
-		Return ($$$BASE64URLENCODE(sig)=$Piece(token,".",3))
-	}
-	Catch(e)
-	{
-	}
-	Quit tValid
 }
 
 /// allow overload
@@ -621,14 +528,14 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 				Set tStrHeaders = tHeaders.%ToJSON()
 			}
 			Set pRestRequest.Headers = tStrHeaders
-			If ..#AuthMethod=2,$zConvert($Piece(pRestRequest.GetHeaders("HTTP_AUTHORIZATION")," ",1),"L")="bearer" {
+			If ..#DecodeBearerToken=1,((..#Traceable)||pRestRequest.Trace=1),..#AuthMethod=2,$zConvert($Piece(pRestRequest.GetHeaders("HTTP_AUTHORIZATION")," ",1),"L")="bearer" {
     			Set token = $Piece(pRestRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
 				Try {
 					Set b64header = $Piece(token,".",1)
 					Set tAuthHeader = {}.%FromJSON($$$BASE64URLDECODE(b64header))
 					Set b64body = $Piece(token,".",2)
 					Set tAuthPayload = {}.%FromJSON($$$BASE64URLDECODE(b64body))
-					If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
+					If ($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))) {
 						Set tFormatter = ##class(%JSON.Formatter).%New()
 						Do tFormatter.FormatToString(tAuthHeader.%ToJSON(),.tStrAuthHeader) 
 						Do tFormatter.FormatToString(tAuthPayload.%ToJSON(),.tStrAuthPayload) 
