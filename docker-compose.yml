@@ -4,6 +4,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+    hostname: "api-pub"
+    container_name: "api-pub"
     restart: "no"
     command: --check-caps false
     ports: 
