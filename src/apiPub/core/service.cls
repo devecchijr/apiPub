@@ -51,7 +51,7 @@ Parameter APIDomain = "apiPub";
 Parameter AuthMethod = 1;
 
 /// If AuthMethod = 2, default (validateAuthorization) method validates using this Oauth Client Id
-/// You can overload this method also
+/// You can also overload this method 
 Parameter OAuthClient;
 
 /// Show bearer token if traceable = 1 and AuthMethod = 2
@@ -370,14 +370,33 @@ ClassMethod MsgResponseToHttpResponse(pResponse As apiPub.service.message) As %S
 	Quit tSC
 }
 
-/// overload this method to validade the bearer token (ex: Oath 2.0)
-/// validade all apis with a bearer token (ApiPub) if protected param not 0
+/// overload this method to validade the bearer token (ex: Oath 2.0).
+/// validade all apis with a bearer token (ApiPub) if protected param not 0.
+/// this method validates the requested URL against aud token property.
 ClassMethod validateAuthorization(pRequest As apiPub.service.message) As apiPub.service.message
 {
-	Set tBearer = $Piece(pRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
-	If ..#OAuthClient'="",'(##class(%SYS.OAuth2.Validation).ValidateJWT(..#OAuthClient, tBearer, "", "", .tJsonObj,.tSecurityParams, .tValidateStatus)) {
-        Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
-    }
+	If ..#OAuthClient'="" {
+		Set tBearer = $Piece(pRequest.GetHeaders("HTTP_AUTHORIZATION")," ",2,*)
+		Set tRequestUrl = pRequest.RequestURL
+		Set tValidToken = ##class(%SYS.OAuth2.Validation).ValidateJWT(..#OAuthClient, tBearer, "", "", .tJsonObj,.tSecurityParams, .tValidateStatus)
+		Set tFind = 0
+		If '(tValidToken) {
+			Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
+		} ElseIf ..g(tJsonObj,"aud")'="" {
+			Set tAud = ..g(tJsonObj,"aud")
+			If $IsObject(tAud) {
+				Set tFind = 0
+				While (..i(tAud,,.tIdx,.tVal,.tIt))
+				{
+					If (tFind) Continue
+					Set tFind = ($Find($ZConvert(tRequestUrl,"L"),$ZConvert(tVal,"L"))>0)
+				}
+			} Else {
+				Set tFind = ($Find($ZConvert(tRequestUrl,"L"),$ZConvert(tAud,"L"))>0)
+			}
+			If '(tFind) Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError,"<401> invalid Auth token"))
+		}
+	}
     Quit pRequest
 }
 
@@ -673,12 +692,14 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         Set pTargetBaseURL = $Select(pParams.targetBaseURL'="":pParams.targetBaseURL,1:"")
         Set pHTTPS = $Select(pParams.https'="":pParams.https,1:0)
         Set pSSL = $Select(pParams.ssl'="":pParams.ssl,1:"")
+        Set pSSLCheckServerIdentity = $Select(pParams.sslCheckServerIdentity'="":pParams.sslCheckServerIdentity,1:1)
         Set pReservedOutboundParams = $Select(pParams.reservedOutboundParams'="":pParams.reservedOutboundParams,1:"")
         Set pHeaders = $Select(pParams.headers'="":pParams.headers,1:"")
         Set tURL = ""
         Set pHttpRequest = ##class(%Net.HttpRequest).%New()
         Set pHttpRequest.Https = pHTTPS
         Set pHttpRequest.SSLConfiguration = pSSL
+		Set pHttpRequest.SSLCheckServerIdentity = pSSLCheckServerIdentity
 		Set tJSONHeaders = {}
         If $Length(pMessageRequest.Headers)>0 Set tJSONHeaders = {}.%FromJSON(pMessageRequest.Headers)
 		If pMessageRequest.ContentType'="" {
