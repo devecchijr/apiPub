@@ -1,10 +1,12 @@
 {
     "objectscript.conn": {
-        "active": true,
-		"host": "localhost",
-		"port": 52773,
+		"active": true,
 		"username": "_system",
 		"ns": "IRISAPP",
 		"password": "SYS",
-    }
+		"docker-compose": {
+			"service": "iris",
+			"internalPort": 52773
+		}
+	}
 }
