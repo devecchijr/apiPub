@@ -611,17 +611,14 @@ ClassMethod GetMethodInfo(pMethodKey As %String, Output pJSON As %Library.Dynami
                 If tVerb="" Set tVerb=$Select((pJSON.%Get("hasComplexParams"))||(pJSON.%Get("requestContentType")'=""):"Post",1:"Get")
                 Do pJSON.%Set("verb",tVerb)
 
-                // Save Cached data
+                // Save Cached specs
                 Set tCachedSpec.DateTimeCtl=tTimeChanged
                 Do pJSON.%ToJSON(tCachedSpec.Content)
-                Set tSC = tCachedSpec.%Save()
-                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
-
+                Try {Do tCachedSpec.%Save()} Catch {}
                 // Save Cached schemas
                 Set tCachedSchemas.DateTimeCtl=tTimeChanged
                 Do pSchemas.%ToJSON(tCachedSchemas.Content)
-                Set tSC = tCachedSchemas.%Save()
-                If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                Try {Do tCachedSchemas.%Save()} Catch {}
             }
         } Else {
             //Get cached data
@@ -809,8 +806,7 @@ ClassMethod GetCachedCustomPaths(pClassName As %String, Output pJSON As %Library
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
             Set tCachedRoutes.DateTimeCtl=tTimeChanged
             Do pJSON.%ToJSON(tCachedRoutes.Content)
-            Set tSC = tCachedRoutes.%Save()
-            If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+            Try {Do tCachedRoutes.%Save()} Catch {}
         } Else {
             Set pJSON = ##class(%Library.DynamicObject).%New().%FromJSON(tCachedRoutes.Content)
         }
