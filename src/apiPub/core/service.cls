@@ -739,9 +739,12 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
 			Do pHttpRequest.EntityBody.Write(pMessageRequest.Body.Read())
 		}
 		If pTargetBaseURL="" Set pTargetBaseURL = pMessageRequest.TargetBaseURL
-        Set pHttpRequest.Server = $Select($Find(pTargetBaseURL,":")>0:$Piece(pTargetBaseURL,":",*-1),1:pTargetBaseURL)
-		If $Find(pTargetBaseURL,":")>0 Set pHttpRequest.Port = $Piece(pTargetBaseURL,":",*)
-        Set tURL = tAPIPath
+        Set pHttpRequest.Server = $PIECE($PIECE(pTargetBaseURL,":",1),"/",1)
+		//Set pHttpRequest.Server = $Select($Find(pTargetBaseURL,":")>0:$Piece(pTargetBaseURL,":",*-1),1:pTargetBaseURL)
+        Set pHttpRequest.Port = $SELECT($FIND(pTargetBaseURL,":")>0:$PIECE($PIECE(pTargetBaseURL,":",2),"/",1),1:pHttpRequest.Port)
+		//If $Find(pTargetBaseURL,":")>0 Set pHttpRequest.Port = $Piece(pTargetBaseURL,":",*)
+		Set tURL = $SELECT($PIECE(pTargetBaseURL,"/",2,*)'="":"/"_$PIECE(pTargetBaseURL,"/",2,*),1:"")_tAPIPath
+        //Set tURL = tAPIPath
     }
     Catch(e) {
 		Set tSC = e.AsStatus()
