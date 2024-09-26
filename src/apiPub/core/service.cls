@@ -597,7 +597,11 @@ ClassMethod HttpRequestToMsgRequest(pRequest As %CSP.Request, pParams As %Librar
 		Set pRestRequest.ServiceClass = $This
 		Set pRestRequest.HttpVerb = $ZConvert(tHeaders."REQUEST_METHOD","S")
 		Set pRestRequest.ContentType = tHeaders."CONTENT_TYPE"
-		Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"
+		If tHeaders."CACHE_URL"'="" {
+			Set pRestRequest.RequestURL = tHeaders."CACHE_URL"
+		} Else {
+			Set pRestRequest.RequestURL = tHeaders."REQUEST_SCHEME"_"://"_tHeaders."HTTP_HOST"_tHeaders."REQUEST_URI"
+		}
 		Set pRestRequest.CharSet = ..#CHARSET
 		If $IsObject(pRequest.Content),pRequest.Content.SizeGet()>0{
 			If ((..#Traceable)||pRestRequest.Trace=1),($IsObject(##class(%Dictionary.ClassDefinition).%OpenId("%JSON.Formatter"))),(pBeautifyJsonBodyRequest),$Find($ZConvert(pRestRequest.ContentType,"L"),"json") {
