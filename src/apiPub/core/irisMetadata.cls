@@ -144,7 +144,8 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.methodInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
                         Do ..s(pJSON,"methods"_pDelim_tMD.Name,methodInfo,,pDelim)
-                        Do ..s(pJSON,"methodsOrder"_pDelim_(tMD.SequenceNumber-1),tMD.Name,,pDelim)
+                        //Do ..s(pJSON,"methodsOrder"_pDelim_(tMD.SequenceNumber-1),tMD.Name,,pDelim)
+                        Do ..s(pJSON,"methodsOrder"_pDelim_"+",tMD.Name,,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
@@ -230,7 +231,9 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         Set tOperationId = mInfo.%Get("customParams").%Get("operationId")
                         Set tPath = tVerb_":/"_tMD.Name
                         If mInfo.%Get("customParams").%Get("path")'="" Set tPath = tVerb_":"_mInfo.%Get("customParams").%Get("path")
-                        If pJSON.%Get("paths").%Get(tPath)'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class "_pClassName))
+                        If pJSON.%Get("paths").%Get($Length(tPath,"/")_"##"_tPath)'="" {
+                           If pJSON.%Get("paths").%Get($Length(tPath,"/")_"##"_tPath).%Get("className")=pClassName Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Class "_pClassName))
+                        } 
                         //build non required paths
                         If mInfo.%Get("customParams").%Get("params")'="" {
                             Set tAuxPath = tPath
@@ -240,7 +243,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                                     Set tAuxPath=$Replace(tAuxPath,"/{"_cpkey_"}","")
                                     Set tAuxPath=$Length(tAuxPath,"/")_"##"_$Piece(tAuxPath,":",1)_":"_$Piece(tAuxPath,":",2,*)
                                     If ..g(pJSON,"paths"_"^"_tAuxPath_"^methodName","^")'="" Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Method "_tMD.Name))
-                                    Do pJSON.%Get("paths").%Set(tAuxPath,{"methodName":(tMD.Name)})
+                                    Do pJSON.%Get("paths").%Set(tAuxPath,{"className":(pClassName), "methodName":(tMD.Name)})
                                     If tOperationId'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("operationId",tOperationId)
                                     If tProtected'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("protected",tProtected)
                                     If tTrace'="" Do pJSON.%Get("paths").%Get(tAuxPath).%Set("trace",tTrace)
@@ -249,7 +252,7 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
                         }
                         Set tPath = $Length(tPath,"/")_"##"_$Piece(tPath,":",1)_":"_$Piece(tPath,":",2,*)
                         If tOperationId'="",..g(pJSON,"paths"_"^"_tPath_"^operationId","^")=tOperationId Throw ##Class(%Exception.StatusException).CreateFromStatus($$$ERROR($$$GeneralError, "duplicated Path on Method "_tMD.Name))
-                        Do pJSON.%Get("paths").%Set(tPath,{"methodName":(tMD.Name)})
+                        Do pJSON.%Get("paths").%Set(tPath,{"className":(pClassName), "methodName":(tMD.Name)})
                         If tOperationId'="" Do pJSON.%Get("paths").%Get(tPath).%Set("operationId",tOperationId)
                         If tProtected'="" Do pJSON.%Get("paths").%Get(tPath).%Set("protected",tProtected)
                         If tTrace'="" Do pJSON.%Get("paths").%Get(tPath).%Set("trace",tTrace)
