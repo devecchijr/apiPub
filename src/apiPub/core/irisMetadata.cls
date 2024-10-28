@@ -140,12 +140,12 @@ ClassMethod GetMethodsInfo(pClassName As %String, pMethodName As %String, ByRef 
                         Set tMD=tCD.Methods.GetNext(.key)
                         Continue
                     }
-                    If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private),..g(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" {
+                    If (tMD.WebMethod),'(tMD.Internal),'(tMD.Private) {
                         Set tSC = ..GetMethodInfo(pClassName_"||"_tMD.Name,.methodInfo,{"printResults":0})
                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                        If ..g(pJSON,"methods"_pDelim_tMD.Name,pDelim)="" Do ..s(pJSON,"methodsOrder"_pDelim_"+",tMD.Name,,pDelim)
+                        If ..g(pJSON,"methods"_pDelim_tMD.Name,pDelim)'="" Do ..r(pJSON,"methods"_pDelim_tMD.Name,pDelim)
                         Do ..s(pJSON,"methods"_pDelim_tMD.Name,methodInfo,,pDelim)
-                        //Do ..s(pJSON,"methodsOrder"_pDelim_(tMD.SequenceNumber-1),tMD.Name,,pDelim)
-                        Do ..s(pJSON,"methodsOrder"_pDelim_"+",tMD.Name,,pDelim)
                     }
                     Set tMD=tCD.Methods.GetNext(.key)
                 } 
