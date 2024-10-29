@@ -209,13 +209,17 @@ ClassMethod GetCustomPaths(pClassName As %String, Output pJSON As %Library.Dynam
         Set pOrigClass = pInternal.%Get("origClass")
         Set tCD=##class(%Dictionary.ClassDefinition).%OpenId(pClassName)
         If pInternal.level=0 {
-            Set pJSON={"paths":{}}
+            Set pJSON={"paths":{},"classes":{}}
         }
         If $IsObject(tCD) {
             If tCD.Super'="" {
                 For sup=1:1:$l(tCD.Super,",") {  Continue:$p(tCD.Super,",",sup)=""
-                    Set tSC = ..GetCustomPaths($Piece(tCD.Super,",",sup),.pJSON,pParams,{"level":(pInternal.level+1),"origClass":(pOrigClass)})
-                    If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                    //avoid duplicity for super classes reading
+                    If pJSON.%Get("classes").%Get($Piece(tCD.Super,",",sup))="" {
+                        Set tSC = ..GetCustomPaths($Piece(tCD.Super,",",sup),.pJSON,pParams,{"level":(pInternal.level+1),"origClass":(pOrigClass)})
+                        If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC)}
+                        Do pJSON.%Get("classes").%Set($Piece(tCD.Super,",",sup),1)
+                    }
                 }
             }
             If (tCD.Methods.Count()>0) {
