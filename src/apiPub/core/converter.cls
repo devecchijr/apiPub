@@ -311,7 +311,6 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
             Set pNode = pXMLDoc.GetDocumentElement()
 			Set tSC = ..XMLToJSON(pXmlStream,pXSDInfo,.pJSON,pParams,pInternal,pNode)
             If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-            
             Set pInternal={"parentNameKey":"","parentKey":"","level":0,"arrayCtrlIdx":(pInternal.arrayCtrlIdx),"arrayCtrlName":(pInternal.arrayCtrlName),"xmlJSON":{}, "build":1}
             Set pNode = pXMLDoc.GetDocumentElement()
 			Set tSC = ..XMLToJSON(pXmlStream,pXSDInfo,.pJSON,pParams,pInternal,pNode)
@@ -354,9 +353,9 @@ ClassMethod XMLToJSON(pXmlStream As %AbstractStream, pXSDInfo As %Library.Dynami
                         }
                     }
                     If (tKey'="")&&(pBuild) {
-                        Set tIdx=pInternal.%Get("arrayCtrlName").%Get($Replace(tKey,"^0",""))
+                        Set tIdx=pInternal.%Get("arrayCtrlName").%Get($Replace($Replace(tKey,pGhostDelim_"0",""),"^0",""))
                         If tIdx'="" {
-                            Do pInternal.%Get("arrayCtrlName").%Set($Replace(tKey,"^0",""),tIdx+1)
+                            Do pInternal.%Get("arrayCtrlName").%Set($Replace($Replace(tKey,pGhostDelim_"0",""),"^0",""),tIdx+1)
                             If (pKeepElemOrder) {
                               Set tKey=tKey_pGhostDelim_tIdx
                             } Else {
