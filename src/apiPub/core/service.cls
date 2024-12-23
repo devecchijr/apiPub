@@ -701,6 +701,15 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
         Set pHeaders = $Select(pParams.headers'="":pParams.headers,1:"")
         Set tURL = ""
         Set pHttpRequest = ##class(%Net.HttpRequest).%New()
+		If pTargetBaseURL="" Set pTargetBaseURL = pMessageRequest.TargetBaseURL
+		If $Extract($ZConvert(pTargetBaseURL,"L"),1,8)="https://" {
+			Set pHTTPS = 1
+			If $Extract($ZConvert(pTargetBaseURL,"L"),1,8)="https://" Set pTargetBaseURL = $Extract(pTargetBaseURL,9,*)
+		}
+		If $Extract($ZConvert(pTargetBaseURL,"L"),1,7)="http://" {
+			Set pHTTPS = 0
+			If $Extract($ZConvert(pTargetBaseURL,"L"),1,7)="http://" Set pTargetBaseURL = $Extract(pTargetBaseURL,8,*)
+		}
         Set pHttpRequest.Https = pHTTPS
         Set pHttpRequest.SSLConfiguration = pSSL
 		Set pHttpRequest.SSLCheckServerIdentity = pSSLCheckServerIdentity
@@ -742,13 +751,9 @@ ClassMethod MsgRequestToHttpRequest(pMessageRequest As apiPub.service.message, p
 		While (pMessageRequest.Body.AtEnd=0) {
 			Do pHttpRequest.EntityBody.Write(pMessageRequest.Body.Read())
 		}
-		If pTargetBaseURL="" Set pTargetBaseURL = pMessageRequest.TargetBaseURL
         Set pHttpRequest.Server = $PIECE($PIECE(pTargetBaseURL,":",1),"/",1)
-		//Set pHttpRequest.Server = $Select($Find(pTargetBaseURL,":")>0:$Piece(pTargetBaseURL,":",*-1),1:pTargetBaseURL)
-        Set pHttpRequest.Port = $SELECT($FIND(pTargetBaseURL,":")>0:$PIECE($PIECE(pTargetBaseURL,":",2),"/",1),1:pHttpRequest.Port)
-		//If $Find(pTargetBaseURL,":")>0 Set pHttpRequest.Port = $Piece(pTargetBaseURL,":",*)
+	    Set pHttpRequest.Port = $SELECT($FIND(pTargetBaseURL,":")>0:$PIECE($PIECE(pTargetBaseURL,":",2),"/",1),1:pHttpRequest.Port)
 		Set tURL = $SELECT($PIECE(pTargetBaseURL,"/",2,*)'="":"/"_$PIECE(pTargetBaseURL,"/",2,*),1:"")_tAPIPath
-        //Set tURL = tAPIPath
     }
     Catch(e) {
 		Set tSC = e.AsStatus()

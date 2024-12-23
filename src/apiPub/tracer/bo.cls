@@ -17,7 +17,10 @@ Property Headers As %String(MAXLEN = 500);
 
 Property BasicAuthCredentials As %String [ InitialExpression = "None" ];
 
-Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig,BasicAuthCredentials:APIConfig:credentialsSelector";
+/// ex: if bearer token, create the credentials username as Bearer and the password as the token 
+Property OtherAuthCredentials As %String [ InitialExpression = "None" ];
+
+Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig,BasicAuthCredentials:APIConfig:credentialsSelector,OtherAuthCredentials:APIConfig:credentialsSelector";
 
 Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
@@ -45,6 +48,15 @@ Method BORouter(pRequest As apiPub.service.message, Output pResponse As apiPub.s
                     Set:pRequest.Headers="" pRequest.Headers = "{}"
                     Set tReq = {}.%FromJSON(pRequest.Headers)
                     Do ##class(apiPub.core.jsonBuilder).s(tReq,"Authorization","Basic "_$SYSTEM.Encryption.Base64Encode(tCred.GetValue(..BasicAuthCredentials,"Username")_":"_tCred.PasswordGet()))
+                    Set pRequest.Headers=tReq.%ToJSON()
+                }
+            }
+            If ..OtherAuthCredentials'="" {
+                Set tCred = ##class(Ens.Config.Credentials).%OpenId(..OtherAuthCredentials)
+                If $IsObject(tCred) {
+                    Set:pRequest.Headers="" pRequest.Headers = "{}"
+                    Set tReq = {}.%FromJSON(pRequest.Headers)
+                    Do ##class(apiPub.core.jsonBuilder).s(tReq,"Authorization",tCred.GetValue(..OtherAuthCredentials,"Username")_" "_tCred.PasswordGet())
                     Set pRequest.Headers=tReq.%ToJSON()
                 }
             }
