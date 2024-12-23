@@ -3,13 +3,23 @@ FROM $IMAGE
 
 USER root
 
+# Install dos2unix
+RUN apt-get update && apt-get install -y dos2unix
+
 WORKDIR /opt/irisapp
 RUN chown ${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} /opt/irisapp
-USER ${ISC_PACKAGE_MGRUSER}
 
 COPY  Installer.cls .
 COPY  src src
 COPY irissession.sh /
+
+# Convert files to Unix format as root
+RUN dos2unix Installer.cls
+RUN find src -type f -exec dos2unix {} \;
+RUN dos2unix /irissession.sh
+
+USER ${ISC_PACKAGE_MGRUSER}
+
 SHELL ["/irissession.sh"]
 
 RUN \
@@ -37,10 +47,11 @@ RUN \
   set sc = ##class(apiPub.tracer.production).Register() \
   w "apiPub.tracer.production registered ",sc,! \
   set ^Ens.AutoStart = "apiPub.tracer.production" \
-  set ^Ens.AutoStart("StartupPriority")	=	0 \
+  set ^Ens.AutoStart("StartupPriority") = 0 \
   w "apiPub.tracer.production auto-start defined ",sc,! \
   #zpm "install webterminal" \
   zpm "install swagger-ui" 
+
 # bringing the standard shell back
 SHELL ["/bin/bash", "-c"]
 CMD [ "-l", "/usr/irissys/mgr/messages.log" ]
