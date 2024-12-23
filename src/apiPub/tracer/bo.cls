@@ -15,10 +15,10 @@ Property ReservedOutboundParams As %String(MAXLEN = 250);
 
 Property Headers As %String(MAXLEN = 500);
 
-Property BasicAuthCredentials As %String [ InitialExpression = "None" ];
+Property BasicAuthCredentials As %String;
 
 /// ex: if bearer token, create the credentials username as Bearer and the password as the token 
-Property OtherAuthCredentials As %String [ InitialExpression = "None" ];
+Property OtherAuthCredentials As %String;
 
 Parameter SETTINGS = "DefaultForEmptyContentType:APIConfig,BeautifyJsonBodyResponse:APIConfig,TargetBaseURL:APIConfig,Headers:APIConfig,HTTPS:APIConfig,SSL:APIConfig,ReservedOutboundParams:APIConfig,BasicAuthCredentials:APIConfig:credentialsSelector,OtherAuthCredentials:APIConfig:credentialsSelector";
 
