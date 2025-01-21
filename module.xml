@@ -9,7 +9,7 @@
         <CopyrightDate>2020</CopyrightDate>
         <License>MIT</License>
       </Author>
-      <Version>1.1.80</Version>
+      <Version>1.1.81</Version>
       <Description>Publish RESTful API's built with Intersystems IRIS technology, in the simplest and fastest way possible, using the Open API Specification (OAS 3.0) standard.</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
@@ -21,10 +21,10 @@
             <Arg>1</Arg>
         </Invoke>      
       </Invokes>
-       <CSPApplication 
+       <WebApplication 
         Url="/crud"
         Recurse="1"
-        MatchRoles=":{$dbrole}"
+        MatchRoles=":{$globalsDbRole}"
         PasswordAuthEnabled="1"
         UnauthenticatedEnabled="0"
         DispatchClass="apiPub.samples.services"
