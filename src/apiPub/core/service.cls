@@ -69,6 +69,43 @@ ClassMethod ResponseHandler(pRequest As apiPub.service.message, pResponse As api
 	Quit pStatus
 }
 
+/// helper method for web application creation
+ClassMethod CreateApp(appPath As %String, apiClass As %String, moduleClass As %String) As %Status
+{
+	Set tSC = $System.Status.OK()
+	Try {
+		If 'appPath Return tSC
+		Set tAppPath = appPath
+		If $Find(tAppPath,":")>0 Set tAppPath = $Piece(tAppPath,":",2)
+        Set tCurrentNS = $namespace
+        Set tAppPath=$Replace(tAppPath,"{namespace}",tCurrentNS)
+        zn "%SYS" 
+        Set webName = tAppPath
+        Set webProperties("DispatchClass") = moduleClass
+        Set webProperties("NameSpace") = tCurrentNS
+        Set webProperties("Description") = apiClass_" API"
+        Set webProperties("Enabled") = 1 
+        Set webProperties("AutheEnabled") = 64
+        Set webProperties("DeepSeeEnabled")=1 
+        Set webProperties("CorsHeadersList")="*"
+        Set webProperties("CorsAllowlist")="*"
+        Set webProperties("MatchRoles")="%All:%All,:%All"
+        If '(##class(Security.Applications).Exists(webName)) {
+            Set tSC = ##class(Security.Applications).Create(webName, .webProperties)
+            If 'tSC Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) 
+            If tSC=1 {
+                Write !,"Creating "_tAppPath_" App ",webName,"..."
+            }
+        }
+        zn tCurrentNS
+    }
+	Catch(e) {
+        zn tCurrentNS
+		Set tSC = e.AsStatus()
+	}
+	Quit tSC
+}
+
 ClassMethod ServiceRouter(pRequest As apiPub.service.message, Output pResponse As apiPub.service.message) As %Status
 {
     Set tSC = $$$OK 
