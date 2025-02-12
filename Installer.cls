@@ -12,7 +12,7 @@ XData setup
       <Database Name="${Namespace}" Resource="%DB_${Namespace}" Dir="/opt/${app}/data" Create="yes"/>
     </Configuration>
     <Import File="${SourceDir}" Flags="ck" Recurse="1"/>
-    <WebApplication Url="/csp/${app}" Description="IRISAPP" Directory="${cspdir}${app}" ServeFiles="1" Recurse="1" MatchRoles=":%DB_${Namespace}" AuthenticationMethods="32" />
+    <CSPApplication Url="/csp/${app}" Description="IRISAPP" Directory="${cspdir}${app}" ServeFiles="1" Recurse="1" MatchRoles=":%DB_${Namespace}" AuthenticationMethods="32" />
   </Namespace>
 
 </Manifest>
