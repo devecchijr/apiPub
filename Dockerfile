@@ -50,7 +50,7 @@ RUN \
   set ^Ens.AutoStart("StartupPriority") = 0 \
   w "apiPub.tracer.production auto-start defined ",sc,! \
   #zpm "install webterminal" \
-  zpm "install swagger-ui" 
+  zpm "install swagger-ui 1.0.0" 
 
 # bringing the standard shell back
 SHELL ["/bin/bash", "-c"]
