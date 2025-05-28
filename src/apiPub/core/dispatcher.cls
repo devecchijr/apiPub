@@ -289,9 +289,9 @@ ClassMethod Dispatch(pRequest As apiPub.service.message, Output pResponse As api
                                     Set tJsonObj = {}
                                     // output conversion
                                     If value.%Get("jsonAdapt")=1 {
-                                        Set tSC = tVal.%JSONExportToStream(.tStream)
+                                        Set tSC = tVal.%JSONExportToStream(.tJSONStream)
                                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
-                                        Set tJsonObj = {}.%FromJSON(tStream)
+                                        Set tJsonObj = {}.%FromJSON(tJSONStream)
                                     } Else {
                                         Set tSC = ##Class(apiPub.core.converter).ObjToJSON(tVal,.tJsonObj,{"printResults":0})
                                         If 'tSC { Throw ##Class(%Exception.StatusException).CreateFromStatus(tSC) }
